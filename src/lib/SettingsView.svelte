@@ -4,7 +4,7 @@
   import type { Lang } from './i18n';
   import { api, errorText, type UiError } from './api';
   import { online, checkUpdate as checkUpdateShared } from './refresh.svelte.js';
-  import { REPO_URL, STAR_URL } from './links';
+  import { RELEASES_URL, REPO_URL, STAR_URL } from './links';
 
   interface Props {
     config: Config;
@@ -28,6 +28,7 @@
   let pollMs = $state(untrack(() => config.pollIntervalMs));
   let restorePointer = $state(untrack(() => config.restorePointerAfterLaunch));
   let downloadMirror = $state(untrack(() => config.downloadMirror ?? ''));
+  let theme = $state(untrack(() => (config.theme ?? 'system').trim() || 'system'));
 
   /** 实测可用的 GitHub 加速前缀（2026-11）；第三方服务随时会挂，所以只做快捷填充，不做默认值 */
   const MIRROR_PRESETS = ['https://gh-proxy.com/', 'https://ghproxy.net/'];
@@ -59,6 +60,7 @@
       timeoutSec !== config.launchTimeoutSec ||
       pollMs !== config.pollIntervalMs ||
       restorePointer !== config.restorePointerAfterLaunch ||
+      theme !== (config.theme ?? 'system') ||
       downloadMirror !== (config.downloadMirror ?? '')
   );
 
@@ -82,7 +84,8 @@
         launchTimeoutSec: timeoutSec,
         pollIntervalMs: pollMs,
         restorePointerAfterLaunch: restorePointer,
-        downloadMirror: downloadMirror.trim()
+        downloadMirror: downloadMirror.trim(),
+        theme
       });
     } catch (err) {
       error = errorText(err as UiError);
@@ -155,6 +158,25 @@
           English
         </button>
       </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">
+        <span>{t('settings.theme')}</span>
+        <span class="field-hint">{t('settings.themeHint')}</span>
+      </div>
+      <div class="inline">
+        <button class="btn ghost" class:active={theme === 'system'} onclick={() => (theme = 'system')}>
+          {t('settings.themeSystem')}
+        </button>
+        <button class="btn ghost" class:active={theme === 'light'} onclick={() => (theme = 'light')}>
+          {t('settings.themeLight')}
+        </button>
+        <button class="btn ghost" class:active={theme === 'dark'} onclick={() => (theme = 'dark')}>
+          {t('settings.themeDark')}
+        </button>
+      </div>
+      <span class="field-hint">{t('settings.themeApplyHint')}</span>
     </div>
   </section>
 
@@ -260,20 +282,20 @@
       <div class="field-hint warn">{t('settings.checkFailed', { reason: update.error })}</div>
     {:else if update}
       {#if update.hasUpdate}
-        <div class="inline">
-          <span class="field-hint">
-            {t('settings.updateAvailable', { latest: update.latest ?? '?' })}
-          </span>
-          {#if update.url}
-            <button class="btn tiny primary" onclick={() => update?.url && api.openUrl(update.url)}>
-              {t('settings.viewRelease')}
-            </button>
-          {/if}
+        <div class="field-hint">
+          {t('settings.updateAvailable', { latest: update.latest ?? '?' })}
         </div>
       {:else}
         <div class="field-hint">{t('settings.upToDate')}</div>
       {/if}
     {/if}
+
+    <div class="inline wrap">
+      <button class="btn ghost" onclick={() => api.openUrl(update?.url ?? RELEASES_URL)}>
+        {t('settings.browserDownload')}
+      </button>
+      <span class="field-hint warn">{t('settings.browserDownloadHint')}</span>
+    </div>
 
     <label class="check">
       <input type="checkbox" checked={autoCheck} onchange={(e) => toggleAutoCheck(e.currentTarget.checked)} />

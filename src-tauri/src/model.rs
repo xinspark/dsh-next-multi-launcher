@@ -37,6 +37,9 @@ pub struct Config {
     /// 不在代码里写死任何一家。
     #[serde(default)]
     pub download_mirror: String,
+    /// 主题：`system`（跟随系统）/ `light` / `dark`；空串等同 `system`。
+    #[serde(default)]
+    pub theme: String,
     /// 首次使用引导（老配置缺省 = 未完成）
     #[serde(default)]
     pub onboarding: OnboardingState,
@@ -54,6 +57,7 @@ impl Default for Config {
             poll_interval_ms: 500,
             restore_pointer_after_launch: true,
             download_mirror: String::new(),
+            theme: "system".to_string(),
             onboarding: OnboardingState::default(),
             last_pointer: None,
         }

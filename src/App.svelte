@@ -180,6 +180,22 @@
     unlisten?.();
   });
 
+  /**
+   * 主题：`system` 交给 CSS 的 `prefers-color-scheme`（tokens.css 里已有该分支），
+   * `light` / `dark` 用 `data-theme` 显式覆盖。空值等同 system。
+   */
+  function applyTheme(value: string | undefined) {
+    const el = document.documentElement;
+    const theme = (value ?? '').trim().toLowerCase();
+    if (theme === 'light' || theme === 'dark') el.dataset.theme = theme;
+    else delete el.dataset.theme;
+  }
+
+  // 配置一变就同步（保存设置后立即生效）
+  $effect(() => {
+    if (snapshot) applyTheme(snapshot.config.theme);
+  });
+
   function setLang(next: Lang) {
     lang = next;
     localStorage.setItem('dshla.lang', next);

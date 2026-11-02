@@ -30,6 +30,8 @@ export interface Config {
   restorePointerAfterLaunch: boolean;
   /** 下载加速前缀：空串 = 直连 GitHub（第三方代理会失效，故做成可改配置） */
   downloadMirror: string;
+  /** 主题：system / light / dark */
+  theme?: string;
   lastPointer?: LastPointer;
 }
 
@@ -146,6 +148,7 @@ export interface ConfigPatch {
   pollIntervalMs?: number;
   restorePointerAfterLaunch?: boolean;
   downloadMirror?: string;
+  theme?: string;
 }
 
 export interface PermissionReport {

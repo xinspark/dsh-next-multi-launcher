@@ -357,11 +357,20 @@ pub struct ConfigPatch {
     pub restore_pointer_after_launch: Option<bool>,
     /// 下载加速前缀：空串 = 直连 GitHub
     pub download_mirror: Option<String>,
+    /// 主题：`system` / `light` / `dark`
+    pub theme: Option<String>,
 }
 
 #[tauri::command]
 pub fn config_set(state: State<'_, AppState>, patch: ConfigPatch) -> Result<Config, AppError> {
     let mut cfg = state.config.lock().unwrap().clone();
+    if let Some(theme) = patch.theme {
+        let t = theme.trim().to_lowercase();
+        if !matches!(t.as_str(), "system" | "light" | "dark") {
+            return Err(AppError::new("E1012", "主题只能是 system / light / dark"));
+        }
+        cfg.theme = t;
+    }
     if let Some(root) = patch.home_root {
         store::validate_home_root(&root)?;
         if root.trim().is_empty() {

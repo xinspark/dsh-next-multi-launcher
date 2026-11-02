@@ -5,6 +5,15 @@
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [Unreleased]
+
+### 新增
+
+- **主题系统**：设置 → 常规里可选 `跟随系统 / 浅色 / 深色`，默认跟随系统；
+  实现上 `system` 交给 CSS 的 `prefers-color-scheme`（token 里已有该分支），
+  `light`/`dark` 用 `data-theme` 显式覆盖，保存后立即生效
+- **关于更新**新增常驻「前往浏览器下载」按钮（有更新时指向该 Release，否则指向 Releases 列表），
+  并提示「下载后需要手动替换旧版本」——本启动器不自动替换文件
 ## [1.0.4] - 2026-11-03
 
 ### 变更
