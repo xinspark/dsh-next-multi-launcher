@@ -4,6 +4,7 @@
   import { api, errorText, truncate, type UiError } from './api';
   import { NATIVE_DOWNLOAD_URL, NEXT_OFFICIAL_URL, NEXT_RELEASES_URL, REPO_URL } from './links';
   import { online, refreshCurrent } from './refresh.svelte.js';
+  import DirPickButton from './DirPickButton.svelte';
 
   interface Props {
     versions: VersionInfo[];
@@ -345,7 +346,17 @@
     <div class="field">
       <div class="field-label"><span>{t('dialog.version.path')}</span></div>
       <div class="inline">
-        <input class="input" bind:value={dir} placeholder="E:\\FXS\\APP\\DSH NEXT" />
+        <input class="input" bind:value={dir} placeholder={t('versions.dirPlaceholder')} />
+        <DirPickButton
+          label={t('settings.pick')}
+          disabled={busy}
+          onpick={(picked) => {
+            dir = picked;
+          }}
+          onerror={(err) => {
+            error = errorText(err as UiError);
+          }}
+        />
         <button class="btn ghost" onclick={importManual} disabled={busy || !dir.trim()}>
           {t('dialog.version.import')}
         </button>

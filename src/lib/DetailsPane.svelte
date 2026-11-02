@@ -2,6 +2,7 @@
   import type { InstanceView, VersionInfo } from './types';
   import { hhmm, formatDate, uptime, elapsedSec } from './format';
   import Icon from './Icon.svelte';
+  import SelectMenu from './SelectMenu.svelte';
 
   interface Props {
     view: InstanceView;
@@ -47,6 +48,18 @@
   let version = $state('');
   let saving = $state(false);
   let error = $state<string | null>(null);
+
+  /** 版本下拉的选项（替代原生 <select>：它的下拉列表无法上样式） */
+  const versionOptions = $derived([
+    ...(versions.some((v) => v.tag === inst.version)
+      ? []
+      : [{ value: inst.version, label: `${inst.version}（缺失）` }]),
+    ...versions.map((v) => ({
+      value: v.tag,
+      label: `${v.tag} · ${t('detail.kernel', { version: v.kernelVersion })}${v.valid ? '' : '（无效）'}`,
+      disabled: !v.valid,
+    })),
+  ]);
 
   // 选中实例或外部数据变化时同步表单（用户没有未保存修改才覆盖）
   let lastKey = $state('');
@@ -122,16 +135,13 @@
     <div class="field-label">
       <span>{t('detail.version')}</span>
     </div>
-    <select class="select" bind:value={version} disabled={saving || running || pending}>
-      {#if !versions.some((v) => v.tag === inst.version)}
-        <option value={inst.version}>{inst.version}（缺失）</option>
-      {/if}
-      {#each versions as v (v.tag)}
-        <option value={v.tag} disabled={!v.valid}>
-          {v.tag} · 内核 {v.kernelVersion}{v.valid ? '' : '（无效）'}
-        </option>
-      {/each}
-    </select>
+    <SelectMenu
+      value={version}
+      options={versionOptions}
+      disabled={saving || running || pending}
+      label={t('detail.version')}
+      onchange={(next) => (version = next)}
+    />
     {#if view.version && !view.version.valid}
       <div class="field-hint">{t('detail.versionInvalid', { reason: view.version.invalidReason ?? '?' })}</div>
     {:else if view.version}
@@ -200,7 +210,7 @@
       class="btn ghost tiny"
       style="anchor-name: --restart-detail"
       popovertarget="restart-detail"
-      >{t('restart.label')}<Icon name="chevron-down" width={1.5} /></button
+      >{t('restart.label')}<Icon name="chevron-down" size={12} width={1.2} /></button
     >
     <div
       id="restart-detail"
@@ -212,21 +222,24 @@
         onclick={() => {
           document.getElementById('restart-detail')?.hidePopover();
           onRestart(inst.id, 'normal');
-        }}>{t('restart.normal')}</button
+        }}
+        ><Icon name="refresh" width={1.3} />{t('restart.normal')}</button
       >
       {#if inSafeMode}
         <button
           onclick={() => {
             document.getElementById('restart-detail')?.hidePopover();
             onRestart(inst.id, 'exitSafe');
-          }}>{t('restart.exitSafe')}</button
+          }}
+          ><Icon name="warning" width={1.3} />{t('restart.exitSafe')}</button
         >
       {:else}
         <button
           onclick={() => {
             document.getElementById('restart-detail')?.hidePopover();
             onRestart(inst.id, 'safe');
-          }}>{t('restart.safe')}</button
+          }}
+          ><Icon name="warning" width={1.3} />{t('restart.safe')}</button
         >
       {/if}
     </div>

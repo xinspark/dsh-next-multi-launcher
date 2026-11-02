@@ -4,6 +4,8 @@
   import type { OnboardingView } from './types';
   import { slugify } from './slug';
   import { shortPath } from './format';
+  import SelectMenu from './SelectMenu.svelte';
+  import DirPickButton from './DirPickButton.svelte';
   import type { Lang } from './i18n';
 
   interface Props {
@@ -58,12 +60,11 @@
     Boolean(driveOf(rootShown)) && driveOf(rootShown) === driveOf(view.userProfile || '')
   );
 
-  async function pickRoot() {
+  /** 选中目录后的落库动作（选目录本身交给共用的 DirPickButton） */
+  async function applyRoot(dir: string) {
     busyRoot = true;
     error = null;
     try {
-      const dir = await api.pickDirectory();
-      if (!dir) return;
       await onSaveRoot(dir);
       onNotify(t('onboarding.root.saved', { path: shortPath(dir, 48) }));
     } catch (err) {
@@ -296,9 +297,15 @@
         {/if}
       </div>
       <div class="inline wrap">
-        <button class="btn ghost" onclick={pickRoot} disabled={busyRoot}>
-          {busyRoot ? t('onboarding.root.picking') : t('onboarding.root.pick')}
-        </button>
+        <DirPickButton
+          label={t('onboarding.root.pick')}
+          busyLabel={t('onboarding.root.picking')}
+          disabled={busyRoot}
+          onpick={applyRoot}
+          onerror={(err) => {
+            error = errorText(err as UiError);
+          }}
+        />
         {#if !isDefaultRoot}
           <button class="btn tiny ghost" onclick={resetRoot} disabled={busyRoot}>
             {t('onboarding.root.reset')}
@@ -323,11 +330,15 @@
           <button class="btn tiny ghost" onclick={onOpenVersions}>{t('onboarding.version.goto')}</button>
         </div>
       {:else}
-        <select class="select" bind:value={version}>
-          {#each validVersions as v (v.tag)}
-            <option value={v.tag}>{v.tag} · {t('versions.kernel', { kernel: v.kernelVersion })}</option>
-          {/each}
-        </select>
+        <SelectMenu
+          value={version}
+          label={t('versions.title')}
+          options={validVersions.map((v) => ({
+            value: v.tag,
+            label: `${v.tag} · ${t('versions.kernel', { kernel: v.kernelVersion })}`,
+          }))}
+          onchange={(next) => (version = next)}
+        />
         <div class="inline wrap">
           <button class="btn tiny ghost" onclick={importDir} disabled={importing}>
             {importing ? t('onboarding.version.importing') : t('onboarding.version.import')}

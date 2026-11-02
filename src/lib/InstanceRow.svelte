@@ -87,7 +87,7 @@
         style="anchor-name: --restart-{inst.id}"
         popovertarget="restart-{inst.id}"
         onclick={(e) => e.stopPropagation()}
-        >{t('restart.label')}<Icon name="chevron-down" width={1.5} /></button
+        >{t('restart.label')}<Icon name="chevron-down" size={12} width={1.2} /></button
       >
       <div
         id="restart-{inst.id}"
@@ -99,21 +99,24 @@
           onclick={() => {
             document.getElementById('restart-' + inst.id)?.hidePopover();
             onRestart(inst.id, 'normal');
-          }}>{t('restart.normal')}</button
+          }}
+          ><Icon name="refresh" width={1.3} />{t('restart.normal')}</button
         >
         {#if inSafeMode}
           <button
             onclick={() => {
               document.getElementById('restart-' + inst.id)?.hidePopover();
               onRestart(inst.id, 'exitSafe');
-            }}>{t('restart.exitSafe')}</button
+            }}
+            ><Icon name="warning" width={1.3} />{t('restart.exitSafe')}</button
           >
         {:else}
           <button
             onclick={() => {
               document.getElementById('restart-' + inst.id)?.hidePopover();
               onRestart(inst.id, 'safe');
-            }}>{t('restart.safe')}</button
+            }}
+            ><Icon name="warning" width={1.3} />{t('restart.safe')}</button
           >
         {/if}
       </div>

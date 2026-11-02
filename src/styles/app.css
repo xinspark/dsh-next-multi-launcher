@@ -71,6 +71,17 @@ button {
   display: block;
 }
 
+/* 按钮里的图标：次要色更像"展开指示"（原生 cardArrow 用 label-tertiary），
+   主色 / 危险按钮里则跟随前景色，避免对比度不足 */
+.btn .svg-icon {
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.btn.primary .svg-icon,
+.btn.danger .svg-icon {
+  color: inherit;
+}
+
 /* ------------------------------------------------------------ 骨架 */
 
 .app > * {
@@ -88,15 +99,25 @@ button {
   overflow: hidden;
 }
 
+/* 顶栏 = 三列栅格：左右各 1fr、中间 auto → 中间的分段控件**永远在窗口正中**，
+   不随右侧按钮数量（启动页多一个「新建实例」）而左右漂移。 */
 .titlebar {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: 8px;
   min-width: 0;
-  flex-wrap: nowrap;
   padding: 14px 20px;
   border-bottom: 0.5px solid var(--dsw-alias-border-l2);
   background: var(--dsw-alias-bg-layer-1);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-self: end;
+  min-width: 0;
 }
 
 .brand {
@@ -345,18 +366,26 @@ button {
 }
 
 
-/* 下拉菜单（重启模式）—— 用 popover 渲染在顶层，不受列表/面板裁剪 */
-/* 浮层 = 原生 registry 浮层：bg-layer-2 + elevation-prominent + radius-lg + padding 8 + gap 4。
-   无边框：描边由 elevation 的 .5px stroke 出（原生就是这么画的）。 */
+/* 下拉菜单（重启模式）—— 用 popover 渲染在顶层，不受列表/面板裁剪。
+   这是**菜单**（原生 MenuSurface），不是 registry 浮层：官方配方是三件套
+   `--dsw-menu-surface-fill` + 背景模糊 + `--dsw-elevation-prominent`。
+   三件缺一件就会出现"半透明看得见穿"或"像一块平贴的方块"。
+   ⚠️ `--dsw-menu-backdrop-filter` 在名册里没有定义（原生 CSS 直接内联同样的值），
+   所以模糊值写死并在此登记：blur(40px) saturate(150%)。 */
 .dropdown-menu[popover] {
   position: fixed;
   inset: auto;
-  margin: 0;
-  padding: 8px;
+  margin: 4px 0;
+  padding: 6px;
+  /* 空间不够时上下翻转：详情面板底部那颗菜单在窗口最底下，向下必被裁 */
+  position-try-fallbacks: flip-block;
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
   min-width: max-content;
   max-width: calc(100vw - 24px);
-  gap: 4px;
-  background: var(--dsw-alias-bg-layer-2);
+  gap: 2px;
+  background: var(--dsw-menu-surface-fill);
+  backdrop-filter: blur(40px) saturate(150%);
   border: 0;
   border-radius: var(--dsw-radius-lg);
   box-shadow: var(--dsw-elevation-prominent);
@@ -364,7 +393,6 @@ button {
   z-index: 60;
   top: anchor(bottom);
   left: anchor(left);
-  margin-top: 4px;
 }
 
 .dropdown-menu[popover]:popover-open {
@@ -373,12 +401,16 @@ button {
 }
 
 .dropdown-menu[popover] button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   text-align: left;
   border: 0;
   background: transparent;
   color: var(--dsw-alias-label-primary);
-  /* 选项 = 原生 registryOption：radius-md(12) + padding 8/10 + gap 4 */
-  padding: 8px 10px;
+  /* 菜单行：32px 高 + radius-md(12) + 左右 10 —— 行里有 16px 图标位 */
+  height: 32px;
+  padding: 0 10px;
   border-radius: var(--dsw-radius-md);
   font: var(--dsw-font-xs-13);
   white-space: nowrap;
@@ -395,6 +427,106 @@ button {
 .dropdown-menu[popover] button:disabled {
   opacity: 0.45;
   cursor: default;
+}
+
+/* 下拉选择器（版本等）：闭合态 = 原生 registryToggle，展开态 = 原生 registry 浮层。
+   与上面"菜单"是两种表面：选择器是实心表层 + 描边，菜单是半透明模糊表面。 */
+.picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  height: 32px;
+  width: 100%;
+  padding: 0 10px;
+  border: 0.5px solid var(--dsw-alias-border-l4);
+  border-radius: var(--dsw-radius-md);
+  background: var(--dsw-alias-bg-layer-2);
+  color: var(--dsw-alias-label-primary);
+  font: var(--dsw-font-xs-13);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--ds-transition-duration-fast) var(--ds-ease-in-out);
+}
+
+.picker:hover:not(:disabled) {
+  border-color: var(--dsw-alias-border-l3);
+}
+
+.picker:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.picker-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.picker-menu[popover] {
+  position: fixed;
+  inset: auto;
+  margin: 4px 0;
+  padding: 4px;
+  position-try-fallbacks: flip-block;
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
+  top: anchor(bottom);
+  left: anchor(left);
+  right: anchor(right);
+  min-width: max-content;
+  max-width: calc(100vw - 24px);
+  gap: 2px;
+  background: var(--dsw-alias-bg-layer-2);
+  border: 0;
+  border-radius: var(--dsw-radius-lg);
+  box-shadow: var(--dsw-elevation-prominent);
+  color: var(--dsw-alias-label-primary);
+  z-index: 70;
+}
+
+.picker-menu[popover]:popover-open {
+  display: flex;
+  flex-direction: column;
+}
+
+.picker-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 0;
+  background: transparent;
+  border-radius: var(--dsw-radius-md);
+  color: var(--dsw-alias-label-primary);
+  font: var(--dsw-font-xs-13);
+  text-align: left;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.picker-option:hover:not(:disabled) {
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+/* 原生 registryChosen：选中行加粗（并带对勾，对勾由组件渲染） */
+.picker-option[aria-checked='true'] {
+  font-weight: 500;
+}
+
+.picker-option:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.picker-option-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 
@@ -511,9 +643,16 @@ button {
   min-width: 0;
 }
 
+/* 页头只占第一列：右侧「详情」是通高的侧栏（原生就是内容区标题 + 通高右侧栏），
+   否则页头跨两列会在右栏顶部留出一块空白。 */
 .main > .page-head {
-  grid-column: 1 / -1;
+  grid-column: 1;
   padding: 14px 20px 0;
+}
+
+.main > .details {
+  grid-column: 2;
+  grid-row: 1 / -1;
 }
 
 .list-pane {

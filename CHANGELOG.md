@@ -21,6 +21,15 @@
   - 顶部提示条改为原生 `guide` 块（`border-l4` + `radius-lg` + `bg-layer-1`）；
     黄条 / 红条改为原生 `approval` 块（`radius-lg` + `warn-tertiary` 底 + 40% 混色描边）
   - 下拉浮层改为原生 `registry` 浮层（`bg-layer-2` + `elevation-prominent` + `radius-lg` + `padding 8` + `gap 4`）
+  - **顶栏改三列栅格**：左右各 `1fr`、中间 `auto`，「启动 / 版本 / 设置」的分段控件**永远停在窗口正中**，
+    不再随右侧按钮数量（启动页多一个「新建实例」）左右漂移 —— 三视图实测同一个 x
+  - **菜单改用官方 MenuSurface 三件套**（`--dsw-menu-surface-fill` + `blur(40px) saturate(150%)` + `elevation-prominent`），
+    行高 32px / `radius-md` / 16px 图标位；并加 `position-try-fallbacks: flip-block` ——
+    **修掉详情面板底部那颗菜单向下开出窗口、被裁掉一半的缺陷**
+  - **版本选择器不再是原生 `<select>`**（它的下拉列表无法上样式）：新增 `SelectMenu.svelte`，
+    闭合态对齐原生 `registryToggle`、展开态对齐 `registry` + `registryOption`（选中行加粗 + 对勾），
+    详情 / 新建实例 / 初始化向导三处统一使用
+  - 重启按钮的箭头换成原生 chevron（12px / 线宽 1.2，`label-tertiary`），菜单项补图标（重启 / 安全模式）
   - 补原生 `Switch`（36×20 轨道 / 16 拇指 / 状态键在 `aria-checked`）：设置页「恢复指针」「自动检查更新」
     由复选框换成开关；**多选**（版本候选、删除确认）继续用 `checkbox`，并按原生 `Checkbox` 对齐 16×16 + `accent-color`
   - 焦点环改走 `--dsw-focus-ring-color` + 输入模态分流（鼠标点击不画环、键盘导航才画）；

@@ -4,6 +4,7 @@
   import { untrack } from 'svelte';
   import { errorText, type UiError } from './api';
   import { slugify } from './slug';
+  import SelectMenu from './SelectMenu.svelte';
 
   interface Props {
     mode: 'new' | 'edit';
@@ -138,17 +139,21 @@
 
   <div class="field">
     <div class="field-label"><span>{t('dialog.version')}</span></div>
-    <select class="select" bind:value={version}>
-      {#if validVersions.length === 0}
-        <option value="">{t('dialog.versionEmpty')}</option>
-      {/if}
-      {#each validVersions as v (v.tag)}
-        <option value={v.tag}>{v.tag} · 内核 {v.kernelVersion}</option>
-      {/each}
-      {#if instance && !validVersions.some((v) => v.tag === instance?.version)}
-        <option value={instance.version}>{instance.version}（缺失）</option>
-      {/if}
-    </select>
+    <SelectMenu
+      value={version}
+      label={t('dialog.version')}
+      options={[
+        ...(validVersions.length === 0 ? [{ value: '', label: t('dialog.versionEmpty') }] : []),
+        ...validVersions.map((v) => ({
+          value: v.tag,
+          label: `${v.tag} · ${t('versions.kernel', { kernel: v.kernelVersion })}`,
+        })),
+        ...(instance && !validVersions.some((v) => v.tag === instance?.version)
+          ? [{ value: instance.version, label: `${instance.version}（缺失）` }]
+          : []),
+      ]}
+      onchange={(next) => (version = next)}
+    />
   </div>
 
   <div class="field">

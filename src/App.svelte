@@ -435,7 +435,6 @@
         <div class="brand-sub">{t('app.subtitle')} · {t('app.version', { version: snapshot?.appVersion ?? '—' })}</div>
       </div>
     </div>
-    <span class="spacer"></span>
     <nav class="nav-tabs" aria-label="main">
       <button class="nav-tab" class:active={view === 'launch'} onclick={() => go('launch')}>
         {t('nav.launch')}
@@ -447,15 +446,16 @@
         {t('nav.settings')}
       </button>
     </nav>
-    <span class="spacer"></span>
-    <button class="btn ghost" onclick={toggleLang}>{t('header.lang')}</button>
-    <button class="btn ghost" onclick={() => refresh()}>{t('header.refresh')}</button>
-    {#if view === 'launch'}
-      <button class="btn primary md" onclick={() => (dialog = { kind: 'new' })}>
-      <Icon name="plus" width={1.5} />
-      {t('header.new')}
-    </button>
-    {/if}
+    <div class="header-actions">
+      <button class="btn ghost" onclick={toggleLang}>{t('header.lang')}</button>
+      <button class="btn ghost" onclick={() => refresh()}>{t('header.refresh')}</button>
+      {#if view === 'launch'}
+        <button class="btn primary md" onclick={() => (dialog = { kind: 'new' })}>
+          <Icon name="plus" width={1.5} />
+          {t('header.new')}
+        </button>
+      {/if}
+    </div>
   </header>
 
   <!-- 提示条：三视图常驻（讲的是全局约束） -->
@@ -469,7 +469,8 @@
     </button>
   </div>
 
-  {#if view === 'launch'}
+  <!-- 全局指针条：三视图常驻。只放在启动页会让另外两页的内容整体上移约 36px，
+       三个页头就不在同一水平线上了（这是"统一页头位置"的一部分，不只是标题本身）。 -->
   <div class="pointerbar"><span class="pointer-label">{t('pointer.label')}</span>
     <span class="pointer-arrow">→</span>
     <span class="pointer-value" class:missing={!snapshot?.pointer.home} title={snapshot?.pointer.path ?? ''}>
@@ -543,6 +544,9 @@
       <button class="btn tiny ghost" onclick={restorePointer}>{t('warn.unknownPointerAction')}</button>
     </div>
   {/if}
+
+
+  {#if view === 'launch'}
 
   <main class="main">
     <div class="page-head">

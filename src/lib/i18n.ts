@@ -83,7 +83,7 @@ const zh: Dict = {
   'onboarding.lang.hint': '默认跟随系统语言；之后可在「设置 → 常规」里随时改',
   'onboarding.step.env': '② 环境体检',
   'onboarding.step.root': '③ 默认数据目录树根',
-  'onboarding.root.pick': '选择文件夹…',
+  'onboarding.root.pick': '选择目录',
   'onboarding.root.picking': '选择中…',
   'onboarding.root.reset': '恢复默认（%USERPROFILE%）',
   'onboarding.root.following': '当前跟随系统默认',
@@ -178,6 +178,7 @@ const zh: Dict = {
   'versions.local': '本地导入',
   'versions.current': '当前可用：{tag}',
   'versions.imported': '版本已导入',
+  'versions.dirPlaceholder': '含 DSH NEXT.exe 的安装目录',
   'versions.removed': '已移除 {tag}',
 
   'settings.homeRoot': '新实例数据目录树根',
@@ -421,7 +422,7 @@ const en: Dict = {
   'onboarding.lang.hint': 'Follows the system language by default; change it anytime in Settings → General',
   'onboarding.step.env': '② Environment check',
   'onboarding.step.root': '③ Default data folder root',
-  'onboarding.root.pick': 'Choose folder…',
+  'onboarding.root.pick': 'Choose folder',
   'onboarding.root.picking': 'Choosing…',
   'onboarding.root.reset': 'Reset to default (%USERPROFILE%)',
   'onboarding.root.following': 'currently following the system default',
@@ -515,6 +516,7 @@ const en: Dict = {
   'versions.local': 'Local import',
   'versions.current': 'in use: {tag}',
   'versions.imported': 'Version imported',
+  'versions.dirPlaceholder': 'Install folder containing DSH NEXT.exe',
   'versions.removed': 'Removed {tag}',
 
   'settings.homeRoot': 'New instance data directory root',

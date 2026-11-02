@@ -8,18 +8,18 @@ const iso = (offsetMin = 0) => new Date(now.getTime() - offsetMin * 60_000).toIS
 const versions: VersionInfo[] = [
   {
     tag: '2.0.21-next',
-    dir: 'E:\\FXS\\Data\\DSH000\\DSH-NEXT Multi-Launcher\\versions\\2.0.21-next',
-    exe: 'E:\\FXS\\Data\\DSH000\\DSH-NEXT Multi-Launcher\\versions\\2.0.21-next\\DSH NEXT.exe',
-    asar: 'E:\\FXS\\Data\\DSH000\\DSH-NEXT Multi-Launcher\\versions\\2.0.21-next\\resources\\app.asar',
+    dir: 'C:\\Users\\demo\\AppData\\Local\\DSH-NEXT-Multi\\versions\\2.0.21-next',
+    exe: 'C:\\Users\\demo\\AppData\\Local\\DSH-NEXT-Multi\\versions\\2.0.21-next\\DSH NEXT.exe',
+    asar: 'C:\\Users\\demo\\AppData\\Local\\DSH-NEXT-Multi\\versions\\2.0.21-next\\resources\\app.asar',
     shellVersion: '2.0.21-next',
     kernelVersion: '0.2.1-rc.4',
     valid: true,
     isLink: true,
-    linkTarget: 'E:\\FXS\\APP\\DSH NEXT'
+    linkTarget: 'C:\\Program Files\\DSH NEXT'
   },
   {
     tag: '2.0.20-next',
-    dir: 'E:\\FXS\\Data\\DSH000\\DSH-NEXT Multi-Launcher\\versions\\2.0.20-next',
+    dir: 'C:\\Users\\demo\\AppData\\Local\\DSH-NEXT-Multi\\versions\\2.0.20-next',
     shellVersion: '2.0.20-next',
     kernelVersion: '0.2.0-rc.9',
     valid: false,
@@ -46,15 +46,15 @@ function inst(id: string, name: string, home: string, extra: Partial<Instance> =
 }
 
 const instances: Instance[] = [
-  inst('ziyong', '自用', 'C:\\Users\\FXS\\.dsh'),
-  inst('lingshu', '灵枢', 'C:\\Users\\FXS\\.dsh-lingshu', { notes: '专门用来试新插件' }),
-  inst('lab', '实验室', 'C:\\Users\\FXS\\.dsh-lab', { version: '2.0.21-next', archived: false }),
-  inst('old', '旧环境', 'C:\\Users\\FXS\\.dsh-old', { archived: true })
+  inst('ziyong', '自用', 'C:\\Users\\demo\\.dsh'),
+  inst('lingshu', '灵枢', 'C:\\Users\\demo\\.dsh-lingshu', { notes: '专门用来试新插件' }),
+  inst('lab', '实验室', 'C:\\Users\\demo\\.dsh-lab', { version: '2.0.21-next', archived: false }),
+  inst('old', '旧环境', 'C:\\Users\\demo\\.dsh-old', { archived: true })
 ];
 
 export function mockSnapshot(): Snapshot {
   const running = instances.filter((i) => i.id === 'lingshu').map(() => ({
-    home: 'C:\\Users\\FXS\\.dsh-lingshu',
+    home: 'C:\\Users\\demo\\.dsh-lingshu',
     shellPid: 40752,
     hostPid: 40388,
     startedAt: Math.floor(now.getTime() / 1000) - 12 * 60,
@@ -72,7 +72,7 @@ export function mockSnapshot(): Snapshot {
         elapsedMs: 0,
         shellPid: run?.shellPid,
         hostPid: run?.hostPid,
-        error: i.id === 'lab' ? { code: 'E1005', message: '启动超时（90 秒内未看到该目录的进程）', detail: 'C:\\Users\\FXS\\.dsh-lab' } : undefined
+        error: i.id === 'lab' ? { code: 'E1005', message: '启动超时（90 秒内未看到该目录的进程）', detail: 'C:\\Users\\demo\\.dsh-lab' } : undefined
       },
       version: versions[0],
       isDefault: i.id === 'ziyong',
@@ -83,18 +83,18 @@ export function mockSnapshot(): Snapshot {
   return {
     config: {
       schemaVersion: 1,
-      defaultHome: 'C:\\Users\\FXS\\.dsh',
-      homeRoot: 'C:\\Users\\FXS',
+      defaultHome: 'C:\\Users\\demo\\.dsh',
+      homeRoot: 'C:\\Users\\demo',
       launchTimeoutSec: 90,
       pollIntervalMs: 500,
       restorePointerAfterLaunch: true,
       downloadMirror: '',
-      lastPointer: { home: 'C:\\Users\\FXS\\.dsh-lingshu', at: iso(12) }
+      lastPointer: { home: 'C:\\Users\\demo\\.dsh-lingshu', at: iso(12) }
     },
     pointer: {
-      path: 'C:\\Users\\FXS\\AppData\\Roaming\\DSH NEXT\\home\\desktop-next-location.json',
-      home: 'C:\\Users\\FXS\\.dsh',
-      raw: '{ "home": "C:\\\\Users\\\\FXS\\\\.dsh" }',
+      path: 'C:\\Users\\demo\\AppData\\Roaming\\DSH NEXT\\home\\desktop-next-location.json',
+      home: 'C:\\Users\\demo\\.dsh',
+      raw: '{ "home": "C:\\\\Users\\\\demo\\\\.dsh" }',
       exists: true,
       writable: true
     },
@@ -102,11 +102,11 @@ export function mockSnapshot(): Snapshot {
     instances: views,
     running,
     queue: [],
-    dataDir: 'C:\\Users\\FXS\\AppData\\Local\\DSH-NEXT-Multi',
-    versionsDir: 'E:\\FXS\\Data\\DSH000\\DSH-NEXT Multi-Launcher\\versions',
-    logDir: 'C:\\Users\\FXS\\AppData\\Local\\DSH-NEXT-Multi\\logs',
+    dataDir: 'C:\\Users\\demo\\AppData\\Local\\DSH-NEXT-Multi',
+    versionsDir: 'C:\\Users\\demo\\AppData\\Local\\DSH-NEXT-Multi\\versions',
+    logDir: 'C:\\Users\\demo\\AppData\\Local\\DSH-NEXT-Multi\\logs',
     appVersion: '1.0.0',
-    userProfile: 'C:\\Users\\FXS'
+    userProfile: 'C:\\Users\\demo'
   };
 }
 
@@ -159,7 +159,7 @@ export function mockCall(cmd: string, args?: Record<string, unknown>): unknown {
     case 'version_discover':
       return [
         {
-          path: 'E:\\FXS\\APP\\DSH NEXT',
+          path: 'C:\\Program Files\\DSH NEXT',
           source: 'shortcut',
           valid: true,
           shellVersion: '2.0.21-next',
@@ -186,7 +186,7 @@ export function mockCall(cmd: string, args?: Record<string, unknown>): unknown {
     case 'version_remove':
       return null;
     case 'pick_directory':
-      return 'E:\\FXS\\APP\\DSH NEXT';
+      return 'C:\\Program Files\\DSH NEXT';
     case 'open_path':
       return null;
     case 'health':

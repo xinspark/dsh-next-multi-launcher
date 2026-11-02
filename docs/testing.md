@@ -80,8 +80,8 @@ node tools/verify-tokens.mjs
 ```
 
 ```
-{ "ok": true, "tokens": 1158, "varRefs": 267, "parts": 5, "failures": [], "warnings": [] }
-[verify] PASS：267 个 var() 全部来自名册；5 份 parts 未改动
+{ "ok": true, "tokens": 1158, "varRefs": 284, "parts": 5, "failures": [], "warnings": [] }
+[verify] PASS：284 个 var() 全部来自名册；5 份 parts 未改动
 ```
 
 红/绿测试（确认门禁真的会拦）：

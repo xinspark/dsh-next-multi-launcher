@@ -4,6 +4,7 @@
   import type { Lang } from './i18n';
   import { api, errorText, type UiError } from './api';
   import Switch from './Switch.svelte';
+  import DirPickButton from './DirPickButton.svelte';
   import { online, checkUpdate as checkUpdateShared } from './refresh.svelte.js';
   import { RELEASES_URL, REPO_URL, STAR_URL } from './links';
 
@@ -92,15 +93,6 @@
       error = errorText(err as UiError);
     } finally {
       saving = false;
-    }
-  }
-
-  async function pickDefaultHome() {
-    try {
-      const picked = await api.pickDirectory();
-      if (picked) defaultHome = picked;
-    } catch (err) {
-      error = errorText(err as UiError);
     }
   }
 
@@ -201,7 +193,15 @@
       </div>
       <div class="inline">
         <input class="input" bind:value={defaultHome} />
-        <button class="btn ghost" onclick={pickDefaultHome}>{t('settings.pick')}</button>
+        <DirPickButton
+          label={t('settings.pick')}
+          onpick={(dir) => {
+            defaultHome = dir;
+          }}
+          onerror={(err) => {
+            error = errorText(err as UiError);
+          }}
+        />
         <button class="btn ghost" onclick={() => (defaultHome = '')}>{t('settings.clear')}</button>
       </div>
       {#if !defaultHome.trim()}
