@@ -179,15 +179,15 @@ mod tests {
     #[test]
     fn write_then_restore_roundtrip() {
         let (p, dir) = temp_pointer("round");
-        let backup = p.write("C:\\Users\\FXS\\.dsh-lab").unwrap();
-        assert_eq!(p.read_home().unwrap(), "C:\\Users\\FXS\\.dsh-lab");
+        let backup = p.write("C:\\Users\\demo\\.dsh-lab").unwrap();
+        assert_eq!(p.read_home().unwrap(), "C:\\Users\\demo\\.dsh-lab");
         // 备份文件确实存在
         assert!(backup.backup_path.is_none(), "首次写入本无旧值");
 
-        let backup2 = p.write("C:\\Users\\FXS\\.dsh-other").unwrap();
+        let backup2 = p.write("C:\\Users\\demo\\.dsh-other").unwrap();
         assert!(backup2.backup_path.is_some());
         p.restore(&backup2).unwrap();
-        assert_eq!(p.read_home().unwrap(), "C:\\Users\\FXS\\.dsh-lab");
+        assert_eq!(p.read_home().unwrap(), "C:\\Users\\demo\\.dsh-lab");
         p.restore(&backup).unwrap();
         assert!(!p.exists(), "回滚到 absent 应删除文件");
         let _ = fs::remove_dir_all(dir);
@@ -196,10 +196,10 @@ mod tests {
     #[test]
     fn writes_two_space_indented_json() {
         let (p, dir) = temp_pointer("format");
-        p.write("C:\\Users\\FXS\\.dsh-b").unwrap();
+        p.write("C:\\Users\\demo\\.dsh-b").unwrap();
         let raw = p.read_raw().unwrap();
         assert!(
-            raw.starts_with("{\n  \"home\": \"C:\\\\Users\\\\FXS\\\\.dsh-b\"\n}\n"),
+            raw.starts_with("{\n  \"home\": \"C:\\\\Users\\\\demo\\\\.dsh-b\"\n}\n"),
             "实际：{raw:?}"
         );
         let _ = fs::remove_dir_all(dir);
@@ -212,19 +212,19 @@ mod tests {
         assert!(!snap.exists);
         assert!(snap.writable);
         assert!(snap.home.is_none());
-        p.write("C:\\Users\\FXS\\.dsh").unwrap();
+        p.write("C:\\Users\\demo\\.dsh").unwrap();
         let snap = p.snapshot();
         assert!(snap.exists);
-        assert_eq!(snap.home.unwrap(), "C:\\Users\\FXS\\.dsh");
+        assert_eq!(snap.home.unwrap(), "C:\\Users\\demo\\.dsh");
         let _ = fs::remove_dir_all(dir);
     }
 
     #[test]
     fn restore_default_writes_default() {
         let (p, dir) = temp_pointer("default");
-        p.write("C:\\Users\\FXS\\.dsh-lab").unwrap();
-        p.restore_default("C:\\Users\\FXS\\.dsh").unwrap();
-        assert_eq!(p.read_home().unwrap(), "C:\\Users\\FXS\\.dsh");
+        p.write("C:\\Users\\demo\\.dsh-lab").unwrap();
+        p.restore_default("C:\\Users\\demo\\.dsh").unwrap();
+        assert_eq!(p.read_home().unwrap(), "C:\\Users\\demo\\.dsh");
         let _ = fs::remove_dir_all(dir);
     }
 

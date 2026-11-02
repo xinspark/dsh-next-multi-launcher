@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "tool": "tools/extract-tokens.mjs@1",
   "sourceAsar": {
-    "path": "E:\\FXS\\APP\\DSH NEXT\\resources\\app.asar",
+    "path": "<install>/resources/app.asar",
     "sha256": "16f2c62b1ccc98a968d9c7cf5edcd7af7a1e7690c2fba8cea361d1726d0db349",
     "entries": 20948
   },
@@ -22142,7 +22142,7 @@
   ],
   "skipped": [],
   "generatedCss": {
-    "path": "E:\\FXS\\Data\\DSH000\\DSH-NEXT Multi-Launcher\\src\\styles\\tokens.css",
+    "path": "src/styles/tokens.css",
     "sha256": "f59444033c5f580c5df98ae4060dedbf70c77f69b27b049a59765030e8f1ca61",
     "bytes": 90804
   },

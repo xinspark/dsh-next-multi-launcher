@@ -2,10 +2,28 @@
 // icon-linked.mjs —— 与 DSH-NEXT 联动的图标：复用官方鲸鱼剪影 + 同构的右下角胶囊。
 // 纯 Node：自带最小 PNG 解码器（8-bit RGB/RGBA，无隔行）+ 编码器。
 // 用法：node tools/icon-linked.mjs
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { inflateSync, deflateSync } from 'node:zlib';
 
-const SRC = 'E:/FXS/APP/DSH NEXT/resources/app.asar.unpacked/build/app-icon.png';
+/**
+ * 官方 app-icon.png 的位置：DSH_APP_ICON → 常见安装目录的 unpacked 副本。
+ * 官方图标只用来做"鲸鱼剪影"的取材，缺了就直接报错，不去猜别的位置。
+ */
+function resolveSource() {
+  const candidates = [
+    process.env.DSH_APP_ICON,
+    process.env.LOCALAPPDATA &&
+      join(process.env.LOCALAPPDATA, 'Programs', 'DSH NEXT', 'resources', 'app.asar.unpacked', 'build', 'app-icon.png'),
+    process.env.ProgramFiles &&
+      join(process.env.ProgramFiles, 'DSH NEXT', 'resources', 'app.asar.unpacked', 'build', 'app-icon.png'),
+  ].filter(Boolean);
+  const hit = candidates.find((p) => existsSync(p));
+  if (!hit) throw new Error('找不到官方 app-icon.png：请设置 DSH_APP_ICON 指向它');
+  return hit;
+}
+
+const SRC = resolveSource();
 const OUT_DIR = 'design/icons';
 const SIZE = 1024;
 

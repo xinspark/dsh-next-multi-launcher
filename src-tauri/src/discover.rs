@@ -365,13 +365,13 @@ mod tests {
 
     #[test]
     fn strip_verbatim_removes_win32_prefix() {
-        let got = strip_verbatim(Path::new(r"\\?\E:\FXS\APP\DSH NEXT"));
-        assert_eq!(got, PathBuf::from(r"E:\FXS\APP\DSH NEXT"));
+        let got = strip_verbatim(Path::new(r"\\?\C:\Program Files\DSH NEXT"));
+        assert_eq!(got, PathBuf::from(r"C:\Program Files\DSH NEXT"));
     }
 
     #[test]
     fn strip_verbatim_keeps_plain_path() {
-        let p = Path::new(r"E:\FXS\APP\DSH NEXT");
+        let p = Path::new(r"C:\Program Files\DSH NEXT");
         assert_eq!(strip_verbatim(p), p.to_path_buf());
     }
 
@@ -384,16 +384,16 @@ mod tests {
 
     #[test]
     fn same_path_compares_case_insensitively() {
-        let a = PathBuf::from(r"E:\FXS\APP\DSH NEXT");
-        assert!(same_path(&a, Path::new(r"E:\FXS\APP\DSH NEXT")));
-        assert!(!same_path(&a, Path::new(r"E:\FXS\APP\DSH")));
+        let a = PathBuf::from(r"C:\Program Files\DSH NEXT");
+        assert!(same_path(&a, Path::new(r"C:\Program Files\DSH NEXT")));
+        assert!(!same_path(&a, Path::new(r"C:\Program Files\DSH")));
     }
 
     #[test]
     fn insert_unique_keeps_first_source() {
         let mut map = BTreeMap::new();
-        insert_unique(&mut map, r"E:\FXS\APP\DSH NEXT", "shortcut");
-        insert_unique(&mut map, r"E:\FXS\APP\DSH NEXT", "process");
+        insert_unique(&mut map, r"C:\Program Files\DSH NEXT", "shortcut");
+        insert_unique(&mut map, r"C:\Program Files\DSH NEXT", "process");
         assert_eq!(map.len(), 1);
         assert_eq!(map.values().next().unwrap(), "shortcut");
     }

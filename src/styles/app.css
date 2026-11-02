@@ -88,15 +88,22 @@ button {
   min-width: 0;
 }
 
+/* 纵向 flex，不用固定行数的 grid：横幅数量随状态变化（0~7 条），
+   写死 auto/auto/auto/1fr/auto 会让某条横幅落进 1fr 行被拉成整屏高（实测踩过两次）。 */
 .app {
   height: 100%;
-  display: grid;
-  /* 隐式列默认是 auto（= max-content），长路径会把整页撑宽，必须显式压成 1fr */
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto auto auto 1fr auto;
+  display: flex;
+  flex-direction: column;
   min-width: 0;
   background: var(--dsw-alias-bg-base);
   overflow: hidden;
+}
+
+/* 内容区吃掉剩余高度，自己内部滚动 */
+.app > .main,
+.app > .page {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 /* 顶栏 = 三列栅格：左右各 1fr、中间 auto → 中间的分段控件**永远在窗口正中**，
@@ -1026,8 +1033,7 @@ button {
 }
 
 /* 输入框 = 原生 Input：32px / radius-md(12) / border-l4 / bg-layer-1 / padding 0 8px */
-.input,
-.select {
+.input {
   height: 32px;
   border-radius: var(--dsw-radius-md);
   border: 0.5px solid var(--dsw-alias-border-l4);
@@ -1044,8 +1050,7 @@ button {
   background: var(--dsw-alias-bg-layer-3);
 }
 
-.input:focus,
-.select:focus {
+.input:focus {
   border-color: var(--dsw-alias-state-business-primary);
   outline: none;
 }
@@ -1102,12 +1107,6 @@ textarea.input {
   gap: 8px;
 }
 
-.divider {
-  height: 0.5px;
-  background: var(--dsw-alias-border-l2);
-  margin: 2px 0;
-}
-
 .details-actions {
   position: sticky;
   bottom: -22px;
@@ -1120,12 +1119,6 @@ textarea.input {
   gap: 8px;
   z-index: 2;
   min-width: 0;
-}
-
-.danger-zone {
-  margin-top: auto;
-  display: flex;
-  gap: 8px;
 }
 
 /* ------------------------------------------------------------ 模态 */
@@ -1200,28 +1193,6 @@ textarea.input {
   white-space: pre-wrap;
 }
 
-.version-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 7px 10px;
-  border-radius: var(--dsw-radius-sm);
-  border: 0.5px solid var(--dsw-alias-border-l2);
-  font: var(--dsw-font-xs-13);
-  min-width: 0;
-}
-
-.version-row .tag {
-  font: var(--dsw-font-xxs-12);
-  font-family: var(--ds-font-family-code);
-  color: var(--dsw-alias-label-primary);
-}
-
-.version-row.invalid {
-  border-color: var(--dsw-alias-state-error-secondary);
-  color: var(--dsw-alias-label-tertiary);
-}
-
 /* ------------------------------------------------------------ 底栏 / toast */
 
 .footer > * {
@@ -1271,10 +1242,6 @@ textarea.input {
 .toast.error {
   background: var(--dsw-alias-state-error-primary);
   color: var(--dsw-alias-label-primary-foreground);
-}
-
-.hidden {
-  display: none;
 }
 
 /* ------------------------------------------------------------ 三视图（启动 / 版本 / 设置） */

@@ -9,7 +9,7 @@
 
 ## 1. 自动化测试
 
-### 1.1 单元测试（70 项）
+### 1.1 单元测试（72 项）
 
 ```powershell
 cargo test --manifest-path src-tauri/Cargo.toml
@@ -30,8 +30,8 @@ cargo test --manifest-path src-tauri/Cargo.toml
 实测：
 
 ```
-running 70 tests
-test result: ok. 70 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+running 72 tests
+test result: ok. 72 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 ```
 
 ### 1.2 端到端（替身进程，15 项断言）
@@ -80,8 +80,8 @@ node tools/verify-tokens.mjs
 ```
 
 ```
-{ "ok": true, "tokens": 1158, "varRefs": 284, "parts": 5, "failures": [], "warnings": [] }
-[verify] PASS：284 个 var() 全部来自名册；5 份 parts 未改动
+{ "ok": true, "tokens": 1158, "varRefs": 275, "parts": 5, "failures": [], "warnings": [] }
+[verify] PASS：275 个 var() 全部来自名册；5 份 parts 未改动
 ```
 
 红/绿测试（确认门禁真的会拦）：
@@ -148,8 +148,8 @@ DSH-NEXT-Multi.exe --discover
 实测（2026-11-02，本机）：
 
 ```
-rows: [{"tag":"快捷方式","mono":"E:\\FXS\\APP\\DSH NEXT","checked":true},
-       {"tag":"快捷方式","mono":"E:\\FXS\\APP\\DSH","checked":false}]
+rows: [{"tag":"快捷方式","mono":"C:\\Program Files\\DSH NEXT","checked":true},
+       {"tag":"快捷方式","mono":"C:\\Program Files\\DSH Desktop","checked":false}]
 hint: 找到 2 个候选
 ```
 

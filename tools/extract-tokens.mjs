@@ -8,16 +8,40 @@
 // 用法：
 //   node tools/extract-tokens.mjs --out design/tokens.lock.json [--parts design/parts]
 //                                 [--controls design/controls.md] [--css src/styles/tokens.css]
-//                                 [--asar "E:\FXS\APP\DSH NEXT\resources\app.asar"]
+//                                 [--asar "<DSH-NEXT 安装目录>\\resources\\app.asar"]
 //
 // 约等于（验收）：两次运行输出逐字节相同 —— 所以本文件不写时间戳、全量排序、只写下确定性内容。
 
 import { createHash } from 'node:crypto';
 import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { openAsar } from './asar-lib.mjs';
 
-const DEFAULT_ASAR = process.env.DSH_ASAR ?? 'E:\\FXS\\APP\\DSH NEXT\\resources\\app.asar';
+/**
+ * 解析 DSH-NEXT 的 app.asar：--asar（调用处优先）→ DSH_ASAR → 常见安装目录。
+ * 装到别处就显式指路；这里不猜路径，也绝不写死某台机器的安装位置。
+ */
+function resolveAsar() {
+  const candidates = [
+    process.env.DSH_ASAR,
+    process.env.LOCALAPPDATA && join(process.env.LOCALAPPDATA, 'Programs', 'DSH NEXT', 'resources', 'app.asar'),
+    process.env.ProgramFiles && join(process.env.ProgramFiles, 'DSH NEXT', 'resources', 'app.asar'),
+    process.env['ProgramFiles(x86)'] && join(process.env['ProgramFiles(x86)'], 'DSH NEXT', 'resources', 'app.asar'),
+  ].filter(Boolean);
+  return candidates.find((p) => existsSync(p)) ?? null;
+}
+
+const DEFAULT_ASAR = resolveAsar();
+
+/**
+ * 记录出处时写**可移植**路径：仓内文件写相对路径，仓外写 <install>/…，
+ * 免得把某台机器的安装位置固化进 lock 文件（它会随仓库发布）。
+ */
+function portablePath(p) {
+  const rel = relative(process.cwd(), p);
+  if (rel && !rel.startsWith('..') && !isAbsolute(rel)) return rel.replace(/\\/g, '/');
+  return `<install>/${p.split(/[\\/]/).slice(-2).join("/")}`;
+}
 
 // ---------------------------------------------------------------- CLI
 
@@ -39,6 +63,10 @@ function parseArgs(argv) {
 
 const args = parseArgs(process.argv.slice(2));
 const asarPath = args.asar ?? DEFAULT_ASAR;
+if (!asarPath) {
+  console.error('[tokens] 找不到 DSH-NEXT 的 app.asar：请用 --asar <路径> 或设置 DSH_ASAR');
+  process.exit(2);
+}
 const outPath = resolve(args.out ?? 'design/tokens.lock.json');
 const partsDir = resolve(args.parts ?? 'design/parts');
 const controlsPath = resolve(args.controls ?? 'design/controls.md');
@@ -383,7 +411,7 @@ const undefinedList = [...undefinedRefs.entries()]
 const lock = {
   schemaVersion: 1,
   tool: 'tools/extract-tokens.mjs@1',
-  sourceAsar: { path: asarPath, sha256: asarSha, entries: allEntries.length },
+  sourceAsar: { path: portablePath(asarPath), sha256: asarSha, entries: allEntries.length },
   counts: {
     cssSources: entries.filter((e) => CSS_ENTRY.test(e)).length,
     jsSources: entries.filter((e) => !CSS_ENTRY.test(e)).length,
@@ -429,7 +457,7 @@ if (cssOut) {
   mkdirSync(dirname(cssOut), { recursive: true });
   writeFileSync(cssOut, cssText, 'utf8');
   lock.generatedCss = {
-    path: cssOut,
+    path: portablePath(cssOut),
     sha256: sha256(Buffer.from(cssText, 'utf8')),
     bytes: Buffer.byteLength(cssText, 'utf8')
   };

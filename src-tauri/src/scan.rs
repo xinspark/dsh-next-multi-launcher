@@ -302,19 +302,19 @@ mod tests {
     }
 
     // 取自阶段 0 的实测命令行
-    const GPU_CMD: &str = r#""E:\FXS\APP\DSH NEXT\DSH NEXT.exe" --type=gpu-process --user-data-dir="C:\Users\FXS\.dsh\electron-user-data" --gpu-preferences=WAAAAAAAAADgAAAEAAAAAAAAAAAAAGAAQAAAAAAAAAADAAAAAAAAADg"#;
-    const CRASHPAD_CMD: &str = r#""E:\FXS\APP\DSH NEXT\DSH NEXT.exe" --type=crashpad-handler --user-data-dir=C:\Users\FXS\.dsh\electron-user-data /prefetch:4 --no-rate-limit"#;
-    const HOST_CMD: &str = r#""E:\FXS\APP\DSH NEXT\DSH NEXT.exe" --expose-internals "E:\FXS\APP\DSH NEXT\resources\app.asar\lib\host.js" "E:\FXS\APP\DSH NEXT\resources\app.asar" C:\Users\FXS\.dsh\profiles\desktop "E:\FXS\APP\DSH NEXT\resources\runtime\x64\primary-runtime""#;
-    const MAIN_CMD: &str = r#""E:\FXS\APP\DSH NEXT\DSH NEXT.exe""#;
+    const GPU_CMD: &str = r#""C:\Program Files\DSH NEXT\DSH NEXT.exe" --type=gpu-process --user-data-dir="C:\Users\demo\.dsh\electron-user-data" --gpu-preferences=WAAAAAAAAADgAAAEAAAAAAAAAAAAAGAAQAAAAAAAAAADAAAAAAAAADg"#;
+    const CRASHPAD_CMD: &str = r#""C:\Program Files\DSH NEXT\DSH NEXT.exe" --type=crashpad-handler --user-data-dir=C:\Users\demo\.dsh\electron-user-data /prefetch:4 --no-rate-limit"#;
+    const HOST_CMD: &str = r#""C:\Program Files\DSH NEXT\DSH NEXT.exe" --expose-internals "C:\Program Files\DSH NEXT\resources\app.asar\lib\host.js" "C:\Program Files\DSH NEXT\resources\app.asar" C:\Users\demo\.dsh\profiles\desktop "C:\Program Files\DSH NEXT\resources\runtime\x64\primary-runtime""#;
+    const MAIN_CMD: &str = r#""C:\Program Files\DSH NEXT\DSH NEXT.exe""#;
 
     // 未加引号、且 home 路径本身带空格的形态（替身进程 / 某些 shell 传参就是这样）
-    const HOST_CMD_UNQUOTED: &str = r"E:\FXS\Data\DSH000\DSH-NEXT Multi-Launcher\src-tauri\target\e2e\versions\2.0.99-next\DSH NEXT.exe --expose-internals E:\FXS\Data\DSH000\DSH-NEXT Multi-Launcher\src-tauri\target\e2e\versions\2.0.99-next\app.asar E:\FXS\Data\DSH000\DSH-NEXT Multi-Launcher\src-tauri\target\e2e\homes\lab1\profiles\desktop";
+    const HOST_CMD_UNQUOTED: &str = r"E:\demo\Data\DSH000\DSH-NEXT Multi-Launcher\src-tauri\target\e2e\versions\2.0.99-next\DSH NEXT.exe --expose-internals E:\demo\Data\DSH000\DSH-NEXT Multi-Launcher\src-tauri\target\e2e\versions\2.0.99-next\app.asar E:\demo\Data\DSH000\DSH-NEXT Multi-Launcher\src-tauri\target\e2e\homes\lab1\profiles\desktop";
 
     #[test]
     fn detects_safe_mode_from_cmdline() {
         // 安全模式：命令行带 --next-safe-mode，且 userData 落在 ...\electron-user-data\safe-mode
-        const SAFE_MAIN: &str = r#""E:\FXS\APP\DSH NEXT\DSH NEXT.exe" --next-safe-mode"#;
-        const SAFE_GPU: &str = r#""E:\FXS\APP\DSH NEXT\DSH NEXT.exe" --type=gpu-process --user-data-dir="C:\Users\FXS\.dsh\electron-user-data\safe-mode""#;
+        const SAFE_MAIN: &str = r#""C:\Program Files\DSH NEXT\DSH NEXT.exe" --next-safe-mode"#;
+        const SAFE_GPU: &str = r#""C:\Program Files\DSH NEXT\DSH NEXT.exe" --type=gpu-process --user-data-dir="C:\Users\demo\.dsh\electron-user-data\safe-mode""#;
 
         let normal = vec![proc(10, None, MAIN_CMD), proc(11, Some(10), GPU_CMD)];
         assert!(
@@ -332,20 +332,23 @@ mod tests {
     fn parses_host_home_with_spaces_in_path() {
         assert_eq!(
             parse_host_home(HOST_CMD_UNQUOTED).unwrap(),
-            r"E:\FXS\Data\DSH000\DSH-NEXT Multi-Launcher\src-tauri\target\e2e\homes\lab1"
+            r"E:\demo\Data\DSH000\DSH-NEXT Multi-Launcher\src-tauri\target\e2e\homes\lab1"
         );
     }
 
     #[test]
     fn parses_quoted_user_data_dir() {
-        assert_eq!(parse_user_data_home(GPU_CMD).unwrap(), r"C:\Users\FXS\.dsh");
+        assert_eq!(
+            parse_user_data_home(GPU_CMD).unwrap(),
+            r"C:\Users\demo\.dsh"
+        );
     }
 
     #[test]
     fn parses_unquoted_user_data_dir() {
         assert_eq!(
             parse_user_data_home(CRASHPAD_CMD).unwrap(),
-            r"C:\Users\FXS\.dsh"
+            r"C:\Users\demo\.dsh"
         );
     }
 
@@ -357,7 +360,7 @@ mod tests {
 
     #[test]
     fn parses_host_home() {
-        assert_eq!(parse_host_home(HOST_CMD).unwrap(), r"C:\Users\FXS\.dsh");
+        assert_eq!(parse_host_home(HOST_CMD).unwrap(), r"C:\Users\demo\.dsh");
     }
 
     #[test]
@@ -373,8 +376,11 @@ mod tests {
     #[test]
     fn parses_escaped_quote_form() {
         // Windows 命令行里 Electron 传的是 --user-data-dir=\"C:\...\electron-user-data\"
-        let cmd = r#""E:\x\DSH NEXT.exe" --type=gpu-process "--user-data-dir=\"C:\Users\FXS\.dsh-lab\electron-user-data\"""#;
-        assert_eq!(parse_user_data_home(cmd).unwrap(), r"C:\Users\FXS\.dsh-lab");
+        let cmd = r#""E:\x\DSH NEXT.exe" --type=gpu-process "--user-data-dir=\"C:\Users\demo\.dsh-lab\electron-user-data\"""#;
+        assert_eq!(
+            parse_user_data_home(cmd).unwrap(),
+            r"C:\Users\demo\.dsh-lab"
+        );
     }
 
     #[test]
@@ -387,7 +393,7 @@ mod tests {
         ];
         let running = scan_running_from(&procs);
         assert_eq!(running.len(), 1);
-        assert_eq!(running[0].home, r"C:\Users\FXS\.dsh");
+        assert_eq!(running[0].home, r"C:\Users\demo\.dsh");
         assert_eq!(running[0].shell_pid, 100);
         assert_eq!(running[0].host_pid, Some(200));
         assert_eq!(running[0].started_at, 1_700_000_100);
@@ -408,8 +414,8 @@ mod tests {
         let running = scan_running_from(&procs);
         assert_eq!(running.len(), 2);
         let homes: Vec<&str> = running.iter().map(|r| r.home.as_str()).collect();
-        assert!(homes.contains(&r"C:\Users\FXS\.dsh"));
-        assert!(homes.contains(&r"C:\Users\FXS\.dsh-b"));
+        assert!(homes.contains(&r"C:\Users\demo\.dsh"));
+        assert!(homes.contains(&r"C:\Users\demo\.dsh-b"));
         let b = running.iter().find(|r| r.home.ends_with(".dsh-b")).unwrap();
         assert_eq!(b.shell_pid, 110);
     }

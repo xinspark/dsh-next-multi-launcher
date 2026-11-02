@@ -668,14 +668,14 @@ mod tests {
         launcher
             .launch(LaunchRequest::new(
                 "a",
-                "C:\\Users\\FXS\\.dsh-a",
+                "C:\\Users\\demo\\.dsh-a",
                 PathBuf::from("C:\\missing-a.exe"),
             ))
             .unwrap();
         launcher
             .launch(LaunchRequest::new(
                 "b",
-                "C:\\Users\\FXS\\.dsh-b",
+                "C:\\Users\\demo\\.dsh-b",
                 PathBuf::from("C:\\missing-b.exe"),
             ))
             .unwrap();
@@ -700,7 +700,7 @@ mod tests {
         let sink = Arc::new(Counter(AtomicUsize::new(0)));
         let pointer = Pointer::at(root.join("pointer.json"));
         std::fs::create_dir_all(root.join("ptr")).unwrap();
-        pointer.write("C:\\Users\\FXS\\.dsh-default").unwrap();
+        pointer.write("C:\\Users\\demo\\.dsh-default").unwrap();
         let cfg = config_for(&root);
         let logger = Logger::new(root.join("logs")).with_echo(false);
         let launcher = Launcher::start(sink, store, pointer.clone(), cfg, logger);
@@ -708,14 +708,17 @@ mod tests {
         launcher
             .launch(LaunchRequest::new(
                 "x",
-                "C:\\Users\\FXS\\.dsh-x",
+                "C:\\Users\\demo\\.dsh-x",
                 root.join("nope.exe"),
             ))
             .unwrap();
         std::thread::sleep(Duration::from_millis(500));
         assert_eq!(launcher.status("x").phase, LaunchPhase::Failed);
         // 版本无效时根本没动指针
-        assert_eq!(pointer.read_home().unwrap(), "C:\\Users\\FXS\\.dsh-default");
+        assert_eq!(
+            pointer.read_home().unwrap(),
+            "C:\\Users\\demo\\.dsh-default"
+        );
         let _ = std::fs::remove_dir_all(root);
     }
 
@@ -730,7 +733,7 @@ mod tests {
         launcher
             .launch(LaunchRequest::new(
                 "q",
-                "C:\\Users\\FXS\\.dsh-q",
+                "C:\\Users\\demo\\.dsh-q",
                 PathBuf::from("C:\\nope.exe"),
             ))
             .unwrap();
@@ -756,7 +759,7 @@ mod tests {
     fn instance_reference_backed_by_store() {
         // 保证 Launcher 与 Store 的组合不破坏实例文件
         let (store, root) = test_store("store-combo");
-        let inst = Instance::new("lab", "实验室", "2.0.21-next", "C:\\Users\\FXS\\.dsh-lab");
+        let inst = Instance::new("lab", "实验室", "2.0.21-next", "C:\\Users\\demo\\.dsh-lab");
         store.write_instance(&inst).unwrap();
         assert_eq!(store.list_instances().len(), 1);
         let _ = std::fs::remove_dir_all(root);

@@ -25,6 +25,18 @@ src-tauri/src/
 
 前端（`src/`）：`App.svelte` 持有快照与轮询，组件只做展示；`lib/api.ts` 统一把 Rust 错误转成可展示结构。
 
+共用的 UI 零件集中在 `src/lib/`，**一处实现、多处引用**（同一个动作不在三个地方各写一遍）：
+
+| 文件 | 职责 |
+|---|---|
+| `Icon.svelte` + `icons.ts` | 原生 16×16 图标，path 逐字取自官方 `primitives`，不自己画 |
+| `Switch.svelte` | 原生开关（36×20，状态键在 `aria-checked`） |
+| `SelectMenu.svelte` | 原生风格下拉选择，替代无法上样式的原生 `<select>` |
+| `DirPickButton.svelte` | 「选择目录」按钮，设置 / 向导 / 版本导入三处共用 |
+
+样式由两道门守着：`tools/verify-tokens.mjs`（用到的 token 名字必须存在）与
+`tools/lint-css.mjs`（禁裸颜色、圆角只用 token、字号必须与行高成对、字重不出界）。
+
 ## 初始化向导
 
 `OnboardingPanel.svelte` 是盖在主界面上的单页面板，状态来自 `onboarding_state`

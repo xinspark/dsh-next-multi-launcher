@@ -364,8 +364,8 @@ mod onboarding_tests {
     fn legacy_config_without_onboarding_still_loads() {
         let json = r#"{
             "schemaVersion": 1,
-            "defaultHome": "C:\\Users\\FXS\\.dsh",
-            "homeRoot": "C:\\Users\\FXS",
+            "defaultHome": "C:\\Users\\demo\\.dsh",
+            "homeRoot": "C:\\Users\\demo",
             "launchTimeoutSec": 90,
             "pollIntervalMs": 500,
             "restorePointerAfterLaunch": true

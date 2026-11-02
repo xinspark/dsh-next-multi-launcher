@@ -190,7 +190,7 @@
 
 ### 修复
 
-- `versions::install_candidates` 里硬编码了开发者本机路径 `E:\FXS\APP\DSH NEXT`，
+- `versions::install_candidates` 里硬编码了某一台机器的安装路径，
   在别人的机器上恒为无效候选；改为只依据环境变量与运行中进程推断
 
 ## [1.0.0] - 2026-11-02

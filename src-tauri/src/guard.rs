@@ -97,18 +97,18 @@ mod tests {
 
     fn roots() -> SafetyRoots {
         SafetyRoots {
-            appdata: Some(PathBuf::from(r"C:\Users\FXS\AppData\Roaming")),
-            localappdata: Some(PathBuf::from(r"C:\Users\FXS\AppData\Local")),
-            user_profile: Some(PathBuf::from(r"C:\Users\FXS")),
+            appdata: Some(PathBuf::from(r"C:\Users\demo\AppData\Roaming")),
+            localappdata: Some(PathBuf::from(r"C:\Users\demo\AppData\Local")),
+            user_profile: Some(PathBuf::from(r"C:\Users\demo")),
             system_root: Some(PathBuf::from(r"C:\Windows")),
-            data_dir: PathBuf::from(r"C:\Users\FXS\AppData\Local\DSH-NEXT-Multi"),
-            default_home: PathBuf::from(r"C:\Users\FXS\.dsh"),
+            data_dir: PathBuf::from(r"C:\Users\demo\AppData\Local\DSH-NEXT-Multi"),
+            default_home: PathBuf::from(r"C:\Users\demo\.dsh"),
         }
     }
 
     #[test]
     fn allows_normal_instance_home() {
-        assert!(assert_safe_delete_target(Path::new(r"C:\Users\FXS\.dsh-lab"), &roots()).is_ok());
+        assert!(assert_safe_delete_target(Path::new(r"C:\Users\demo\.dsh-lab"), &roots()).is_ok());
     }
 
     #[test]
@@ -123,13 +123,14 @@ mod tests {
 
     #[test]
     fn rejects_default_home() {
-        let err = assert_safe_delete_target(Path::new(r"C:\Users\FXS\.dsh"), &roots()).unwrap_err();
+        let err =
+            assert_safe_delete_target(Path::new(r"C:\Users\demo\.dsh"), &roots()).unwrap_err();
         assert_eq!(err.code, "E1007");
     }
 
     #[test]
     fn rejects_user_profile_and_ancestors() {
-        assert!(assert_safe_delete_target(Path::new(r"C:\Users\FXS"), &roots()).is_err());
+        assert!(assert_safe_delete_target(Path::new(r"C:\Users\demo"), &roots()).is_err());
         assert!(assert_safe_delete_target(Path::new(r"C:\Users"), &roots()).is_err());
         assert!(assert_safe_delete_target(Path::new(r"C:\"), &roots()).is_err());
     }
@@ -137,7 +138,7 @@ mod tests {
     #[test]
     fn rejects_dotdot_and_short_paths() {
         assert!(
-            assert_safe_delete_target(Path::new(r"C:\Users\FXS\..\Windows"), &roots()).is_err()
+            assert_safe_delete_target(Path::new(r"C:\Users\demo\..\Windows"), &roots()).is_err()
         );
         assert!(assert_safe_delete_target(Path::new(r"C:\a"), &roots()).is_err());
     }
@@ -145,7 +146,7 @@ mod tests {
     #[test]
     fn rejects_launcher_data_dir() {
         assert!(assert_safe_delete_target(
-            Path::new(r"C:\Users\FXS\AppData\Local\DSH-NEXT-Multi"),
+            Path::new(r"C:\Users\demo\AppData\Local\DSH-NEXT-Multi"),
             &roots()
         )
         .is_err());
@@ -153,6 +154,6 @@ mod tests {
 
     #[test]
     fn case_insensitive() {
-        assert!(assert_safe_delete_target(Path::new(r"c:\users\fxs\.DSH"), &roots()).is_err());
+        assert!(assert_safe_delete_target(Path::new(r"c:\users\demo\.DSH"), &roots()).is_err());
     }
 }

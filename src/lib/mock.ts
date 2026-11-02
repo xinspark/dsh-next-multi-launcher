@@ -52,7 +52,7 @@ const instances: Instance[] = [
   inst('old', '旧环境', 'C:\\Users\\demo\\.dsh-old', { archived: true })
 ];
 
-export function mockSnapshot(): Snapshot {
+function mockSnapshot(): Snapshot {
   const running = instances.filter((i) => i.id === 'lingshu').map(() => ({
     home: 'C:\\Users\\demo\\.dsh-lingshu',
     shellPid: 40752,

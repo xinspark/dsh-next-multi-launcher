@@ -483,7 +483,7 @@ mod tests {
         fs::create_dir_all(versions.join("empty-tag")).unwrap();
         let scanner = VersionScanner::new(versions.clone());
 
-        let inst = Instance::new("lab", "实验室", "2.0.21-next", r"C:\Users\FXS\.dsh-lab");
+        let inst = Instance::new("lab", "实验室", "2.0.21-next", r"C:\Users\demo\.dsh-lab");
         let err = scanner.remove("2.0.21-next", &[inst]).unwrap_err();
         assert_eq!(err.code, "E1010");
 

@@ -337,22 +337,25 @@ mod tests {
 
     #[test]
     fn norm_path_is_case_insensitive_and_trimmed() {
-        let a = Path::new("C:\\Users\\FXS\\.dsh\\");
-        let b = Path::new("c:/users/fxs/.dsh");
+        let a = Path::new("C:\\Users\\demo\\.dsh\\");
+        let b = Path::new("c:/users/demo/.dsh");
         assert_eq!(norm_path(a), norm_path(b));
         assert!(path_eq(a, b));
     }
 
     #[test]
     fn starts_with_handles_boundary() {
-        let root = Path::new("C:\\Users\\FXS\\.dsh");
-        assert!(!path_starts_with(Path::new("C:\\Users\\FXS\\.dsh-a"), root));
+        let root = Path::new("C:\\Users\\demo\\.dsh");
         assert!(!path_starts_with(
-            Path::new("C:\\Users\\FXS\\.dsh-a\\x"),
+            Path::new("C:\\Users\\demo\\.dsh-a"),
+            root
+        ));
+        assert!(!path_starts_with(
+            Path::new("C:\\Users\\demo\\.dsh-a\\x"),
             root
         ));
         assert!(path_starts_with(
-            Path::new("C:\\Users\\FXS\\.dsh\\profiles"),
+            Path::new("C:\\Users\\demo\\.dsh\\profiles"),
             root
         ));
     }

@@ -440,15 +440,15 @@ mod tests {
         );
 
         // 未自定义 default_home 时，改根跟随
-        let mut cfg = Config::with_default_home("C:\\Users\\FXS\\.dsh");
-        cfg.home_root = "C:\\Users\\FXS".into();
+        let mut cfg = Config::with_default_home("C:\\Users\\demo\\.dsh");
+        cfg.home_root = "C:\\Users\\demo".into();
         let next = apply_home_root(&cfg, "E:\\data");
         assert_eq!(next.home_root, "E:\\data");
         assert_eq!(next.default_home, "E:\\data\\.dsh");
 
         // 用户自定义过 default_home → 改根不覆盖它
         let mut cfg = Config::with_default_home("C:\\custom\\.dsh-main");
-        cfg.home_root = "C:\\Users\\FXS".into();
+        cfg.home_root = "C:\\Users\\demo".into();
         let next = apply_home_root(&cfg, "E:\\data");
         assert_eq!(next.home_root, "E:\\data");
         assert_eq!(next.default_home, "C:\\custom\\.dsh-main");
@@ -456,7 +456,7 @@ mod tests {
 
     #[test]
     fn home_root_validation_rejects_dangerous_values() {
-        assert!(validate_home_root("C:\\Users\\FXS").is_ok());
+        assert!(validate_home_root("C:\\Users\\demo").is_ok());
         assert!(validate_home_root("E:\\data\\dsh").is_ok());
 
         // 空串是合法的：含义是「跟随系统默认（%USERPROFILE%）」
@@ -470,7 +470,7 @@ mod tests {
     #[test]
     fn instance_crud_and_validation() {
         let store = temp_store("inst");
-        let inst = Instance::new("lab", "实验室", "2.0.21-next", "C:\\Users\\FXS\\.dsh-lab");
+        let inst = Instance::new("lab", "实验室", "2.0.21-next", "C:\\Users\\demo\\.dsh-lab");
         store.validate_instance(&inst, &[], true).unwrap();
         store.write_instance(&inst).unwrap();
 
@@ -479,12 +479,12 @@ mod tests {
         assert_eq!(store.read_instance("lab").unwrap().name, "实验室");
 
         // 同 home 的第二个实例被拒
-        let mut dup = Instance::new("lab2", "第二", "2.0.21-next", "c:\\users\\fxs\\.dsh-lab");
+        let mut dup = Instance::new("lab2", "第二", "2.0.21-next", "c:\\users\\demo\\.dsh-lab");
         let err = store.validate_instance(&dup, &all, true).unwrap_err();
         assert_eq!(err.code, "E1003");
 
         // 版本不存在
-        dup.home = "C:\\Users\\FXS\\.dsh-lab2".into();
+        dup.home = "C:\\Users\\demo\\.dsh-lab2".into();
         dup.version = "9.9.9".into();
         assert_eq!(
             store.validate_instance(&dup, &all, true).unwrap_err().code,
@@ -508,7 +508,7 @@ mod tests {
         );
 
         // 重名 id
-        let same_id = Instance::new("lab", "另一个", "2.0.21-next", "C:\\Users\\FXS\\.dsh-x");
+        let same_id = Instance::new("lab", "另一个", "2.0.21-next", "C:\\Users\\demo\\.dsh-x");
         assert_eq!(
             store
                 .validate_instance(&same_id, &all, true)
@@ -529,8 +529,8 @@ mod tests {
         assert_eq!(slugify("灵枢 Lab!"), "lab");
         assert_eq!(slugify("  "), "instance");
         assert_eq!(slugify("a".repeat(40).as_str()).len(), 32);
-        assert_eq!(suggest_id_from_home(r"C:\Users\FXS\.dsh-lab"), "lab");
-        assert_eq!(suggest_id_from_home(r"C:\Users\FXS\.dsh"), "default");
+        assert_eq!(suggest_id_from_home(r"C:\Users\demo\.dsh-lab"), "lab");
+        assert_eq!(suggest_id_from_home(r"C:\Users\demo\.dsh"), "default");
     }
 
     #[test]

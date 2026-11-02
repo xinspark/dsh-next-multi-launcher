@@ -1,7 +1,7 @@
 # 控件规格（阶段 1 产物）
 
 > 由 `tools/extract-tokens.mjs` 从 DSH-NEXT `app.asar` 自动生成，请勿手改。
-> 基线 asar：`E:\FXS\APP\DSH NEXT\resources\app.asar`
+> 基线 asar：`<install>/resources/app.asar`
 > asar sha256：`16f2c62b1ccc98a968d9c7cf5edcd7af7a1e7690c2fba8cea361d1726d0db349`
 
 ## 1. 圆角刻度
