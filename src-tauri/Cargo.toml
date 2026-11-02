@@ -23,6 +23,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 sysinfo = "0.33"
 chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+reqwest = { version = "0.13.3", default-features = false, features = ["blocking", "json", "native-tls"] }
 
 # 自动发现走原生 API：COM IShellLink 解析快捷方式、winreg 读注册表，不依赖外部命令
 [target.'cfg(windows)'.dependencies]

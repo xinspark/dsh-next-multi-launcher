@@ -73,7 +73,23 @@ pub fn run_if_requested() -> Option<i32> {
         "--e2e-status" => Some(e2e_status()),
         "--scan-debug" => Some(scan_debug()),
         "--discover" => Some(discover()),
+        "--check-update" => Some(check_update()),
+        "--catalog" => Some(catalog(args.get(1).map(String::as_str).unwrap_or("next"))),
         _ => None,
+    }
+}
+
+/// 排障用：检查启动器自身的新版本（只打印，不下载）。
+fn check_update() -> i32 {
+    let info = crate::update::check(env!("CARGO_PKG_VERSION"));
+    emit!(
+        "{}",
+        serde_json::to_string_pretty(&info).unwrap_or_default()
+    );
+    if info.error.is_some() {
+        1
+    } else {
+        0
     }
 }
 
@@ -423,4 +439,21 @@ fn e2e_status() -> i32 {
 #[allow(dead_code)]
 fn path_display(p: &Path) -> String {
     p.to_string_lossy().to_string()
+}
+
+/// 排障用：打印某渠道的版本目录（next / next-preview / native）。
+fn catalog(channel: &str) -> i32 {
+    match crate::catalog::list(channel) {
+        Ok(list) => {
+            emit!(
+                "{}",
+                serde_json::to_string_pretty(&list).unwrap_or_default()
+            );
+            0
+        }
+        Err(e) => {
+            eprintln!("{e}");
+            1
+        }
+    }
 }

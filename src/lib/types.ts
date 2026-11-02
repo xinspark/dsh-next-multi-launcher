@@ -139,6 +139,7 @@ export interface InstancePayload {
 
 export interface ConfigPatch {
   defaultHome?: string;
+  homeRoot?: string;
   launchTimeoutSec?: number;
   pollIntervalMs?: number;
   restorePointerAfterLaunch?: boolean;
@@ -152,4 +153,26 @@ export interface PermissionReport {
   pointerPath: string;
   pointerWritable: boolean;
   needsElevation: boolean;
+}
+
+/** 启动器自身的更新检查结果（只提示，不下载） */
+export interface UpdateInfo {
+  current: string;
+  latest?: string;
+  hasUpdate: boolean;
+  url?: string;
+  publishedAt?: string;
+  error?: string;
+}
+
+/** 版本目录条目（三渠道共用） */
+export interface CatalogEntry {
+  channel: 'next' | 'next-preview' | 'native' | string;
+  tag: string;
+  publishedAt?: string;
+  size: number;
+  assetName: string;
+  url: string;
+  digest?: string;
+  prerelease: boolean;
 }

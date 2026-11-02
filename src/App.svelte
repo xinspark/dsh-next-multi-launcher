@@ -5,25 +5,27 @@
 
   import { api, errorText, type UiError } from './lib/api';
   import { translate, type Lang } from './lib/i18n';
-  import type { InstanceView, PermissionReport, Snapshot } from './lib/types';
+  import type { ConfigPatch, InstanceView, PermissionReport, Snapshot } from './lib/types';
   import { shortPath } from './lib/format';
 
   import InstanceRow from './lib/InstanceRow.svelte';
   import DetailsPane from './lib/DetailsPane.svelte';
   import InstanceDialog from './lib/InstanceDialog.svelte';
   import DeleteDialog from './lib/DeleteDialog.svelte';
-  import VersionDialog from './lib/VersionDialog.svelte';
-  import SettingsDialog from './lib/SettingsDialog.svelte';
+  import VersionView from './lib/VersionView.svelte';
+  import SettingsView from './lib/SettingsView.svelte';
   import brandUrl from './assets/brand.png';
   import Modal from './lib/Modal.svelte';
+
+  type View = 'launch' | 'versions' | 'settings';
 
   type Dialog =
     | { kind: 'new'; presetHome?: string; presetId?: string }
     | { kind: 'edit'; id: string }
     | { kind: 'delete'; id: string }
-    | { kind: 'version' }
-    | { kind: 'forceStop'; id: string; pid?: number }
-    | { kind: 'settings' };
+    | { kind: 'forceStop'; id: string; pid?: number };
+
+  let view = $state<View>('launch');
 
   let snapshot = $state<Snapshot | null>(null);
   let selectedId = $state<string | null>(null);
@@ -119,7 +121,9 @@
     const stored = localStorage.getItem('dshla.lang');
     if (stored === 'en' || stored === 'zh') lang = stored;
     await refresh();
-    if (location.hash === '#settings') dialog = { kind: 'settings' };
+    if (location.hash === '#settings') view = 'settings';
+    else if (location.hash === '#versions') view = 'versions';
+    else if (location.hash === '#launch') view = 'launch';
     pollTimer = setInterval(refresh, 2000);
     noticeTimer = setInterval(advanceNotice, NOTICE_MS);
     tickTimer = setInterval(() => (now = Date.now()), 1000);
@@ -257,17 +261,18 @@
     await refresh();
   }
 
-  async function saveSettings(patch: {
-    homeRoot: string;
-    defaultHome: string;
-    launchTimeoutSec: number;
-    pollIntervalMs: number;
-    restorePointerAfterLaunch: boolean;
-  }) {
+  async function saveSettings(patch: ConfigPatch) {
     await api.setConfig(patch);
-    dialog = null;
     notify(t('toast.settingsSaved'));
     await refresh();
+  }
+
+  /** 切视图并同步到 hash（可分享、可刷新保持） */
+  function go(next: View) {
+    view = next;
+    if (location.hash !== `#${next}`) {
+      history.replaceState(null, '', `#${next}`);
+    }
   }
 
   async function relaunchAsAdmin() {
@@ -334,15 +339,38 @@
       </div>
     </div>
     <span class="spacer"></span>
-    <button class="btn ghost" onclick={() => (dialog = { kind: 'settings' })}>{t('header.settings')}</button>
+    <nav class="nav-tabs" aria-label="main">
+      <button class="nav-tab" class:active={view === 'launch'} onclick={() => go('launch')}>
+        {t('nav.launch')}
+      </button>
+      <button class="nav-tab" class:active={view === 'versions'} onclick={() => go('versions')}>
+        {t('nav.versions')}
+      </button>
+      <button class="nav-tab" class:active={view === 'settings'} onclick={() => go('settings')}>
+        {t('nav.settings')}
+      </button>
+    </nav>
+    <span class="spacer"></span>
     <button class="btn ghost" onclick={toggleLang}>{t('header.lang')}</button>
     <button class="btn ghost" onclick={() => refresh()}>{t('header.refresh')}</button>
-    <button class="btn ghost" onclick={() => (dialog = { kind: 'version' })}>{t('header.importVersion')}</button>
-    <button class="btn primary" onclick={() => (dialog = { kind: 'new' })}>{t('header.new')}</button>
+    {#if view === 'launch'}
+      <button class="btn primary" onclick={() => (dialog = { kind: 'new' })}>{t('header.new')}</button>
+    {/if}
   </header>
 
-  <div class="pointerbar">
-    <span class="pointer-label">{t('pointer.label')}</span>
+  <!-- 提示条：三视图常驻（讲的是全局约束） -->
+  <div class="notice notice-ticker" role="status">
+    <span class="notice-mark" aria-hidden="true">i</span>
+    {#key noticeIndex}
+      <span class="notice-text" in:fly={{ y: 6, duration: 220 }}>{t(NOTICES[noticeIndex])}</span>
+    {/key}
+    <button class="notice-next" onclick={advanceNotice} title={t('notice.nextHint')}>
+      {t('notice.next')}
+    </button>
+  </div>
+
+  {#if view === 'launch'}
+  <div class="pointerbar"><span class="pointer-label">{t('pointer.label')}</span>
     <span class="pointer-arrow">→</span>
     <span class="pointer-value" class:missing={!snapshot?.pointer.home} title={snapshot?.pointer.path ?? ''}>
       {snapshot?.pointer.home ?? t('pointer.missing')}
@@ -387,16 +415,6 @@
       </button>
     </div>
   {/if}
-
-  <div class="notice notice-ticker" role="status">
-    <span class="notice-mark" aria-hidden="true">i</span>
-    {#key noticeIndex}
-      <span class="notice-text" in:fly={{ y: 6, duration: 220 }}>{t(NOTICES[noticeIndex])}</span>
-    {/key}
-    <button class="notice-next" onclick={advanceNotice} title={t('notice.nextHint')}>
-      {t('notice.next')}
-    </button>
-  </div>
 
   {#if defaultHomeWarning}
     <div class="banner">
@@ -521,6 +539,30 @@
     </span>
     <span title={snapshot?.dataDir ?? ''}>{snapshot?.versionsDir ?? ''}</span>
   </footer>
+  {:else if view === 'versions'}
+    <VersionView
+      versions={snapshot?.versions ?? []}
+      {t}
+      onChanged={() => refresh()}
+      onNotify={notify}
+    />
+  {:else}
+    {#if snapshot}
+      <SettingsView
+        config={snapshot.config}
+        {lang}
+        dataDir={snapshot.dataDir}
+        versionsDir={snapshot.versionsDir}
+        logDir={snapshot.logDir}
+        {t}
+        onSave={saveSettings}
+        onToggleLang={toggleLang}
+        onOpenPath={(p, create) => openPath(p, create ?? false)}
+      />
+    {:else}
+      <div class="page"><div class="empty">…</div></div>
+    {/if}
+  {/if}
 </div>
 
 {#if toast}
@@ -554,21 +596,6 @@
   />
 {:else if dialog?.kind === 'delete' && dialogView}
   <DeleteDialog view={dialogView} {t} onClose={() => (dialog = null)} onConfirm={doDelete} />
-{:else if dialog?.kind === 'settings' && snapshot}
-  <SettingsDialog
-    config={snapshot.config}
-    isAdmin={permission?.isAdmin ?? false}
-    {t}
-    onClose={() => (dialog = null)}
-    onSave={saveSettings}
-  />
-{:else if dialog?.kind === 'version'}
-  <VersionDialog
-    versions={snapshot?.versions ?? []}
-    {t}
-    onClose={() => (dialog = null)}
-    onChanged={() => refresh()}
-  />
 {:else if forceStopDialog}
   <Modal title={t('dialog.forceStop.title')} onClose={() => (dialog = null)}>
     <div class="field-hint">

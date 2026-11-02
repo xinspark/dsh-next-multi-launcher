@@ -128,6 +128,31 @@ export function mockCall(cmd: string, args?: Record<string, unknown>): unknown {
       return mockSnapshot().pointer;
     case 'config_set':
       return mockSnapshot().config;
+
+    case 'open_url':
+      return null;
+    case 'update_check':
+      return {
+        current: '1.0.2',
+        latest: 'v1.0.2',
+        hasUpdate: false,
+        url: 'https://github.com/xinspark/dsh-next-multi-launcher/releases/tag/v1.0.2'
+      };
+    case 'catalog_list': {
+      const catalog: Record<string, unknown[]> = {
+        next: [
+          { channel: 'next', tag: 'v2.0.21-next', publishedAt: '2026-10-29T23:27:36Z', size: 419536583, assetName: 'DSH-NEXT-2.0.21-next-x64-Portable.zip', url: 'https://example.com/a.zip', digest: 'sha256:abc', prerelease: false },
+          { channel: 'next', tag: 'v2.0.20-next', publishedAt: '2026-10-27T00:11:23Z', size: 420154030, assetName: 'DSH-NEXT-2.0.20-next-x64-Portable.zip', url: 'https://example.com/b.zip', digest: 'sha256:def', prerelease: false }
+        ],
+        'next-preview': [
+          { channel: 'next-preview', tag: 'v2.0.21-beta.1', publishedAt: '2026-10-29T22:00:00Z', size: 432794134, assetName: 'DSH-Desktop-Beta-2.0.21-beta.1-x64-Portable.zip', url: 'https://example.com/c.zip', digest: 'sha256:ghi', prerelease: true }
+        ],
+        native: [
+          { channel: 'native', tag: 'latest', size: 0, assetName: 'dsh-latest-windows-x64.exe', url: 'https://download.deepseek.com/desktop/dsh-latest-windows-x64.exe', prerelease: false }
+        ]
+      };
+      return catalog[String(args?.channel ?? 'next')] ?? [];
+    }
     case 'version_scan':
       return versions;
     case 'version_discover':
@@ -170,3 +195,5 @@ export function mockCall(cmd: string, args?: Record<string, unknown>): unknown {
       return null;
   }
 }
+
+

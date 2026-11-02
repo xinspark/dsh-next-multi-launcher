@@ -477,6 +477,47 @@ fn open_in_explorer(path: &Path) -> std::io::Result<()> {
         .map(|_| ())
 }
 
+/// 用系统默认浏览器打开 URL（求星、查看更新、下载页）。
+#[tauri::command]
+pub fn open_url(state: State<'_, AppState>, url: String) -> Result<(), AppError> {
+    let trimmed = url.trim();
+    if !(trimmed.starts_with("https://") || trimmed.starts_with("http://")) {
+        return Err(AppError::new(
+            "E1012",
+            "只允许打开 http(s) 链接".to_string(),
+        ));
+    }
+    state.logger().info(format!("打开链接 {trimmed}"));
+    open_in_browser(trimmed).map_err(|e| AppError::new("E1000", format!("打开链接失败：{e}")))
+}
+
+fn open_in_browser(url: &str) -> std::io::Result<()> {
+    use std::os::windows::process::CommandExt;
+    const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+    // `start` 是 cmd 内建命令；第一个引号参数是窗口标题占位，不能省
+    std::process::Command::new("cmd.exe")
+        .args(["/c", "start", "", url])
+        .creation_flags(CREATE_NO_WINDOW)
+        .spawn()
+        .map(|_| ())
+}
+
+/// 检查启动器自身是否有新版本（只提示，不下载）。
+#[tauri::command]
+pub fn update_check(state: State<'_, AppState>) -> crate::update::UpdateInfo {
+    let info = crate::update::check(env!("CARGO_PKG_VERSION"));
+    match (&info.latest, info.error.as_deref()) {
+        (Some(tag), _) if info.has_update => {
+            state
+                .logger()
+                .info(format!("发现新版本 {tag}（当前 {}）", info.current));
+        }
+        (None, Some(err)) => state.logger().info(format!("更新检查失败：{err}")),
+        _ => {}
+    }
+    info
+}
+
 /// 前端要的“最近一次启动/队列摘要”不单独开命令，直接读快照即可。
 
 #[derive(Debug, Clone, Serialize)]
@@ -514,4 +555,11 @@ pub fn health(state: State<'_, AppState>) -> Result<Health, AppError> {
 // 让 `LaunchPhase` 参与序列化（供前端类型生成时可见）
 pub fn _phase_name(p: LaunchPhase) -> &'static str {
     p.as_str()
+}
+
+/// 版本目录：列出某渠道可下载的版本（只返回清单，不下载）。
+#[tauri::command]
+pub fn catalog_list(channel: String) -> Result<Vec<crate::catalog::CatalogEntry>, AppError> {
+    crate::catalog::list(&channel)
+        .map_err(|e| AppError::new("E1012", format!("获取版本目录失败：{e}")))
 }

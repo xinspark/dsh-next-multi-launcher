@@ -1,6 +1,7 @@
 //! DSH-NEXT 应用多开启动器 —— 核心库。
 
 pub mod asar;
+pub mod catalog;
 pub mod cli;
 pub mod commands;
 pub mod discover;
@@ -12,6 +13,7 @@ pub mod perm;
 pub mod pointer;
 pub mod scan;
 pub mod store;
+pub mod update;
 pub mod util;
 pub mod versions;
 
@@ -353,6 +355,9 @@ pub fn run() {
             commands::version_discover,
             commands::pick_directory,
             commands::open_path,
+            commands::open_url,
+            commands::catalog_list,
+            commands::update_check,
             commands::health,
             commands::permission_report,
             commands::relaunch_elevated,
