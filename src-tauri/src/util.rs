@@ -67,7 +67,9 @@ pub fn documents_dir() -> PathBuf {
     #[cfg(windows)]
     {
         use windows::Win32::System::Com::CoTaskMemFree;
-        use windows::Win32::UI::Shell::{SHGetKnownFolderPath, FOLDERID_Documents, KF_FLAG_DEFAULT};
+        use windows::Win32::UI::Shell::{
+            FOLDERID_Documents, SHGetKnownFolderPath, KF_FLAG_DEFAULT,
+        };
         unsafe {
             if let Ok(p) = SHGetKnownFolderPath(&FOLDERID_Documents, KF_FLAG_DEFAULT, None) {
                 let text = p.to_string().unwrap_or_default();
@@ -310,11 +312,12 @@ impl Logger {
 mod tests {
     use super::*;
 
-
     /// 迁移：同卷 rename 生效，数据(配置/实例)跟着搬走，旧目录消失。
     #[test]
     fn migrate_moves_config_and_instances() {
-        let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("target").join(format!("migrate-{}", std::process::id()));
+        let base = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("target")
+            .join(format!("migrate-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&base);
         let old = base.join("old");
         let new = base.join("new");
@@ -325,7 +328,10 @@ mod tests {
         migrate_data_dir(&old, &new);
 
         assert!(new.join("app.json").exists(), "配置没搬过去");
-        assert!(new.join("instances").join("a.json").exists(), "实例没搬过去");
+        assert!(
+            new.join("instances").join("a.json").exists(),
+            "实例没搬过去"
+        );
         let _ = std::fs::remove_dir_all(&base);
     }
 
