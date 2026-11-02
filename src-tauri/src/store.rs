@@ -326,11 +326,13 @@ pub fn apply_home_root(cfg: &Config, new_root: &str) -> Config {
     next
 }
 
-/// 数据目录树根的校验：只挡明显危险的值（空、相对、盘根、含 `..`）。
+/// 数据目录树根的校验：只挡明显危险的值（相对、盘根、含 `..`）。
+///
+/// **空串是合法的**，含义是「跟随系统默认（`%USERPROFILE%`）」——向导与设置页都允许留空。
 pub fn validate_home_root(root: &str) -> Result<(), AppError> {
     let trimmed = root.trim();
     if trimmed.is_empty() {
-        return Err(AppError::new("E1012", "数据目录树根不能为空"));
+        return Ok(());
     }
     let path = Path::new(trimmed);
     if !path.is_absolute() {
@@ -457,8 +459,9 @@ mod tests {
         assert!(validate_home_root("C:\\Users\\FXS").is_ok());
         assert!(validate_home_root("E:\\data\\dsh").is_ok());
 
-        assert!(validate_home_root("").is_err());
-        assert!(validate_home_root("   ").is_err());
+        // 空串是合法的：含义是「跟随系统默认（%USERPROFILE%）」
+        assert!(validate_home_root("").is_ok());
+        assert!(validate_home_root("   ").is_ok());
         assert!(validate_home_root("relative\\path").is_err());
         assert!(validate_home_root("C:\\").is_err());
         assert!(validate_home_root("C:\\Users\\..\\Windows").is_err());

@@ -167,6 +167,8 @@ export interface OnboardingView {
   environment: PermissionReport;
   webviewAvailable: boolean;
   hasInstance: boolean;
+  /** 已存在的未归档实例：向导据此提示「已经有默认实例」 */
+  instances: Instance[];
   versions: VersionInfo[];
   userProfile: string;
   homeRoot: string;

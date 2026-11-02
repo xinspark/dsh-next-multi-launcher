@@ -110,7 +110,7 @@
     error = null;
     try {
       await api.removeVersion(tag);
-      onNotify(t('version.removed', { tag }));
+      onNotify(t('versions.removed', { tag }));
       await onChanged();
     } catch (err) {
       error = errorText(err as UiError);
@@ -159,7 +159,7 @@
       candidates = candidates.filter((c) => !selected.has(c.path) || !c.valid);
       selected = new Set();
       if (failed > 0) error = t('dialog.version.partialFail', { count: failed });
-      else onNotify(t('version.imported'));
+      else onNotify(t('versions.imported'));
     } finally {
       busy = false;
     }
@@ -173,7 +173,7 @@
       await api.importVersion(dir.trim());
       dir = '';
       await onChanged();
-      onNotify(t('version.imported'));
+      onNotify(t('versions.imported'));
     } catch (err) {
       error = errorText(err as UiError);
     } finally {

@@ -4,21 +4,32 @@
   import type { OnboardingView } from './types';
   import { slugify } from './slug';
   import { shortPath } from './format';
+  import type { Lang } from './i18n';
 
   interface Props {
     view: OnboardingView;
+    /** 当前界面语言（默认跟随系统，见 App 的初始化） */
+    lang: Lang;
     t: (key: string, vars?: Record<string, string | number>) => string;
+    onSetLang: (lang: Lang) => void;
+    /** 应用「数据目录树根」 */
+    onSaveRoot: (root: string) => Promise<void>;
     /** 关闭面板（完成 / 跳过之后） */
     onClose: () => void;
     /** 去版本页导入安装目录 */
     onOpenVersions: () => void;
+    /** 去主界面的「新建实例」对话框 */
+    onCreateInstance: () => void;
     onNotify: (text: string, kind?: 'ok' | 'err') => void;
     onRefresh: () => Promise<void> | void;
   }
 
-  let { view, t, onClose, onOpenVersions, onNotify, onRefresh }: Props = $props();
+  let { view, t, lang, onSetLang, onSaveRoot, onClose, onOpenVersions, onCreateInstance, onNotify, onRefresh }: Props =
+    $props();
 
   const validVersions = $derived(view.versions.filter((v) => v.valid));
+  /** 已经存在的实例（最常见是启动器自动建的「默认」） */
+  const existing = $derived(view.instances ?? []);
 
   let name = $state('日常');
   let id = $state(untrack(() => slugify('日常')));
@@ -29,10 +40,47 @@
 
   let busy = $state(false);
   let error = $state<string | null>(null);
-  let created = $state(untrack(() => view.hasInstance));
   let phase = $state<string>('');
   let importing = $state(false);
 
+  // ③ 默认数据目录树根：只做「选文件夹」，选完立即生效；留空 = 跟随系统默认
+  let busyRoot = $state(false);
+  const rootShown = $derived(view.homeRoot?.trim() || view.userProfile || '%USERPROFILE%');
+  // 空值，或就是用户目录本身 → 视为「跟随默认」，此时不显示「恢复默认」
+  const isDefaultRoot = $derived(
+    !view.homeRoot?.trim() ||
+      view.homeRoot.trim().toLowerCase() === (view.userProfile || '').toLowerCase()
+  );
+  const rootPreview = $derived(`${rootShown.replace(/[\\/]+$/, '')}\\.dsh-<ID>`);
+
+  async function pickRoot() {
+    busyRoot = true;
+    error = null;
+    try {
+      const dir = await api.pickDirectory();
+      if (!dir) return;
+      await onSaveRoot(dir);
+      onNotify(t('onboarding.root.saved', { path: shortPath(dir, 48) }));
+    } catch (err) {
+      error = errorText(err as UiError);
+    } finally {
+      busyRoot = false;
+    }
+  }
+
+  /** 恢复默认：清空 homeRoot（后端把空串解释为 %USERPROFILE%） */
+  async function resetRoot() {
+    busyRoot = true;
+    error = null;
+    try {
+      await onSaveRoot('');
+      onNotify(t('onboarding.root.reset'));
+    } catch (err) {
+      error = errorText(err as UiError);
+    } finally {
+      busyRoot = false;
+    }
+  }
   const rootDir = $derived((view.homeRoot || view.userProfile || '').replace(/[\\/]+$/, ''));
 
   function defaultHomeFor(idValue: string): string {
@@ -41,7 +89,11 @@
   }
 
   const effectiveHome = $derived(home.trim() || defaultHomeFor(id));
-  const canFinish = $derived(Boolean(version) && Boolean(name.trim()) && /^[a-z0-9-]{1,32}$/.test(id));
+  // 已经实例了就不用再填名字/ID：这一屏只是让用户决定「用它」还是「去新建」
+  const canFinish = $derived(
+    existing.length > 0 ||
+      (Boolean(version) && Boolean(name.trim()) && /^[a-z0-9-]{1,32}$/.test(id))
+  );
 
   function autoId() {
     if (idTouched) return;
@@ -59,12 +111,8 @@
   });
 
   async function ensureInstance(): Promise<string | null> {
-    if (created && view.hasInstance) {
-      // 已存在（首次运行会自动建 default 实例）
-      const snap = await api.snapshot();
-      const mine = snap.instances.find((v) => v.instance.id === id);
-      if (mine) return mine.instance.id;
-    }
+    // 已经有实例（最常见是自动建的「默认」）：直接用它，不再造一条
+    if (existing.length > 0) return existing[0].id;
     const inst = await api.saveInstance({
       id,
       name: name.trim(),
@@ -74,7 +122,6 @@
       isNew: true,
       archived: false
     });
-    created = true;
     await onRefresh();
     return inst.id;
   }
@@ -147,6 +194,20 @@
     }
   }
 
+  /** 去走普通新建流程：先记「已跳过」，否则下次启动又弹一遍向导 */
+  async function createNew() {
+    busy = true;
+    error = null;
+    try {
+      await api.onboardingSkip();
+      onCreateInstance();
+    } catch (err) {
+      error = errorText(err as UiError);
+    } finally {
+      busy = false;
+    }
+  }
+
   async function elevate() {
     try {
       const ok = await api.relaunchElevated();
@@ -175,7 +236,18 @@
     </div>
 
     <!-- ① 环境体检 -->
-    <section class="card">
+  <!-- ① 语言（默认跟随系统，可在设置页随时改） -->
+  <section class="card">
+    <div class="card-title">{t('onboarding.step.lang')}</div>
+    <div class="inline">
+      <button class="btn ghost" class:active={lang === 'zh'} onclick={() => onSetLang('zh')}>中文</button>
+      <button class="btn ghost" class:active={lang === 'en'} onclick={() => onSetLang('en')}>English</button>
+    </div>
+    <span class="field-hint">{t('onboarding.lang.hint')}</span>
+  </section>
+
+  <!-- ② 环境体检 -->
+  <section class="card">
       <div class="card-title">{t('onboarding.step.env')}</div>
       <div class="check-row">
         <span class:ok={view.environment.dataWritable} class:bad={!view.environment.dataWritable}>
@@ -208,7 +280,30 @@
       {/if}
     </section>
 
-    <!-- ② 选择版本 -->
+    <!-- ③ 默认数据目录树根：只做文件夹选择，选完立即生效 -->
+    <section class="card">
+      <div class="card-title">{t('onboarding.step.root')}</div>
+      <div class="check-row">
+        <span class="ok">✓</span>
+        <span class="mono" title={view.homeRoot || view.userProfile}>{shortPath(rootShown, 52)}</span>
+        {#if isDefaultRoot}
+          <span class="field-hint">{t('onboarding.root.following')}</span>
+        {/if}
+      </div>
+      <div class="inline wrap">
+        <button class="btn ghost" onclick={pickRoot} disabled={busyRoot}>
+          {busyRoot ? t('onboarding.root.picking') : t('onboarding.root.pick')}
+        </button>
+        {#if !isDefaultRoot}
+          <button class="btn tiny ghost" onclick={resetRoot} disabled={busyRoot}>
+            {t('onboarding.root.reset')}
+          </button>
+        {/if}
+      </div>
+      <span class="field-hint">{t('onboarding.root.preview', { sample: rootPreview })}</span>
+    </section>
+
+    <!-- ④ 选择版本 -->
     <section class="card">
       <div class="card-title">{t('onboarding.step.version')}</div>
       {#if validVersions.length === 0}
@@ -233,42 +328,59 @@
       {/if}
     </section>
 
-    <!-- ③ 第一个实例 -->
+    <!-- ⑤ 实例 -->
     <section class="card">
       <div class="card-title">{t('onboarding.step.instance')}</div>
-      <div class="field">
-        <div class="field-label"><span>{t('dialog.name')}</span></div>
-        <input class="input" bind:value={name} maxlength="40" oninput={autoId} />
-      </div>
-      <div class="field">
-        <div class="field-label">
-          <span>{t('dialog.id')}</span>
-          <span class="field-hint">{t('onboarding.instance.idHint')}</span>
-        </div>
-        <input
-          class="input"
-          bind:value={id}
-          oninput={() => {
-            idTouched = true;
-            if (!homeTouched) home = defaultHomeFor(id);
-          }}
-        />
-      </div>
-      <div class="field">
-        <div class="field-label"><span>{t('dialog.home')}</span></div>
-        <input
-          class="input"
-          bind:value={home}
-          placeholder={defaultHomeFor(id)}
-          oninput={() => (homeTouched = true)}
-        />
-        <span class="field-hint">{t('onboarding.instance.homeHint', { root: rootDir })}</span>
-      </div>
-    </section>
 
-    <!-- ④ 试启动 -->
-    <section class="card">
-      <div class="card-title">{t('onboarding.step.try')}</div>
+      {#if existing.length > 0}
+        <!-- 已经有实例（启动器会自动建一条「默认」）：不再让用户重复填表，
+             而是说清楚「已有」，并给两个出口 -->
+        <div class="field-hint">{t('onboarding.instance.exists', { count: existing.length })}</div>
+        {#each existing as inst (inst.id)}
+          <div class="check-row">
+            <span class="ok">✓</span>
+            <span class="mono">{inst.name} · {inst.id}</span>
+            <span class="mono" title={inst.home}>{shortPath(inst.home, 40)}</span>
+          </div>
+        {/each}
+        <div class="inline wrap">
+          <button class="btn ghost" onclick={createNew} disabled={busy}>
+            {t('onboarding.instance.createNew')}
+          </button>
+        </div>
+        <div class="field-hint">{t('onboarding.instance.createNewHint')}</div>
+      {:else}
+        <div class="field">
+          <div class="field-label"><span>{t('dialog.name')}</span></div>
+          <input class="input" bind:value={name} maxlength="40" oninput={autoId} />
+        </div>
+        <div class="field">
+          <div class="field-label">
+            <span>{t('dialog.id')}</span>
+            <span class="field-hint">{t('onboarding.instance.idHint')}</span>
+          </div>
+          <input
+            class="input"
+            bind:value={id}
+            oninput={() => {
+              idTouched = true;
+              if (!homeTouched) home = defaultHomeFor(id);
+            }}
+          />
+        </div>
+        <div class="field">
+          <div class="field-label"><span>{t('dialog.home')}</span></div>
+          <input
+            class="input"
+            bind:value={home}
+            placeholder={defaultHomeFor(id)}
+            oninput={() => (homeTouched = true)}
+          />
+          <span class="field-hint">{t('onboarding.instance.homeHint', { root: rootDir })}</span>
+        </div>
+      {/if}
+
+      <!-- 试启动：可选，失败不阻塞（原本是独立的第 4 块，按新流程并进实例块） -->
       <div class="inline wrap">
         <button class="btn ghost" onclick={tryLaunch} disabled={busy || !canFinish}>
           {t('onboarding.try.launch')}

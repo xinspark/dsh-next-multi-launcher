@@ -364,7 +364,16 @@ pub fn config_set(state: State<'_, AppState>, patch: ConfigPatch) -> Result<Conf
     let mut cfg = state.config.lock().unwrap().clone();
     if let Some(root) = patch.home_root {
         store::validate_home_root(&root)?;
-        cfg = store::apply_home_root(&cfg, &root);
+        if root.trim().is_empty() {
+            // 留空 = 跟随系统默认（%USERPROFILE%）。`apply_home_root` 只在
+            // defaultHome 仍“跟着旧根”时才联动，这里先按默认根算一次，再把
+            // 落盘值清空，保证界面上显示为空、语义是“默认”。
+            let resolved = crate::util::user_home().to_string_lossy().to_string();
+            cfg = store::apply_home_root(&cfg, &resolved);
+            cfg.home_root = String::new();
+        } else {
+            cfg = store::apply_home_root(&cfg, &root);
+        }
     }
     if let Some(home) = patch.default_home {
         let home = normalize_home(&home);
@@ -598,6 +607,9 @@ pub struct OnboardingView {
     /// 能看到这个面板就说明 WebView2 已工作，所以恒为 true
     pub webview_available: bool,
     pub has_instance: bool,
+    /// 已存在的实例（未归档）：向导据此提示「已经有默认实例了」，
+    /// 并让用户选择「直接用它」还是「去新建实例」。
+    pub instances: Vec<crate::model::Instance>,
     pub versions: Vec<VersionInfo>,
     pub user_profile: String,
     pub home_root: String,
@@ -606,6 +618,7 @@ pub struct OnboardingView {
 
 fn onboarding_view(state: &AppState) -> OnboardingView {
     let cfg = state.config.lock().unwrap().clone();
+    let all = state.store.list_instances();
     OnboardingView {
         auto_open: cfg.onboarding.auto_open(),
         completed_at: cfg.onboarding.completed_at.clone(),
@@ -613,7 +626,8 @@ fn onboarding_view(state: &AppState) -> OnboardingView {
         last_step: cfg.onboarding.last_step,
         environment: crate::perm::report(),
         webview_available: true,
-        has_instance: !state.store.list_instances().is_empty(),
+        has_instance: !all.is_empty(),
+        instances: all.into_iter().filter(|i| !i.archived).collect(),
         versions: state.versions_now(),
         user_profile: crate::util::user_home().to_string_lossy().to_string(),
         home_root: cfg.effective_home_root(),

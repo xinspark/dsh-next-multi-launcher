@@ -134,7 +134,13 @@
 
     onMount(async () => {
     const stored = localStorage.getItem('dshla.lang');
-    if (stored === 'en' || stored === 'zh') lang = stored;
+    if (stored === 'en' || stored === 'zh') {
+      lang = stored;
+    } else {
+      // 首次启动：跟随系统语言（不再固定中文）
+      const sys = (navigator.language || '').toLowerCase();
+      lang = sys.startsWith('zh') ? 'zh' : 'en';
+    }
     await refresh();
     // 首次使用：从未完成/跳过向导时自动展开（设计见 docs/design-onboarding.md）
     try {
@@ -165,9 +171,19 @@
     unlisten?.();
   });
 
+  function setLang(next: Lang) {
+    lang = next;
+    localStorage.setItem('dshla.lang', next);
+  }
+
   function toggleLang() {
-    lang = lang === 'zh' ? 'en' : 'zh';
-    localStorage.setItem('dshla.lang', lang);
+    setLang(lang === 'zh' ? 'en' : 'zh');
+  }
+
+  /** 向导里设置「数据目录树根」：与设置页同一个命令 */
+  async function saveRoot(root: string) {
+    await api.setConfig({ homeRoot: root });
+    await refreshOnboarding();
   }
 
   const activeViews = $derived(snapshot?.instances.filter((v) => !v.instance.archived) ?? []);
@@ -618,7 +634,10 @@
 {#if onboarding}
   <OnboardingPanel
     view={onboarding}
+    {lang}
     {t}
+    onSetLang={setLang}
+    onSaveRoot={saveRoot}
     onClose={() => {
       onboarding = null;
       void refresh();
@@ -626,6 +645,12 @@
     onOpenVersions={() => {
       onboarding = null;
       go('versions');
+    }}
+    onCreateInstance={() => {
+      // 向导收起，直接打开主界面的「新建实例」对话框（用户熟悉的那个流程）
+      onboarding = null;
+      dialog = { kind: 'new' };
+      void refresh();
     }}
     onNotify={notify}
     onRefresh={refreshOnboarding}
