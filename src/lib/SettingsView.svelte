@@ -280,18 +280,21 @@
 
     {#if update?.error}
       <div class="field-hint warn">{t('settings.checkFailed', { reason: update.error })}</div>
-    {:else if update}
-      {#if update.hasUpdate}
-        <div class="field-hint">
-          {t('settings.updateAvailable', { latest: update.latest ?? '?' })}
-        </div>
-      {:else}
-        <div class="field-hint">{t('settings.upToDate')}</div>
-      {/if}
     {/if}
 
+    <!-- 状态 + 下载入口放同一行：有更新时按钮才是主操作，不需要用户再去别处找 -->
     <div class="inline wrap">
-      <button class="btn ghost" onclick={() => api.openUrl(update?.url ?? RELEASES_URL)}>
+      {#if update?.error}
+        <span class="field-hint">{t('settings.upToDateUnknown')}</span>
+      {:else if update?.hasUpdate}
+        <span class="field-hint">{t('settings.updateAvailable', { latest: update.latest ?? '?' })}</span>
+      {:else if update}
+        <span class="field-hint">{t('settings.upToDate')}</span>
+      {/if}
+      <button
+        class="btn tiny {update?.hasUpdate ? 'primary' : 'ghost'}"
+        onclick={() => api.openUrl(update?.url ?? RELEASES_URL)}
+      >
         {t('settings.browserDownload')}
       </button>
       <span class="field-hint warn">{t('settings.browserDownloadHint')}</span>
