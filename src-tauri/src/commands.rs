@@ -51,16 +51,24 @@ pub fn snapshot(state: State<'_, AppState>) -> Result<Snapshot, AppError> {
                 .get(&inst.id)
                 .cloned()
                 .unwrap_or_else(|| crate::model::LaunchStatus::idle(&inst.id));
-            let version = versions.iter().find(|v| v.tag == inst.version).cloned().or_else(|| {
-                // 版本目录被手工删掉时也给出“无效”条目，界面能说明白
-                Some(inspect_dir(&state.versions_dir.join(&inst.version), &inst.version))
-            });
+            let version = versions
+                .iter()
+                .find(|v| v.tag == inst.version)
+                .cloned()
+                .or_else(|| {
+                    // 版本目录被手工删掉时也给出“无效”条目，界面能说明白
+                    Some(inspect_dir(
+                        &state.versions_dir.join(&inst.version),
+                        &inst.version,
+                    ))
+                });
             InstanceView {
                 instance: inst.clone(),
                 running: run,
                 launch,
                 version,
-                is_default: !cfg.default_home.is_empty() && same_home(&cfg.default_home, &inst.home),
+                is_default: !cfg.default_home.is_empty()
+                    && same_home(&cfg.default_home, &inst.home),
                 home_exists: Path::new(&inst.home).is_dir(),
             }
         })
@@ -99,9 +107,16 @@ pub struct InstancePayload {
 }
 
 #[tauri::command]
-pub fn instance_save(state: State<'_, AppState>, payload: InstancePayload) -> Result<Instance, AppError> {
+pub fn instance_save(
+    state: State<'_, AppState>,
+    payload: InstancePayload,
+) -> Result<Instance, AppError> {
     let all = state.store.list_instances();
-    let id = if payload.is_new { slugify(&payload.id) } else { payload.id.clone() };
+    let id = if payload.is_new {
+        slugify(&payload.id)
+    } else {
+        payload.id.clone()
+    };
 
     // home 留空 = 用数据目录树根推导的默认值（`<homeRoot>\.dsh-<id>`）；
     // 用户填了就用填的，不做“必须在根下”的校验。
@@ -144,7 +159,11 @@ pub fn instance_save(state: State<'_, AppState>, payload: InstancePayload) -> Re
 }
 
 #[tauri::command]
-pub fn instance_archive(state: State<'_, AppState>, id: String, archived: bool) -> Result<Instance, AppError> {
+pub fn instance_archive(
+    state: State<'_, AppState>,
+    id: String,
+    archived: bool,
+) -> Result<Instance, AppError> {
     let mut inst = state.store.read_instance(&id)?;
     let all = state.store.list_instances();
     // 归档前校验 home 唯一（未归档实例之间），恢复时同样要过这一关
@@ -165,7 +184,10 @@ pub fn instance_delete(
     let inst = state.store.read_instance(&id)?;
 
     if scan::is_home_running(&inst.home).is_some() {
-        return Err(AppError::new("E1011", format!("{} 仍在运行，先停止实例", inst.home)));
+        return Err(AppError::new(
+            "E1011",
+            format!("{} 仍在运行，先停止实例", inst.home),
+        ));
     }
 
     if delete_data {
@@ -200,7 +222,9 @@ pub fn instance_delete(
             let _ = state.pointer.restore_default(&cfg.default_home);
         }
     }
-    state.logger().info(format!("删除实例 {id}（删数据={delete_data}）"));
+    state
+        .logger()
+        .info(format!("删除实例 {id}（删数据={delete_data}）"));
     Ok(())
 }
 
@@ -217,11 +241,9 @@ pub fn instance_launch(state: State<'_, AppState>, id: String) -> Result<(), App
         .into_iter()
         .find(|v| v.tag == inst.version)
         .ok_or_else(|| AppError::new("E1004", format!("版本 {} 未登记", inst.version)))?;
-    let exe = version
-        .exe
-        .clone()
-        .map(PathBuf::from)
-        .ok_or_else(|| AppError::new("E1004", format!("版本 {} 缺少 DSH NEXT.exe", inst.version)))?;
+    let exe = version.exe.clone().map(PathBuf::from).ok_or_else(|| {
+        AppError::new("E1004", format!("版本 {} 缺少 DSH NEXT.exe", inst.version))
+    })?;
 
     state
         .launcher
@@ -237,7 +259,11 @@ pub fn instance_cancel(state: State<'_, AppState>, id: String) -> Result<(), App
 }
 
 #[tauri::command]
-pub fn instance_stop(state: State<'_, AppState>, id: String, force: bool) -> Result<StopOutcome, AppError> {
+pub fn instance_stop(
+    state: State<'_, AppState>,
+    id: String,
+    force: bool,
+) -> Result<StopOutcome, AppError> {
     let inst = state.store.read_instance(&id)?;
     let outcome = stop_instance(&inst.home, force, &state.logger())?;
     if outcome.stopped {
@@ -267,7 +293,9 @@ pub fn instance_restart(
 
     // 1) 先停（强制，避免优雅关闭的 15 秒等待把重启拖长）
     if let Err(err) = stop_instance(&inst.home, true, &state.logger()) {
-        state.logger().warn(format!("[{id}] 重启前停止失败（继续尝试）：{err}"));
+        state
+            .logger()
+            .warn(format!("[{id}] 重启前停止失败（继续尝试）：{err}"));
     }
     let deadline = std::time::Instant::now() + std::time::Duration::from_secs(15);
     while std::time::Instant::now() < deadline {
@@ -278,10 +306,7 @@ pub fn instance_restart(
     }
 
     // 2) 版本树里的 exe
-    let exe = state
-        .versions_dir
-        .join(&inst.version)
-        .join("DSH NEXT.exe");
+    let exe = state.versions_dir.join(&inst.version).join("DSH NEXT.exe");
     if !exe.is_file() {
         return Err(AppError::new(
             "E1004",
@@ -310,10 +335,14 @@ pub fn instance_restart(
 // ---------------------------------------------------------------- 指针 / 配置
 
 #[tauri::command]
-pub fn pointer_restore_default(state: State<'_, AppState>) -> Result<crate::model::PointerSnapshot, AppError> {
+pub fn pointer_restore_default(
+    state: State<'_, AppState>,
+) -> Result<crate::model::PointerSnapshot, AppError> {
     let cfg = state.config.lock().unwrap().clone();
     state.pointer.restore_default(&cfg.default_home)?;
-    state.logger().info(format!("指针已还原为默认 home {}", cfg.default_home));
+    state
+        .logger()
+        .info(format!("指针已还原为默认 home {}", cfg.default_home));
     Ok(state.pointer.snapshot())
 }
 
@@ -338,7 +367,10 @@ pub fn config_set(state: State<'_, AppState>, patch: ConfigPatch) -> Result<Conf
     if let Some(home) = patch.default_home {
         let home = normalize_home(&home);
         if home.is_empty() || !Path::new(&home).is_absolute() {
-            return Err(AppError::new("E1012", format!("默认数据目录必须是绝对路径：{home}")));
+            return Err(AppError::new(
+                "E1012",
+                format!("默认数据目录必须是绝对路径：{home}"),
+            ));
         }
         cfg.default_home = home;
     }
@@ -369,7 +401,9 @@ pub fn version_scan(state: State<'_, AppState>) -> Result<Vec<VersionInfo>, AppE
 pub fn version_import(state: State<'_, AppState>, dir: String) -> Result<VersionInfo, AppError> {
     let info = state.versions.register(Path::new(&dir))?;
     state.invalidate_versions();
-    state.logger().info(format!("登记版本 {} → {}", info.tag, info.dir));
+    state
+        .logger()
+        .info(format!("登记版本 {} → {}", info.tag, info.dir));
     Ok(info)
 }
 
@@ -387,7 +421,9 @@ pub fn version_remove(state: State<'_, AppState>, tag: String) -> Result<(), App
 pub async fn pick_directory(app: tauri::AppHandle) -> Result<Option<String>, AppError> {
     use tauri_plugin_dialog::DialogExt;
     let picked = app.dialog().file().blocking_pick_folder();
-    Ok(picked.and_then(|p| p.into_path().ok()).map(|p| p.to_string_lossy().to_string()))
+    Ok(picked
+        .and_then(|p| p.into_path().ok())
+        .map(|p| p.to_string_lossy().to_string()))
 }
 
 // ---------------------------------------------------------------- 打开目录
@@ -396,10 +432,14 @@ pub async fn pick_directory(app: tauri::AppHandle) -> Result<Option<String>, App
 pub fn open_path(state: State<'_, AppState>, path: String, create: bool) -> Result<(), AppError> {
     let p = PathBuf::from(&path);
     if create {
-        std::fs::create_dir_all(&p).map_err(|e| AppError::new("E1000", format!("创建目录失败：{e}")))?;
+        std::fs::create_dir_all(&p)
+            .map_err(|e| AppError::new("E1000", format!("创建目录失败：{e}")))?;
     }
     if !p.exists() {
-        return Err(AppError::new("E1012", format!("路径不存在：{}", p.display())));
+        return Err(AppError::new(
+            "E1012",
+            format!("路径不存在：{}", p.display()),
+        ));
     }
     state.logger().info(format!("打开目录 {}", p.display()));
     open_in_explorer(&p).map_err(|e| AppError::new("E1000", format!("打开目录失败：{e}")))

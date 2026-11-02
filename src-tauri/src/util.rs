@@ -12,7 +12,9 @@ pub fn now_iso() -> String {
 }
 
 pub fn env_path(name: &str) -> Option<PathBuf> {
-    std::env::var_os(name).map(PathBuf::from).filter(|p| !p.as_os_str().is_empty())
+    std::env::var_os(name)
+        .map(PathBuf::from)
+        .filter(|p| !p.as_os_str().is_empty())
 }
 
 /// `%LOCALAPPDATA%\DSH-NEXT-Multi`（可用 `DSH_MULTI_DATA_DIR` 覆盖，测试用）。
@@ -34,7 +36,7 @@ pub fn data_dir() -> PathBuf {
         .get_or_init(|| {
             let standard = env_path("LOCALAPPDATA")
                 .or_else(|| env_path("APPDATA"))
-                .unwrap_or_else(|| std::env::temp_dir())
+                .unwrap_or_else(std::env::temp_dir)
                 .join("DSH-NEXT-Multi");
             if is_writable_dir(&standard) {
                 return standard;
@@ -75,14 +77,20 @@ pub fn versions_dir() -> PathBuf {
 /// 这样 `versions\` 始终落在工程根目录，而不是 target 里。
 pub fn app_root() -> PathBuf {
     let exe = std::env::current_exe().unwrap_or_else(|_| PathBuf::from("."));
-    let dir = exe.parent().map(Path::to_path_buf).unwrap_or_else(|| PathBuf::from("."));
+    let dir = exe
+        .parent()
+        .map(Path::to_path_buf)
+        .unwrap_or_else(|| PathBuf::from("."));
     let is_target = dir
         .file_name()
         .map(|n| n.eq_ignore_ascii_case("debug") || n.eq_ignore_ascii_case("release"))
         .unwrap_or(false);
     if is_target {
         if let Some(t) = dir.parent() {
-            if t.file_name().map(|n| n.eq_ignore_ascii_case("target")).unwrap_or(false) {
+            if t.file_name()
+                .map(|n| n.eq_ignore_ascii_case("target"))
+                .unwrap_or(false)
+            {
                 if let Some(root) = t.parent().and_then(Path::parent) {
                     return root.to_path_buf();
                 }
@@ -97,13 +105,15 @@ pub fn pointer_path() -> PathBuf {
     if let Some(p) = env_path("DSH_MULTI_POINTER") {
         return p;
     }
-    let base = env_path("APPDATA").unwrap_or_else(|| data_dir());
-    base.join("DSH NEXT").join("home").join("desktop-next-location.json")
+    let base = env_path("APPDATA").unwrap_or_else(data_dir);
+    base.join("DSH NEXT")
+        .join("home")
+        .join("desktop-next-location.json")
 }
 
 /// 用户 home（`%USERPROFILE%`）。
 pub fn user_home() -> PathBuf {
-    env_path("USERPROFILE").unwrap_or_else(|| data_dir())
+    env_path("USERPROFILE").unwrap_or_else(data_dir)
 }
 
 /// Windows 路径比较：大小写不敏感，去掉结尾分隔符。
@@ -149,11 +159,14 @@ pub fn atomic_write(path: &Path, bytes: &[u8]) -> std::io::Result<()> {
         }
     }
     let _ = fs::remove_file(&tmp);
-    Err(last_err.unwrap_or_else(|| std::io::Error::new(std::io::ErrorKind::Other, "rename failed")))
+    Err(last_err.unwrap_or_else(|| std::io::Error::other("rename failed")))
 }
 
 fn tmp_sibling(path: &Path) -> PathBuf {
-    let name = path.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_else(|| "file".into());
+    let name = path
+        .file_name()
+        .map(|n| n.to_string_lossy().to_string())
+        .unwrap_or_else(|| "file".into());
     let tmp = format!(".{name}.{}.tmp", std::process::id());
     match path.parent() {
         Some(p) => p.join(tmp),
@@ -173,7 +186,10 @@ pub struct Logger {
 impl Logger {
     pub fn new(dir: PathBuf) -> Self {
         let _ = fs::create_dir_all(&dir);
-        Self { dir, echo: cfg!(debug_assertions) }
+        Self {
+            dir,
+            echo: cfg!(debug_assertions),
+        }
     }
 
     pub fn with_echo(mut self, echo: bool) -> Self {
@@ -199,11 +215,20 @@ impl Logger {
     }
 
     pub fn write(&self, level: &str, message: &str) {
-        let line = format!("{} [{}] {}\n", Local::now().format("%Y-%m-%d %H:%M:%S"), level, message);
+        let line = format!(
+            "{} [{}] {}\n",
+            Local::now().format("%Y-%m-%d %H:%M:%S"),
+            level,
+            message
+        );
         if self.echo {
             print!("{line}");
         }
-        if let Ok(mut f) = OpenOptions::new().create(true).append(true).open(self.path_today()) {
+        if let Ok(mut f) = OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(self.path_today())
+        {
             let _ = f.write_all(line.as_bytes());
         }
     }
@@ -224,9 +249,15 @@ mod tests {
     #[test]
     fn starts_with_handles_boundary() {
         let root = Path::new("C:\\Users\\FXS\\.dsh");
-        assert!(path_starts_with(Path::new("C:\\Users\\FXS\\.dsh-a"), root) == false);
-        assert!(path_starts_with(Path::new("C:\\Users\\FXS\\.dsh-a\\x"), root) == false);
-        assert!(path_starts_with(Path::new("C:\\Users\\FXS\\.dsh\\profiles"), root));
+        assert!(!path_starts_with(Path::new("C:\\Users\\FXS\\.dsh-a"), root));
+        assert!(!path_starts_with(
+            Path::new("C:\\Users\\FXS\\.dsh-a\\x"),
+            root
+        ));
+        assert!(path_starts_with(
+            Path::new("C:\\Users\\FXS\\.dsh\\profiles"),
+            root
+        ));
     }
 
     #[test]

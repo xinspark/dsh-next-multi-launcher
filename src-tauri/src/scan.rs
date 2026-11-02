@@ -67,7 +67,10 @@ pub fn scan_processes() -> Vec<ProcInfo> {
                 name: proc_.name().to_string_lossy().to_string(),
                 cmd: if cmd.is_empty() {
                     // 有些进程拿不到命令行；用 exe 路径兜底，至少能判名字
-                    proc_.exe().map(|p| p.to_string_lossy().to_string()).unwrap_or_default()
+                    proc_
+                        .exe()
+                        .map(|p| p.to_string_lossy().to_string())
+                        .unwrap_or_default()
                 } else {
                     cmd
                 },
@@ -100,7 +103,9 @@ pub fn scan_running_from(procs: &[ProcInfo]) -> Vec<RunningInfo> {
         let safe = p.cmd.contains("--next-safe-mode")
             || p.cmd.contains("electron-user-data\\safe-mode")
             || p.cmd.contains("electron-user-data/safe-mode");
-        match homes.iter_mut().find(|(h, _, _, _)| crate::util::path_eq(std::path::Path::new(h), std::path::Path::new(&home))) {
+        match homes.iter_mut().find(|(h, _, _, _)| {
+            crate::util::path_eq(std::path::Path::new(h), std::path::Path::new(&home))
+        }) {
             Some(slot) => {
                 if slot.2.is_none() && host_pid.is_some() {
                     slot.2 = host_pid;
@@ -129,7 +134,7 @@ pub fn scan_running_from(procs: &[ProcInfo]) -> Vec<RunningInfo> {
             safe_mode,
         });
     }
-    out.sort_by(|a, b| a.home.to_lowercase().cmp(&b.home.to_lowercase()));
+    out.sort_by_key(|a| a.home.to_lowercase());
     out
 }
 
@@ -141,16 +146,14 @@ pub fn find_shell_pid(procs: &[ProcInfo], start_pid: u32) -> Option<u32> {
         if p.is_shell() {
             return Some(p.pid);
         }
-        match p.parent {
-            Some(parent) => {
-                let parent_is_dsh = procs.iter().any(|q| q.pid == parent && q.is_dsh());
-                if !parent_is_dsh {
-                    // 起点自己也可能是主进程（拿不到子进程标记时）
-                    return if p.is_dsh() { Some(p.pid) } else { None };
-                }
-                cur = parent;
+        {
+            let parent = p.parent?;
+            let parent_is_dsh = procs.iter().any(|q| q.pid == parent && q.is_dsh());
+            if !parent_is_dsh {
+                // 起点自己也可能是主进程（拿不到子进程标记时）
+                return if p.is_dsh() { Some(p.pid) } else { None };
             }
-            None => return None,
+            cur = parent;
         }
     }
     None
@@ -340,7 +343,10 @@ mod tests {
 
     #[test]
     fn parses_unquoted_user_data_dir() {
-        assert_eq!(parse_user_data_home(CRASHPAD_CMD).unwrap(), r"C:\Users\FXS\.dsh");
+        assert_eq!(
+            parse_user_data_home(CRASHPAD_CMD).unwrap(),
+            r"C:\Users\FXS\.dsh"
+        );
     }
 
     #[test]

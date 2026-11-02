@@ -10,7 +10,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use crate::errors::AppError;
-use crate::model::{Config, LaunchPhase, LaunchStatus, LastPointer, StopOutcome};
+use crate::model::{Config, LastPointer, LaunchPhase, LaunchStatus, StopOutcome};
 use crate::pointer::Pointer;
 use crate::scan;
 use crate::store::Store;
@@ -85,7 +85,8 @@ impl Launcher {
         logger: Logger,
     ) -> Self {
         let (tx, rx) = mpsc::channel::<Cmd>();
-        let statuses: Arc<Mutex<HashMap<String, LaunchStatus>>> = Arc::new(Mutex::new(HashMap::new()));
+        let statuses: Arc<Mutex<HashMap<String, LaunchStatus>>> =
+            Arc::new(Mutex::new(HashMap::new()));
         let queue: Arc<Mutex<VecDeque<String>>> = Arc::new(Mutex::new(VecDeque::new()));
         let cancelled: Arc<Mutex<HashSet<String>>> = Arc::new(Mutex::new(HashSet::new()));
 
@@ -104,7 +105,13 @@ impl Launcher {
             .spawn(move || worker.run(rx))
             .ok();
 
-        Self { tx, statuses, queue, cancelled, sink }
+        Self {
+            tx,
+            statuses,
+            queue,
+            cancelled,
+            sink,
+        }
     }
 
     pub fn launch(&self, req: LaunchRequest) -> Result<(), AppError> {
@@ -126,7 +133,10 @@ impl Launcher {
         if let Some(running) = scan::is_home_running(&req.home) {
             return Err(AppError::new(
                 "E1003",
-                format!("{} 已被运行中的实例占用（pid {}）", req.home, running.shell_pid),
+                format!(
+                    "{} 已被运行中的实例占用（pid {}）",
+                    req.home, running.shell_pid
+                ),
             ));
         }
 
@@ -159,11 +169,21 @@ impl Launcher {
             let mut q = self.queue.lock().unwrap();
             q.retain(|id| id != instance_id);
         }
-        self.cancelled.lock().unwrap().insert(instance_id.to_string());
-        let phase = self.statuses.lock().unwrap().get(instance_id).map(|s| s.phase);
+        self.cancelled
+            .lock()
+            .unwrap()
+            .insert(instance_id.to_string());
+        let phase = self
+            .statuses
+            .lock()
+            .unwrap()
+            .get(instance_id)
+            .map(|s| s.phase);
         match phase {
             // 在跑的任务由 worker 自己收尾；这里只处理排队的情况
-            Some(LaunchPhase::Preparing) | Some(LaunchPhase::Spawning) | Some(LaunchPhase::Waiting) => {}
+            Some(LaunchPhase::Preparing)
+            | Some(LaunchPhase::Spawning)
+            | Some(LaunchPhase::Waiting) => {}
             _ => publish(&self.statuses, &self.sink, LaunchStatus::idle(instance_id)),
         }
     }
@@ -304,7 +324,10 @@ impl Worker {
                 started,
                 AppError::new(
                     "E1003",
-                    format!("{} 已被运行中的实例占用（pid {}）", req.home, running.shell_pid),
+                    format!(
+                        "{} 已被运行中的实例占用（pid {}）",
+                        req.home, running.shell_pid
+                    ),
                 ),
             );
             return;
@@ -391,7 +414,8 @@ impl Worker {
             }
 
             if self.is_cancelled(&id) {
-                self.logger.warn(format!("[{id}] 用户取消等待（不杀已起进程）"));
+                self.logger
+                    .warn(format!("[{id}] 用户取消等待（不杀已起进程）"));
                 self.emit(LaunchStatus {
                     instance_id: id.clone(),
                     phase: LaunchPhase::Idle,
@@ -400,7 +424,10 @@ impl Worker {
                     elapsed_ms: started.elapsed().as_millis() as u64,
                     shell_pid: None,
                     host_pid: None,
-                    error: Some(AppError::new("E1012", "已取消等待，进程未杀；稍后可能仍会启动")),
+                    error: Some(AppError::new(
+                        "E1012",
+                        "已取消等待，进程未杀；稍后可能仍会启动",
+                    )),
                 });
                 self.cancelled.lock().unwrap().remove(&id);
                 return;
@@ -427,10 +454,15 @@ impl Worker {
                         started,
                         AppError::new(
                             "E1006",
-                            format!("进程已退出（退出码 {}），{} 秒内未看到 {} 的窗口进程",
-                                status.code().map(|c| c.to_string()).unwrap_or_else(|| "?".into()),
+                            format!(
+                                "进程已退出（退出码 {}），{} 秒内未看到 {} 的窗口进程",
+                                status
+                                    .code()
+                                    .map(|c| c.to_string())
+                                    .unwrap_or_else(|| "?".into()),
                                 EXIT_GRACE.as_secs(),
-                                req.home),
+                                req.home
+                            ),
                         ),
                     );
                     return;
@@ -460,15 +492,18 @@ impl Worker {
         }
     }
 
-    fn succeed(&mut self, id: &str, started: Instant, req: &LaunchRequest, running: crate::model::RunningInfo) {
+    fn succeed(
+        &mut self,
+        id: &str,
+        started: Instant,
+        req: &LaunchRequest,
+        running: crate::model::RunningInfo,
+    ) {
         // 实例文件：记录最后启动时间 + 标记“上次非正常退出”
         if let Ok(mut inst) = self.store.read_instance(id) {
             inst.last_launch_at = Some(now_iso());
             inst.last_exit_clean = false;
-            inst.safe_mode = req
-                .extra_args
-                .iter()
-                .any(|a| a == "--next-safe-mode");
+            inst.safe_mode = req.extra_args.iter().any(|a| a == "--next-safe-mode");
             let _ = self.store.write_instance(&inst);
         }
 
@@ -518,7 +553,11 @@ impl Worker {
 /// 停止实例：先优雅关闭主窗口，`force` 时才强杀进程树。
 pub fn stop_instance(home: &str, force: bool, logger: &Logger) -> Result<StopOutcome, AppError> {
     let Some(running) = scan::is_home_running(home) else {
-        return Ok(StopOutcome { stopped: false, needs_force: false, pid: None });
+        return Ok(StopOutcome {
+            stopped: false,
+            needs_force: false,
+            pid: None,
+        });
     };
     let pid = running.shell_pid;
 
@@ -538,15 +577,27 @@ pub fn stop_instance(home: &str, force: bool, logger: &Logger) -> Result<StopOut
             pids,
             if gone { "已退出" } else { "仍在" }
         ));
-        return Ok(StopOutcome { stopped: gone, needs_force: false, pid: Some(pid) });
+        return Ok(StopOutcome {
+            stopped: gone,
+            needs_force: false,
+            pid: Some(pid),
+        });
     }
 
     logger.info(format!("[{home}] 请求关闭窗口 pid {pid}"));
     let _ = taskkill(&pid.to_string(), false);
     if wait_until_gone(home, Duration::from_secs(15)) {
-        return Ok(StopOutcome { stopped: true, needs_force: false, pid: Some(pid) });
+        return Ok(StopOutcome {
+            stopped: true,
+            needs_force: false,
+            pid: Some(pid),
+        });
     }
-    Ok(StopOutcome { stopped: false, needs_force: true, pid: Some(pid) })
+    Ok(StopOutcome {
+        stopped: false,
+        needs_force: true,
+        pid: Some(pid),
+    })
 }
 
 fn wait_until_gone(home: &str, timeout: Duration) -> bool {
@@ -601,7 +652,8 @@ mod tests {
     }
 
     fn config_for(root: &std::path::Path) -> Arc<Mutex<Config>> {
-        let mut cfg = Config::with_default_home(root.join("home").join(".dsh").to_string_lossy().to_string());
+        let mut cfg =
+            Config::with_default_home(root.join("home").join(".dsh").to_string_lossy().to_string());
         cfg.launch_timeout_sec = 10;
         cfg.poll_interval_ms = 100;
         Arc::new(Mutex::new(cfg))
@@ -635,11 +687,7 @@ mod tests {
 
         // 同一实例重复入队被拒
         let err = launcher
-            .launch(LaunchRequest::new(
-                "a",
-                "C:\\x",
-                PathBuf::from("C:\\x.exe"),
-            ))
+            .launch(LaunchRequest::new("a", "C:\\x", PathBuf::from("C:\\x.exe")))
             .unwrap_err();
         assert_eq!(err.code, "E1012");
         assert_eq!(launcher.queue().len(), 2);

@@ -89,9 +89,15 @@ mod tests {
 
     #[test]
     fn codes_have_chinese_messages() {
-        for code in ["E1001", "E1002", "E1003", "E1004", "E1005", "E1006", "E1007", "E1008", "E1009", "E1010", "E1011", "E1012"] {
+        for code in [
+            "E1001", "E1002", "E1003", "E1004", "E1005", "E1006", "E1007", "E1008", "E1009",
+            "E1010", "E1011", "E1012",
+        ] {
             let msg = message_for(code);
-            assert!(msg.chars().any(|c| ('\u{4e00}'..='\u{9fff}').contains(&c)), "{code} 缺中文文案");
+            assert!(
+                msg.chars().any(|c| ('\u{4e00}'..='\u{9fff}').contains(&c)),
+                "{code} 缺中文文案"
+            );
             assert!(msg.len() > 4);
         }
     }

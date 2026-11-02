@@ -36,9 +36,14 @@ impl SafetyRoots {
         let mut out = Vec::new();
         out.push(self.default_home.clone());
         out.push(self.data_dir.clone());
-        for p in [&self.appdata, &self.localappdata, &self.user_profile, &self.system_root]
-            .into_iter()
-            .flatten()
+        for p in [
+            &self.appdata,
+            &self.localappdata,
+            &self.user_profile,
+            &self.system_root,
+        ]
+        .into_iter()
+        .flatten()
         {
             out.push(p.clone());
         }
@@ -56,7 +61,10 @@ pub fn assert_safe_delete_target(target: &Path, roots: &SafetyRoots) -> Result<(
     if text.trim().len() < 8 {
         return reject(&format!("路径太短（<8）：{text}"));
     }
-    if target.components().any(|c| matches!(c, Component::ParentDir)) {
+    if target
+        .components()
+        .any(|c| matches!(c, Component::ParentDir))
+    {
         return reject(&format!("路径含 ..：{text}"));
     }
     if target.parent().is_none() || norm_path(target).len() <= 2 {
@@ -65,11 +73,17 @@ pub fn assert_safe_delete_target(target: &Path, roots: &SafetyRoots) -> Result<(
 
     for protected in roots.protected() {
         if path_eq(target, &protected) {
-            return reject(&format!("受保护路径（等于 {}）：{text}", protected.display()));
+            return reject(&format!(
+                "受保护路径（等于 {}）：{text}",
+                protected.display()
+            ));
         }
         // 目标若是受保护路径的上级，删除会连坐，拒绝
         if path_starts_with(&protected, target) {
-            return reject(&format!("受保护路径的上级：{text}（会波及 {}）", protected.display()));
+            return reject(&format!(
+                "受保护路径的上级：{text}（会波及 {}）",
+                protected.display()
+            ));
         }
     }
 
@@ -99,7 +113,12 @@ mod tests {
 
     #[test]
     fn rejects_drive_root() {
-        assert_eq!(assert_safe_delete_target(Path::new(r"C:\"), &roots()).unwrap_err().code, "E1007");
+        assert_eq!(
+            assert_safe_delete_target(Path::new(r"C:\"), &roots())
+                .unwrap_err()
+                .code,
+            "E1007"
+        );
     }
 
     #[test]
@@ -117,13 +136,19 @@ mod tests {
 
     #[test]
     fn rejects_dotdot_and_short_paths() {
-        assert!(assert_safe_delete_target(Path::new(r"C:\Users\FXS\..\Windows"), &roots()).is_err());
+        assert!(
+            assert_safe_delete_target(Path::new(r"C:\Users\FXS\..\Windows"), &roots()).is_err()
+        );
         assert!(assert_safe_delete_target(Path::new(r"C:\a"), &roots()).is_err());
     }
 
     #[test]
     fn rejects_launcher_data_dir() {
-        assert!(assert_safe_delete_target(Path::new(r"C:\Users\FXS\AppData\Local\DSH-NEXT-Multi"), &roots()).is_err());
+        assert!(assert_safe_delete_target(
+            Path::new(r"C:\Users\FXS\AppData\Local\DSH-NEXT-Multi"),
+            &roots()
+        )
+        .is_err());
     }
 
     #[test]

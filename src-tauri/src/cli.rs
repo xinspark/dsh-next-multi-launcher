@@ -11,7 +11,7 @@ use std::time::{Duration, Instant};
 
 use serde_json::json;
 
-use crate::launcher::{Launcher, LaunchRequest, ProgressSink};
+use crate::launcher::{LaunchRequest, Launcher, ProgressSink};
 use crate::model::{Config, LaunchPhase, LaunchStatus};
 use crate::pointer::Pointer;
 use crate::store::Store;
@@ -192,7 +192,9 @@ fn selftest() -> i32 {
     let probe_file = probe_dir.join("probe.json");
     let write_ok = std::fs::create_dir_all(&probe_dir).is_ok()
         && atomic_write(&probe_file, b"{\"ok\":true}").is_ok()
-        && std::fs::read_to_string(&probe_file).map(|s| s == "{\"ok\":true}").unwrap_or(false);
+        && std::fs::read_to_string(&probe_file)
+            .map(|s| s == "{\"ok\":true}")
+            .unwrap_or(false);
     let _ = std::fs::remove_dir_all(&probe_dir);
     checks.push(json!({"name": "atomicWrite", "ok": write_ok, "detail": {"dir": probe_dir.to_string_lossy()}}));
     if !write_ok {
@@ -252,7 +254,10 @@ fn e2e_launch(instance_id: &str) -> i32 {
     let version = match scanner.find(&inst.version) {
         Some(v) => v,
         None => {
-            emit!("{}", json!({"ok": false, "error": format!("版本 {} 未登记", inst.version)}));
+            emit!(
+                "{}",
+                json!({"ok": false, "error": format!("版本 {} 未登记", inst.version)})
+            );
             return 1;
         }
     };
@@ -261,7 +266,10 @@ fn e2e_launch(instance_id: &str) -> i32 {
             "E1004",
             format!("版本 {} 缺少 DSH NEXT.exe", inst.version),
         );
-        emit!("{}", json!({"ok": false, "code": err.code, "error": err.to_string()}));
+        emit!(
+            "{}",
+            json!({"ok": false, "code": err.code, "error": err.to_string()})
+        );
         return 1;
     };
 
@@ -286,7 +294,10 @@ fn e2e_launch(instance_id: &str) -> i32 {
         std::thread::sleep(Duration::from_millis(200));
         let status = launcher.status(&inst.id);
         last_phase = status.phase;
-        if matches!(status.phase, LaunchPhase::Running | LaunchPhase::Failed | LaunchPhase::Idle) {
+        if matches!(
+            status.phase,
+            LaunchPhase::Running | LaunchPhase::Failed | LaunchPhase::Idle
+        ) {
             break;
         }
         if Instant::now() >= deadline {
@@ -360,7 +371,11 @@ fn e2e_stop(instance_id: &str, force: bool) -> i32 {
                 }))
                 .unwrap()
             );
-            if outcome.stopped { 0 } else { 1 }
+            if outcome.stopped {
+                0
+            } else {
+                1
+            }
         }
         Err(err) => {
             emit!("{}", json!({"ok": false, "error": err.to_string()}));

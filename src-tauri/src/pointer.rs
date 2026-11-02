@@ -109,7 +109,9 @@ impl Pointer {
             None => None,
         };
 
-        let body = PointerFile { home: home.to_string() };
+        let body = PointerFile {
+            home: home.to_string(),
+        };
         let mut text = serde_json::to_string_pretty(&body)?;
         text.push('\n');
         atomic_write(&self.path, text.as_bytes())
@@ -168,7 +170,10 @@ mod tests {
         let dir = crate::testutil::root(&format!("pointer-{tag}"));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(dir.join("home")).unwrap();
-        (Pointer::at(dir.join("home").join("desktop-next-location.json")), dir)
+        (
+            Pointer::at(dir.join("home").join("desktop-next-location.json")),
+            dir,
+        )
     }
 
     #[test]
@@ -193,7 +198,10 @@ mod tests {
         let (p, dir) = temp_pointer("format");
         p.write("C:\\Users\\FXS\\.dsh-b").unwrap();
         let raw = p.read_raw().unwrap();
-        assert!(raw.starts_with("{\n  \"home\": \"C:\\\\Users\\\\FXS\\\\.dsh-b\"\n}\n"), "实际：{raw:?}");
+        assert!(
+            raw.starts_with("{\n  \"home\": \"C:\\\\Users\\\\FXS\\\\.dsh-b\"\n}\n"),
+            "实际：{raw:?}"
+        );
         let _ = fs::remove_dir_all(dir);
     }
 

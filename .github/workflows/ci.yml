@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  frontend:
+    name: Frontend (check / build / tokens)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Type check
+        run: pnpm check
+      - name: Build frontend
+        run: pnpm build
+      - name: Design token gate
+        run: node tools/verify-tokens.mjs
+
+  rust:
+    name: Rust (fmt / test / clippy)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Cargo fmt (check only)
+        run: cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check
+      - name: Cargo test
+        run: cargo test --manifest-path src-tauri/Cargo.toml
+      - name: Cargo clippy
+        run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets

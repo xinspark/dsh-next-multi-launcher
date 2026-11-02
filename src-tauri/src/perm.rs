@@ -106,7 +106,7 @@ pub fn report() -> PermissionReport {
     let pointer_file = pointer.path().to_path_buf();
     let pointer_writable = pointer_file
         .parent()
-        .map(|dir| crate::util::is_writable_dir(dir))
+        .map(crate::util::is_writable_dir)
         .unwrap_or(false);
     let data_dir = crate::util::data_dir();
     let data_writable = crate::util::is_writable_dir(&data_dir);

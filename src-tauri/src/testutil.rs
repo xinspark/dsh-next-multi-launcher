@@ -4,7 +4,9 @@
 use std::path::PathBuf;
 
 pub fn root(tag: &str) -> PathBuf {
-    let base = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("target").join("test-tmp");
+    let base = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("target")
+        .join("test-tmp");
     let dir = base.join(format!("{tag}-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).expect("创建测试目录失败");

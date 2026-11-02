@@ -15,7 +15,10 @@ pub struct Store {
 
 impl Store {
     pub fn new(data_dir: PathBuf, versions_dir: PathBuf) -> Self {
-        Self { data_dir, versions_dir }
+        Self {
+            data_dir,
+            versions_dir,
+        }
     }
 
     /// 生产环境默认路径（`%LOCALAPPDATA%\DSH-NEXT-Multi` + `<应用根>\versions`）。
@@ -93,26 +96,29 @@ impl Store {
     pub fn list_instances(&self) -> Vec<Instance> {
         let mut out = Vec::new();
         let dir = self.instances_dir();
-        let Ok(entries) = fs::read_dir(&dir) else { return out };
+        let Ok(entries) = fs::read_dir(&dir) else {
+            return out;
+        };
         for entry in entries.filter_map(Result::ok) {
             let path = entry.path();
             if path.extension().and_then(|e| e.to_str()) != Some("json") {
                 continue;
             }
-            match fs::read_to_string(&path)
+            if let Some(mut inst) = fs::read_to_string(&path)
                 .ok()
                 .and_then(|t| serde_json::from_str::<Instance>(&t).ok())
             {
-                Some(mut inst) => {
-                    if inst.schema_version == 0 {
-                        inst.schema_version = SCHEMA_VERSION;
-                    }
-                    out.push(inst);
+                if inst.schema_version == 0 {
+                    inst.schema_version = SCHEMA_VERSION;
                 }
-                None => {}
+                out.push(inst);
             }
         }
-        out.sort_by(|a, b| a.created_at.cmp(&b.created_at).then_with(|| a.id.cmp(&b.id)));
+        out.sort_by(|a, b| {
+            a.created_at
+                .cmp(&b.created_at)
+                .then_with(|| a.id.cmp(&b.id))
+        });
         out
     }
 
@@ -120,7 +126,8 @@ impl Store {
         let path = self.instance_path(id);
         let text = fs::read_to_string(&path)
             .map_err(|_| AppError::new("E1009", format!("instances\\{id}.json")))?;
-        serde_json::from_str(&text).map_err(|e| AppError::new("E1000", format!("实例文件损坏：{e}")))
+        serde_json::from_str(&text)
+            .map_err(|e| AppError::new("E1000", format!("实例文件损坏：{e}")))
     }
 
     pub fn write_instance(&self, inst: &Instance) -> Result<(), AppError> {
@@ -217,7 +224,8 @@ pub fn is_valid_id(id: &str) -> bool {
     if !(1..=32).contains(&len) {
         return false;
     }
-    id.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
+    id.chars()
+        .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
 }
 
 /// 把用户输入的 ID 转写成合法形式（新建对话框的“自动转写”）。
@@ -258,10 +266,16 @@ pub fn validate_home_path(home: &str) -> Result<(), AppError> {
     }
     let p = Path::new(&h);
     if !p.is_absolute() {
-        return Err(AppError::new("E1012", format!("数据目录必须是绝对路径：{h}")));
+        return Err(AppError::new(
+            "E1012",
+            format!("数据目录必须是绝对路径：{h}"),
+        ));
     }
     if h.contains("..") {
-        return Err(AppError::new("E1012", format!("数据目录不允许包含 ..：{h}")));
+        return Err(AppError::new(
+            "E1012",
+            format!("数据目录不允许包含 ..：{h}"),
+        ));
     }
     // 盘根：`C:\` 的 parent 为 None
     if p.parent().is_none() {
@@ -304,7 +318,10 @@ pub fn apply_home_root(cfg: &Config, new_root: &str) -> Config {
     let mut next = cfg.clone();
     next.home_root = new_root.clone();
     if follows {
-        next.default_home = Path::new(&new_root).join(".dsh").to_string_lossy().to_string();
+        next.default_home = Path::new(&new_root)
+            .join(".dsh")
+            .to_string_lossy()
+            .to_string();
     }
     next
 }
@@ -466,21 +483,36 @@ mod tests {
         // 版本不存在
         dup.home = "C:\\Users\\FXS\\.dsh-lab2".into();
         dup.version = "9.9.9".into();
-        assert_eq!(store.validate_instance(&dup, &all, true).unwrap_err().code, "E1004");
+        assert_eq!(
+            store.validate_instance(&dup, &all, true).unwrap_err().code,
+            "E1004"
+        );
 
         // ID 非法
         dup.version = "2.0.21-next".into();
         dup.id = "Bad ID".into();
-        assert_eq!(store.validate_instance(&dup, &all, true).unwrap_err().code, "E1012");
+        assert_eq!(
+            store.validate_instance(&dup, &all, true).unwrap_err().code,
+            "E1012"
+        );
 
         // 盘根
         dup.id = "lab2".into();
         dup.home = "C:\\".into();
-        assert_eq!(store.validate_instance(&dup, &all, true).unwrap_err().code, "E1012");
+        assert_eq!(
+            store.validate_instance(&dup, &all, true).unwrap_err().code,
+            "E1012"
+        );
 
         // 重名 id
         let same_id = Instance::new("lab", "另一个", "2.0.21-next", "C:\\Users\\FXS\\.dsh-x");
-        assert_eq!(store.validate_instance(&same_id, &all, true).unwrap_err().code, "E1008");
+        assert_eq!(
+            store
+                .validate_instance(&same_id, &all, true)
+                .unwrap_err()
+                .code,
+            "E1008"
+        );
         // 修改已有实例不算新增
         store.validate_instance(&same_id, &all, false).unwrap();
 

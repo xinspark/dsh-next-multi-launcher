@@ -1,6 +1,5 @@
 {
   "name": "dsh-next-multi-launcher",
-  "private": true,
   "version": "1.0.0",
   "description": "DSH-NEXT 应用多开启动器 / DSH-NEXT Multi-Launcher",
   "type": "module",
@@ -13,7 +12,9 @@
     "tokens": "node tools/extract-tokens.mjs --out design/tokens.lock.json",
     "tokens:css": "node tools/extract-tokens.mjs --out design/tokens.lock.json --css src/styles/tokens.css",
     "verify": "node tools/verify-tokens.mjs",
-    "sign": "pwsh -NoProfile -File tools/sign-exe.ps1"
+    "sign": "pwsh -NoProfile -File tools/sign-exe.ps1",
+    "format": "prettier --write \"src/**/*.{ts,svelte,css}\" \"*.{json,md}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,svelte,css}\" \"*.{json,md}\""
   },
   "dependencies": {
     "@tauri-apps/api": "^2.1.0"
@@ -24,11 +25,32 @@
     "svelte": "^5.0.0",
     "svelte-check": "^4.0.0",
     "typescript": "^5.6.0",
-    "vite": "^6.0.0"
+    "vite": "^6.0.0",
+    "prettier": "^3.4.2",
+    "prettier-plugin-svelte": "^3.3.3"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild"
     ]
-  }
+  },
+  "license": "MIT",
+  "author": "XinSpark",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/XinSpark/dsh-next-multi-launcher.git"
+  },
+  "homepage": "https://github.com/XinSpark/dsh-next-multi-launcher#readme",
+  "bugs": {
+    "url": "https://github.com/XinSpark/dsh-next-multi-launcher/issues"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "tauri",
+    "svelte",
+    "launcher",
+    "multi-instance",
+    "windows"
+  ]
 }

@@ -70,18 +70,8 @@ impl Config {
 
     /// 把明显越界的值夹回合法区间，避免手改配置把启动管道拖死。
     pub fn sanitized(mut self) -> Self {
-        if self.launch_timeout_sec < 10 {
-            self.launch_timeout_sec = 10;
-        }
-        if self.launch_timeout_sec > 600 {
-            self.launch_timeout_sec = 600;
-        }
-        if self.poll_interval_ms < 100 {
-            self.poll_interval_ms = 100;
-        }
-        if self.poll_interval_ms > 5_000 {
-            self.poll_interval_ms = 5_000;
-        }
+        self.launch_timeout_sec = self.launch_timeout_sec.clamp(10, 600);
+        self.poll_interval_ms = self.poll_interval_ms.clamp(100, 5_000);
         self.schema_version = SCHEMA_VERSION;
         self
     }

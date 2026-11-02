@@ -61,7 +61,7 @@ node tools\extract-tokens.mjs --out design\tokens.lock.json --css src\styles\tok
 
 ```
 $ DSH-NEXT-Multi.exe --scan-debug
-running [{"home":"C:\\Users\\FXS\\.dsh","shellPid":16708,"startedAt":1793489224}]
+running [{"home":"C:\\Users\\<用户名>\\.dsh","shellPid":16708,"startedAt":1793489224}]
 ```
 
 > 说明：启动器运行在 DSH 会话的沙箱里，`sysinfo` 只能看到本作业内的进程子集，因此上例把 renderer（16708）当成了 shell；
@@ -252,8 +252,8 @@ exit code 101
 
 ```
 无法创建窗口，启动器无法运行
-无法创建 WebView2 数据目录 C:\Users\FXS\AppData\Local\Temp\DSH-NEXT-Multi\webview2
-日志：C:\Users\FXS\AppData\Local\Temp\launcher-20261101.log
+无法创建 WebView2 数据目录 C:\Users\<用户名>\AppData\Local\Temp\DSH-NEXT-Multi\webview2
+日志：C:\Users\<用户名>\AppData\Local\Temp\launcher-20261101.log
 ```
 
 判读：`%LOCALAPPDATA%` 与 `%TEMP%` 下都**建不了目录**，只有 `%TEMP%` 根目录能写文件，
@@ -289,8 +289,8 @@ exit code 101
 取证（四条独立证据，见 §5 的版本管理验收）：
 
 ```
-Get-Item : LinkType=Junction  Target=E:\FXS\APP\DSH NEXT  Attributes=Directory,ReparsePoint  Mode=l----
-dir /AL  : <JUNCTION> 2.0.21-next [E:\FXS\APP\DSH NEXT]      0 File(s)  0 bytes
+Get-Item : LinkType=Junction  Target=<DSH-NEXT 安装目录>  Attributes=Directory,ReparsePoint  Mode=l----
+dir /AL  : <JUNCTION> 2.0.21-next [<DSH-NEXT 安装目录>]      0 File(s)  0 bytes
 fsutil   : Reparse Tag = 0xa0000003 (Mount Point)
 File ID  : 链接内 DSH NEXT.exe 与目标内同名文件完全相同
 ```
@@ -350,7 +350,7 @@ File ID  : 链接内 DSH NEXT.exe 与目标内同名文件完全相同
 { "before": [ { "value": "" }, { "value": "" }, { "value": "" } ],
   "typed": "灵枢-汐",
   "after":  [ { "value": "灵枢-汐" }, { "value": "inst-2wmon31b" },
-              { "value": "C:\\Users\\FXS\\.dsh-inst-2wmon31b" } ] }
+              { "value": "C:\\Users\\<用户名>\\.dsh-inst-2wmon31b" } ] }
 ```
 
 其他样例：`实验室 → inst-x50w50zv`、`lab → inst-a2kov4ei`、`!!! → inst-2uv2jd4b`。

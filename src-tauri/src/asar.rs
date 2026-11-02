@@ -33,7 +33,8 @@ pub struct AsarPackage {
 pub fn read_package(asar: &Path) -> Result<AsarPackage, String> {
     let mut file = File::open(asar).map_err(|e| format!("打开失败：{e}"))?;
     let mut head = [0u8; 16];
-    file.read_exact(&mut head).map_err(|e| format!("头部不足 16 字节：{e}"))?;
+    file.read_exact(&mut head)
+        .map_err(|e| format!("头部不足 16 字节：{e}"))?;
 
     let pickle_len = u32::from_le_bytes([head[4], head[5], head[6], head[7]]);
     let json_a = u32::from_le_bytes([head[8], head[9], head[10], head[11]]);
@@ -45,27 +46,41 @@ pub fn read_package(asar: &Path) -> Result<AsarPackage, String> {
     let data_start = 8u64 + pickle_len as u64;
 
     let mut raw = vec![0u8; json_len as usize];
-    file.read_exact(&mut raw).map_err(|e| format!("索引不足 {json_len} 字节：{e}"))?;
+    file.read_exact(&mut raw)
+        .map_err(|e| format!("索引不足 {json_len} 字节：{e}"))?;
     let index: Value = serde_json::from_slice(&raw).map_err(|e| format!("索引不是 JSON：{e}"))?;
 
     let entry = index
         .get("files")
         .and_then(|f| f.get("package.json"))
         .ok_or_else(|| "索引里没有 package.json".to_string())?;
-    if entry.get("unpacked").and_then(Value::as_bool).unwrap_or(false) {
+    if entry
+        .get("unpacked")
+        .and_then(Value::as_bool)
+        .unwrap_or(false)
+    {
         return Err("package.json 被标记为 unpacked".into());
     }
     // asar 索引里的 offset/size 既可能是数字，也可能是字符串（Electron 产物用字符串）
-    let offset = entry.get("offset").and_then(json_u64).ok_or("package.json 没有 offset")?;
-    let size = entry.get("size").and_then(json_u64).ok_or("package.json 没有 size")?;
+    let offset = entry
+        .get("offset")
+        .and_then(json_u64)
+        .ok_or("package.json 没有 offset")?;
+    let size = entry
+        .get("size")
+        .and_then(json_u64)
+        .ok_or("package.json 没有 size")?;
     if size == 0 || size > 4 * 1024 * 1024 {
         return Err(format!("package.json 大小不合理：{size}"));
     }
 
-    file.seek(SeekFrom::Start(data_start + offset)).map_err(|e| format!("定位失败：{e}"))?;
+    file.seek(SeekFrom::Start(data_start + offset))
+        .map_err(|e| format!("定位失败：{e}"))?;
     let mut body = vec![0u8; size as usize];
-    file.read_exact(&mut body).map_err(|e| format!("读取 package.json 失败：{e}"))?;
-    let pkg: Value = serde_json::from_slice(&body).map_err(|e| format!("package.json 不是 JSON：{e}"))?;
+    file.read_exact(&mut body)
+        .map_err(|e| format!("读取 package.json 失败：{e}"))?;
+    let pkg: Value =
+        serde_json::from_slice(&body).map_err(|e| format!("package.json 不是 JSON：{e}"))?;
 
     let shell_version = pkg
         .get("version")
@@ -79,7 +94,10 @@ pub fn read_package(asar: &Path) -> Result<AsarPackage, String> {
         .unwrap_or("?")
         .to_string();
 
-    Ok(AsarPackage { shell_version, kernel_version })
+    Ok(AsarPackage {
+        shell_version,
+        kernel_version,
+    })
 }
 
 #[cfg(test)]
@@ -140,7 +158,11 @@ mod tests {
         let dir = crate::testutil::root("dsh-multi-asar3");
         let _ = std::fs::create_dir_all(&dir);
         let path = dir.join("app.asar");
-        std::fs::write(&path, [4u8, 0, 0, 0, 16, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0]).unwrap();
+        std::fs::write(
+            &path,
+            [4u8, 0, 0, 0, 16, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0],
+        )
+        .unwrap();
         assert!(read_package(&path).is_err());
         let _ = std::fs::remove_dir_all(&dir);
     }

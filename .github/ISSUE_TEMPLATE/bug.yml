@@ -1,0 +1,64 @@
+name: Bug 报告
+description: 报告一个可复现的问题
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈。请尽量填写完整——日志和状态输出能省掉好几轮来回。
+  - type: input
+    id: version
+    attributes:
+      label: 启动器版本
+      description: 应用标题栏或 `--e2e-status` 里的 `appVersion`
+      placeholder: 1.0.0
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: 环境
+      description: Windows 版本 / DSH-NEXT 版本（壳与内核）/ 是否管理员运行
+      placeholder: Win11 24H2 / 2.0.21-next / 内核 0.2.1-rc.4 / 管理员
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      placeholder: |
+        1. 新建实例 X
+        2. 点启动
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望行为
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为
+      description: 有错误码（E1001–E1012）请写出来
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志与状态（脱敏后）
+      description: |
+        `%LOCALAPPDATA%\DSH-NEXT-Multi\logs\launcher-*.log` 的最后 30 行，
+        以及 `DSH-NEXT-Multi.exe --e2e-status` 的输出。请把用户名等替换成 `<user>`。
+      render: text
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: 确认
+      options:
+        - label: 已在最新版本上复现
+          required: true
+        - label: 日志已脱敏（不含真实用户名/密钥）
+          required: true

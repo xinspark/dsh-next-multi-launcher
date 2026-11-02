@@ -2,9 +2,12 @@
 name = "dsh-next-multi-launcher"
 version = "1.0.0"
 description = "DSH-NEXT 应用多开启动器"
-authors = ["DSH-NEXT Multi-Launcher"]
+authors = ["XinSpark"]
 edition = "2021"
 rust-version = "1.77"
+license = "MIT"
+repository = "https://github.com/XinSpark/dsh-next-multi-launcher"
+readme = "../README.md"
 
 [lib]
 name = "launcher_core"

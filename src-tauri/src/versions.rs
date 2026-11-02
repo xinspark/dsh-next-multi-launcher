@@ -27,7 +27,9 @@ impl VersionScanner {
     /// 遍历 `versions\*`，给出每一条的可用性。按 tag 倒序（新的在前）。
     pub fn scan(&self) -> Vec<VersionInfo> {
         let mut out = Vec::new();
-        let Ok(entries) = fs::read_dir(&self.root) else { return out };
+        let Ok(entries) = fs::read_dir(&self.root) else {
+            return out;
+        };
         for entry in entries.filter_map(Result::ok) {
             let path = entry.path();
             if !path.is_dir() {
@@ -46,7 +48,11 @@ impl VersionScanner {
     }
 
     pub fn valid_tags(&self) -> Vec<String> {
-        self.scan().into_iter().filter(|v| v.valid).map(|v| v.tag).collect()
+        self.scan()
+            .into_iter()
+            .filter(|v| v.valid)
+            .map(|v| v.tag)
+            .collect()
     }
 
     pub fn find(&self, tag: &str) -> Option<VersionInfo> {
@@ -72,7 +78,12 @@ impl VersionScanner {
             src.file_name()
                 .map(|n| n.to_string_lossy().to_string())
                 .filter(|n| is_safe_tag(n))
-                .ok_or_else(|| AppError::new("E1004", "无法从 package.json 或目录名确定版本号".to_string()))?
+                .ok_or_else(|| {
+                    AppError::new(
+                        "E1004",
+                        "无法从 package.json 或目录名确定版本号".to_string(),
+                    )
+                })?
         } else {
             tag
         };
@@ -87,7 +98,7 @@ impl VersionScanner {
         }
 
         // 源目录就在 versions 下：无需建链接
-        if crate::util::path_eq(&src.parent().unwrap_or(&src), &self.root) {
+        if crate::util::path_eq(src.parent().unwrap_or(&src), &self.root) {
             return Ok(inspect_dir(&src, &tag));
         }
 
@@ -96,7 +107,13 @@ impl VersionScanner {
         let info = inspect_dir(&link, &tag);
         if !info.valid {
             let _ = crate::versions::remove_link_only(&link);
-            return Err(AppError::new("E1004", format!("登记后校验失败：{}", info.invalid_reason.unwrap_or_default())));
+            return Err(AppError::new(
+                "E1004",
+                format!(
+                    "登记后校验失败：{}",
+                    info.invalid_reason.unwrap_or_default()
+                ),
+            ));
         }
         Ok(info)
     }
@@ -122,11 +139,16 @@ impl VersionScanner {
             return remove_link_only(&path);
         }
         // 真目录：只有空目录才允许删，避免误删整棵安装树
-        let empty = fs::read_dir(&path).map(|mut it| it.next().is_none()).unwrap_or(false);
+        let empty = fs::read_dir(&path)
+            .map(|mut it| it.next().is_none())
+            .unwrap_or(false);
         if !empty {
             return Err(AppError::new(
                 "E1007",
-                format!("{} 是真实目录且非空，启动器只删自己建的链接", path.display()),
+                format!(
+                    "{} 是真实目录且非空，启动器只删自己建的链接",
+                    path.display()
+                ),
             ));
         }
         fs::remove_dir(&path).map_err(|e| AppError::new("E1000", format!("删除版本目录失败：{e}")))
@@ -163,7 +185,11 @@ pub fn inspect_dir(dir: &Path, tag: &str) -> VersionInfo {
             Err(err) => ("?".to_string(), "?".to_string(), Some(err)),
         }
     } else {
-        ("?".to_string(), "?".to_string(), Some("缺少 resources\\app.asar".to_string()))
+        (
+            "?".to_string(),
+            "?".to_string(),
+            Some("缺少 resources\\app.asar".to_string()),
+        )
     };
 
     let invalid_reason = if !exe_ok {
@@ -255,7 +281,11 @@ fn create_junction(link: &Path, target: &Path) -> Result<(), AppError> {
         let stderr = String::from_utf8_lossy(&output.stdout).trim().to_string();
         return Err(AppError::new(
             "E1004",
-            format!("创建目录链接失败（{} → {}）：{stderr}", link.display(), target.display()),
+            format!(
+                "创建目录链接失败（{} → {}）：{stderr}",
+                link.display(),
+                target.display()
+            ),
         ));
     }
     Ok(())
@@ -300,13 +330,19 @@ fn is_safe_tag(tag: &str) -> bool {
 
 fn normalize_abs(p: &Path) -> Result<PathBuf, AppError> {
     if !p.is_absolute() {
-        return Err(AppError::new("E1012", format!("必须是绝对路径：{}", p.display())));
+        return Err(AppError::new(
+            "E1012",
+            format!("必须是绝对路径：{}", p.display()),
+        ));
     }
     let mut out = PathBuf::new();
     for comp in p.components() {
         match comp {
             Component::ParentDir => {
-                return Err(AppError::new("E1012", format!("路径不允许包含 ..：{}", p.display())))
+                return Err(AppError::new(
+                    "E1012",
+                    format!("路径不允许包含 ..：{}", p.display()),
+                ))
             }
             other => out.push(other.as_os_str()),
         }
@@ -328,8 +364,13 @@ mod tests {
         fs::create_dir_all(dir.join("resources")).unwrap();
         fs::write(dir.join(EXE_NAME), b"stub").unwrap();
         // 复用 asar 测试里的最小文件构造
-        let body = format!(r#"{{"version":"{version}","dependencies":{{"@deepseek-ai/dsh":"{kernel}"}}}}"#);
-        let index = format!(r#"{{"files":{{"package.json":{{"size":{},"offset":"0"}}}}}}"#, body.len());
+        let body = format!(
+            r#"{{"version":"{version}","dependencies":{{"@deepseek-ai/dsh":"{kernel}"}}}}"#
+        );
+        let index = format!(
+            r#"{{"files":{{"package.json":{{"size":{},"offset":"0"}}}}}}"#,
+            body.len()
+        );
         let mut out = Vec::new();
         out.extend_from_slice(&4u32.to_le_bytes());
         out.extend_from_slice(&((8 + index.len()) as u32).to_le_bytes());
@@ -363,7 +404,11 @@ mod tests {
         assert_eq!(good.kernel_version, "0.2.1-rc.4");
         let bad = list.iter().find(|v| v.tag == "broken").unwrap();
         assert!(!bad.valid);
-        assert!(bad.invalid_reason.as_ref().unwrap().contains("DSH NEXT.exe"));
+        assert!(bad
+            .invalid_reason
+            .as_ref()
+            .unwrap()
+            .contains("DSH NEXT.exe"));
         assert_eq!(list[0].tag, "broken", "倒序：b > 2");
         let _ = fs::remove_dir_all(root);
     }
@@ -396,7 +441,10 @@ mod tests {
         let scanner = VersionScanner::new(versions.clone());
 
         // 目录不存在 / 缺 exe → E1004
-        assert_eq!(scanner.register(&root.join("nope")).unwrap_err().code, "E1004");
+        assert_eq!(
+            scanner.register(&root.join("nope")).unwrap_err().code,
+            "E1004"
+        );
         let bare = root.join("bare");
         fs::create_dir_all(&bare).unwrap();
         assert_eq!(scanner.register(&bare).unwrap_err().code, "E1004");
@@ -442,7 +490,10 @@ mod tests {
         scanner.remove("empty-tag", &[]).unwrap();
         assert!(!versions.join("empty-tag").exists());
         // 非空真实目录拒绝删（保护安装树）
-        assert_eq!(scanner.remove("2.0.21-next", &[]).unwrap_err().code, "E1007");
+        assert_eq!(
+            scanner.remove("2.0.21-next", &[]).unwrap_err().code,
+            "E1007"
+        );
         assert!(versions.join("2.0.21-next").join(EXE_NAME).is_file());
         let _ = fs::remove_dir_all(root);
     }
@@ -454,7 +505,10 @@ mod tests {
         let real = versions.join("2.0.21-next");
         fake_install(&real, "2.0.21-next", "0.2.1-rc.4");
         let scanner = VersionScanner::new(versions.clone());
-        assert_eq!(scanner.remove("2.0.21-next", &[]).unwrap_err().code, "E1007");
+        assert_eq!(
+            scanner.remove("2.0.21-next", &[]).unwrap_err().code,
+            "E1007"
+        );
         let _ = fs::remove_dir_all(root);
     }
 }

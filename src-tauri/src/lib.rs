@@ -133,7 +133,10 @@ fn build_state(app: tauri::AppHandle, logger: Logger) -> AppState {
         config,
         launcher: Mutex::new(launcher),
         logger,
-        cache: Mutex::new(VersionCache { at: None, list: Vec::new() }),
+        cache: Mutex::new(VersionCache {
+            at: None,
+            list: Vec::new(),
+        }),
     }
 }
 
@@ -158,7 +161,12 @@ fn startup_logger() -> Logger {
 
 #[cfg(windows)]
 unsafe extern "system" {
-    fn MessageBoxW(hwnd: *mut core::ffi::c_void, text: *const u16, caption: *const u16, flags: u32) -> i32;
+    fn MessageBoxW(
+        hwnd: *mut core::ffi::c_void,
+        text: *const u16,
+        caption: *const u16,
+        flags: u32,
+    ) -> i32;
 }
 
 fn to_wide(text: &str) -> Vec<u16> {
@@ -173,11 +181,13 @@ fn fatal(logger: &Logger, summary: &str, detail: &str) -> ! {
         "{summary}\n\n{detail}\n\n日志：{}\n\n建议（任一即可）：\n1) 把 DSH-NEXT-Multi.exe 放到可写目录（桌面 / D 盘）再运行；\n2) 设置环境变量 DSH_MULTI_WEBVIEW_DATA 指向一个可写目录；\n3) 若系统缺少 WebView2 运行时，先安装 Microsoft Edge WebView2 Runtime。",
         logger.path_today().display()
     );
-    if let Ok(fallback) = std::fs::write(
+    if std::fs::write(
         std::env::temp_dir().join("DSH-NEXT-Multi-startup-error.txt"),
         &text,
-    ) {
-        let _ = fallback;
+    )
+    .is_err()
+    {
+        eprintln!("failed to write startup error report");
     }
     if std::env::var_os("DSH_MULTI_NO_DIALOG").is_none() {
         #[cfg(windows)]
