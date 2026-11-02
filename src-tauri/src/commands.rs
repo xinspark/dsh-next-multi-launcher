@@ -396,7 +396,8 @@ pub fn config_set(state: State<'_, AppState>, patch: ConfigPatch) -> Result<Conf
     }
     if let Some(mirror) = patch.download_mirror {
         let mirror = mirror.trim().trim_end_matches('/').to_string();
-        if !mirror.is_empty() && !(mirror.starts_with("http://") || mirror.starts_with("https://")) {
+        if !mirror.is_empty() && !(mirror.starts_with("http://") || mirror.starts_with("https://"))
+        {
             return Err(AppError::new(
                 "E1012",
                 format!("下载加速前缀必须是 http(s) 地址：{mirror}"),
@@ -535,7 +536,13 @@ pub async fn update_check(app: tauri::AppHandle) -> crate::update::UpdateInfo {
     use tauri::Manager;
     let logger = app.state::<AppState>().logger();
     // 与版本目录共用「下载加速前缀」：GitHub API 在国内常不可达
-    let mirror = app.state::<AppState>().config.lock().unwrap().download_mirror.clone();
+    let mirror = app
+        .state::<AppState>()
+        .config
+        .lock()
+        .unwrap()
+        .download_mirror
+        .clone();
     let info = tauri::async_runtime::spawn_blocking(move || {
         crate::update::check(env!("CARGO_PKG_VERSION"), &mirror)
     })
@@ -685,7 +692,6 @@ pub fn onboarding_reset(state: State<'_, AppState>) -> Result<OnboardingView, Ap
     })?;
     Ok(onboarding_view(&state))
 }
-
 
 // 让 `LaunchPhase` 参与序列化（供前端类型生成时可见）
 pub fn _phase_name(p: LaunchPhase) -> &'static str {

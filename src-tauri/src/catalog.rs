@@ -87,11 +87,7 @@ pub fn pick_asset<'a>(names: impl IntoIterator<Item = &'a str>) -> Option<(&'a s
         return Some((name, AssetKind::Installer));
     }
     // 2) 其它非便携 exe
-    if let Some(name) = names
-        .iter()
-        .copied()
-        .find(|n| is_exe(n) && !is_portable(n))
-    {
+    if let Some(name) = names.iter().copied().find(|n| is_exe(n) && !is_portable(n)) {
         return Some((name, AssetKind::Installer));
     }
     // 3) zip（历史上只有便携包）
@@ -168,11 +164,7 @@ pub(crate) fn github_error(code: u16, reset_at: Option<i64>) -> String {
         403 | 429 => {
             let when = reset_at
                 .and_then(|ts| chrono::DateTime::from_timestamp(ts, 0))
-                .map(|d| {
-                    d.with_timezone(&chrono::Local)
-                        .format("%H:%M")
-                        .to_string()
-                });
+                .map(|d| d.with_timezone(&chrono::Local).format("%H:%M").to_string());
             match when {
                 Some(t) => format!(
                     "GitHub 限流（{code}）：未登录每小时 60 次，{t} 后恢复；也可点「打开 Releases」在浏览器下载"
@@ -248,16 +240,16 @@ fn github_entries(want_prerelease: bool, mirror: &str) -> Result<Vec<CatalogEntr
         // 一个 release 常同时挂安装包与便携包：挑“用户该下载的那个”（安装包优先）。
         let named: Vec<(&str, &serde_json::Value)> = assets
             .iter()
-            .filter_map(|a| {
-                a.get("name")
-                    .and_then(|v| v.as_str())
-                    .map(|name| (name, a))
-            })
+            .filter_map(|a| a.get("name").and_then(|v| v.as_str()).map(|name| (name, a)))
             .collect();
         let Some((chosen, kind)) = pick_asset(named.iter().map(|(name, _)| *name)) else {
             continue;
         };
-        let Some(asset) = named.iter().find(|(name, _)| *name == chosen).map(|(_, a)| *a) else {
+        let Some(asset) = named
+            .iter()
+            .find(|(name, _)| *name == chosen)
+            .map(|(_, a)| *a)
+        else {
             continue;
         };
 
@@ -349,7 +341,10 @@ mod tests {
         ];
         assert_eq!(
             pick_asset(names),
-            Some(("DSH-Desktop-Setup-2.0.21-next-x64.exe", AssetKind::Installer))
+            Some((
+                "DSH-Desktop-Setup-2.0.21-next-x64.exe",
+                AssetKind::Installer
+            ))
         );
     }
 
@@ -372,7 +367,10 @@ mod tests {
         let names = ["DSH-Desktop-Beta-2.1.0-x64-Portable.zip", "latest.yml"];
         assert_eq!(
             pick_asset(names),
-            Some(("DSH-Desktop-Beta-2.1.0-x64-Portable.zip", AssetKind::Portable))
+            Some((
+                "DSH-Desktop-Beta-2.1.0-x64-Portable.zip",
+                AssetKind::Portable
+            ))
         );
     }
 
@@ -381,13 +379,20 @@ mod tests {
         let names = ["DSH-Desktop-2.0.21-next-x64-Portable.exe"];
         assert_eq!(
             pick_asset(names),
-            Some(("DSH-Desktop-2.0.21-next-x64-Portable.exe", AssetKind::Portable))
+            Some((
+                "DSH-Desktop-2.0.21-next-x64-Portable.exe",
+                AssetKind::Portable
+            ))
         );
     }
 
     #[test]
     fn skips_releases_without_usable_asset() {
-        let names = ["latest.yml", "DSH-Desktop-2.0.21-next-x64.dmg", "checksums.txt"];
+        let names = [
+            "latest.yml",
+            "DSH-Desktop-2.0.21-next-x64.dmg",
+            "checksums.txt",
+        ];
         assert_eq!(pick_asset(names), None);
     }
 }
