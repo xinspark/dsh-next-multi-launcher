@@ -81,6 +81,8 @@ const zh: Dict = {
   'onboarding.root.following': '当前跟随系统默认',
   'onboarding.root.saved': '已设为 {path}',
   'onboarding.root.preview': '新建实例默认放在 {sample}',
+  'onboarding.root.recommend':
+    '推荐改到非系统盘（例如 D:\\DSH）：会话、插件与版本都占空间，放系统盘容易占满，重装系统时会一起丢。',
   'onboarding.step.version': '④ 选择 DSH-NEXT',
   'onboarding.step.instance': '⑤ 实例',
   'onboarding.instance.exists': '检测到已有 {count} 个实例（首次运行会自动建一条「默认」）：',
@@ -407,6 +409,8 @@ const en: Dict = {
   'onboarding.root.following': 'currently following the system default',
   'onboarding.root.saved': 'Set to {path}',
   'onboarding.root.preview': 'New instances default to {sample}',
+  'onboarding.root.recommend':
+    'Prefer a non-system drive (e.g. D:\\DSH): sessions, plugins and versions take real space, a system-drive folder fills up and is lost when Windows is reinstalled.',
   'onboarding.step.version': '④ Choose DSH-NEXT',
   'onboarding.step.instance': '⑤ Instance',
   'onboarding.instance.exists': 'Found {count} existing instance(s) — the launcher creates a "Default" one on first run:',

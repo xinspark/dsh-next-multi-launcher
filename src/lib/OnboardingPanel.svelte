@@ -52,6 +52,11 @@
       view.homeRoot.trim().toLowerCase() === (view.userProfile || '').toLowerCase()
   );
   const rootPreview = $derived(`${rootShown.replace(/[\\/]+$/, '')}\\.dsh-<ID>`);
+  // 树根落在系统盘（与用户目录同盘）时，给一条「换到非系统盘」的建议
+  const driveOf = (p: string) => ((p.match(/^[a-zA-Z]:/) || [''])[0] || '').toUpperCase();
+  const onSystemDrive = $derived(
+    Boolean(driveOf(rootShown)) && driveOf(rootShown) === driveOf(view.userProfile || '')
+  );
 
   async function pickRoot() {
     busyRoot = true;
@@ -301,6 +306,9 @@
         {/if}
       </div>
       <span class="field-hint">{t('onboarding.root.preview', { sample: rootPreview })}</span>
+      {#if onSystemDrive}
+        <span class="field-hint">{t('onboarding.root.recommend')}</span>
+      {/if}
     </section>
 
     <!-- ④ 选择版本 -->
