@@ -158,6 +158,21 @@ export interface PermissionReport {
   needsElevation: boolean;
 }
 
+/** 首次使用引导的视图（docs/design-onboarding.md §5） */
+export interface OnboardingView {
+  autoOpen: boolean;
+  completedAt?: string;
+  skippedAt?: string;
+  lastStep: number;
+  environment: PermissionReport;
+  webviewAvailable: boolean;
+  hasInstance: boolean;
+  versions: VersionInfo[];
+  userProfile: string;
+  homeRoot: string;
+  defaultHome: string;
+}
+
 /** 启动器自身的更新检查结果（只提示，不下载） */
 export interface UpdateInfo {
   current: string;

@@ -5,7 +5,7 @@
 
   import { api, errorText, type UiError } from './lib/api';
   import { translate, type Lang } from './lib/i18n';
-  import type { ConfigPatch, InstanceView, PermissionReport, Snapshot } from './lib/types';
+  import type { ConfigPatch, InstanceView, PermissionReport, Snapshot, OnboardingView } from './lib/types';
   import { shortPath } from './lib/format';
 
   import InstanceRow from './lib/InstanceRow.svelte';
@@ -14,6 +14,7 @@
   import DeleteDialog from './lib/DeleteDialog.svelte';
   import VersionView from './lib/VersionView.svelte';
   import SettingsView from './lib/SettingsView.svelte';
+  import OnboardingPanel from './lib/OnboardingPanel.svelte';
   import brandUrl from './assets/brand.png';
   import Modal from './lib/Modal.svelte';
 
@@ -39,6 +40,8 @@
   let permission = $state<PermissionReport | null>(null);
   /** 正在重启的实例 id：重启期间显示提示条，实例起来后自动清除 */
   let restartingId = $state<string | null>(null);
+  /** 初始化向导（首次使用或从设置页手动重开时非空） */
+  let onboarding = $state<OnboardingView | null>(null);
   /** 使用提示：单行轮播，每条 30s，可手动「下一个」，不可关闭（?noticeMs= 仅供调试） */
   const NOTICES = [
     'notice.restartLimit',
@@ -121,6 +124,13 @@
     const stored = localStorage.getItem('dshla.lang');
     if (stored === 'en' || stored === 'zh') lang = stored;
     await refresh();
+    // 首次使用：从未完成/跳过向导时自动展开（设计见 docs/design-onboarding.md）
+    try {
+      const ob = await api.onboardingState();
+      if (ob.autoOpen) onboarding = ob;
+    } catch {
+      /* 取不到就不打扰用户 */
+    }
     if (location.hash === '#settings') view = 'settings';
     else if (location.hash === '#versions') view = 'versions';
     else if (location.hash === '#launch') view = 'launch';
@@ -306,6 +316,16 @@
       await api.restorePointer();
       notify(t('toast.pointerRestored'));
     });
+  }
+
+  /** 设置页「重新运行初始化向导」：清 skippedAt/步骤后把面板重新打开 */
+  async function rerunOnboarding() {
+    try {
+      onboarding = await api.onboardingReset();
+      await refresh();
+    } catch (err) {
+      notify(errorText(err as UiError), 'err');
+    }
   }
 
   async function openPath(path: string, create: boolean) {
@@ -558,6 +578,7 @@
         {t}
         onSave={saveSettings}
         onToggleLang={toggleLang}
+        onRerunOnboarding={rerunOnboarding}
         onOpenPath={(p, create) => openPath(p, create ?? false)}
       />
     {:else}
@@ -565,6 +586,24 @@
     {/if}
   {/if}
 </div>
+
+<!-- 初始化向导：盖在主界面上，首次使用时自动出现 -->
+{#if onboarding}
+  <OnboardingPanel
+    view={onboarding}
+    {t}
+    onClose={() => {
+      onboarding = null;
+      void refresh();
+    }}
+    onOpenVersions={() => {
+      onboarding = null;
+      go('versions');
+    }}
+    onNotify={notify}
+    onRefresh={refresh}
+  />
+{/if}
 
 {#if toast}
   <div class="toast" class:error={toast.kind === 'err'} role="status">{toast.text}</div>

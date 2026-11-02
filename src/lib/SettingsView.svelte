@@ -14,10 +14,11 @@
     t: (key: string, vars?: Record<string, string | number>) => string;
     onSave: (patch: ConfigPatch) => Promise<void>;
     onToggleLang: () => void;
+    onRerunOnboarding: () => void;
     onOpenPath: (path: string, create?: boolean) => Promise<void> | void;
   }
 
-  let { config, lang, dataDir, logDir, versionsDir, t, onSave, onToggleLang, onOpenPath }: Props =
+  let { config, lang, dataDir, logDir, versionsDir, t, onSave, onToggleLang, onRerunOnboarding, onOpenPath }: Props =
     $props();
 
   let homeRoot = $state(untrack(() => config.homeRoot ?? ''));
@@ -242,6 +243,7 @@
       <button class="btn ghost" onclick={() => onOpenPath(versionsDir, true)}>{t('settings.openVersionsDir')}</button>
       <button class="btn ghost" onclick={() => onOpenPath(logDir, true)}>{t('settings.openLogDir')}</button>
       <button class="btn ghost" onclick={openRepo}>{t('settings.openRepo')}</button>
+      <button class="btn ghost" onclick={onRerunOnboarding}>{t('settings.rerunOnboarding')}</button>
     </div>
   </section>
 

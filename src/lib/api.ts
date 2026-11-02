@@ -12,7 +12,8 @@ import type {
   VersionInfo,
   DiscoverCandidate,
   CatalogEntry,
-  UpdateInfo
+  UpdateInfo,
+  OnboardingView
 } from './types';
 
 /** 浏览器里预览界面时没有 Tauri 运行时，走 mock（只在 dev 构建里生效）。 */
@@ -81,6 +82,12 @@ export const api = {
 
   permissionReport: () => call<PermissionReport>('permission_report'),
   relaunchElevated: () => call<boolean>('relaunch_elevated'),
+
+  onboardingState: () => call<OnboardingView>('onboarding_state'),
+  onboardingComplete: (lastStep = 4) =>
+    call<OnboardingView>('onboarding_complete', { lastStep }),
+  onboardingSkip: () => call<OnboardingView>('onboarding_skip'),
+  onboardingReset: () => call<OnboardingView>('onboarding_reset'),
 
   pickDirectory: () => call<string | null>('pick_directory'),
   openPath: (path: string, create = false) => call<void>('open_path', { path, create })

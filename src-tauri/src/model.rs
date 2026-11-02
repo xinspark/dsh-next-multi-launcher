@@ -37,6 +37,9 @@ pub struct Config {
     /// 不在代码里写死任何一家。
     #[serde(default)]
     pub download_mirror: String,
+    /// 首次使用引导（老配置缺省 = 未完成）
+    #[serde(default)]
+    pub onboarding: OnboardingState,
     #[serde(default)]
     pub last_pointer: Option<LastPointer>,
 }
@@ -51,6 +54,7 @@ impl Default for Config {
             poll_interval_ms: 500,
             restore_pointer_after_launch: true,
             download_mirror: String::new(),
+            onboarding: OnboardingState::default(),
             last_pointer: None,
         }
     }
@@ -78,7 +82,40 @@ impl Config {
     pub fn sanitized(mut self) -> Self {
         self.launch_timeout_sec = self.launch_timeout_sec.clamp(10, 600);
         self.poll_interval_ms = self.poll_interval_ms.clamp(100, 5_000);
+        self.onboarding = self.onboarding.sanitized();
         self.schema_version = SCHEMA_VERSION;
+        self
+    }
+}
+
+// ---------------------------------------------------------------- 初始化向导
+
+/// 首次使用引导的状态（设计见 `docs/design-onboarding.md` §4）。
+///
+/// 旧配置里没有这个字段 → `Default` 全空 → 视为「从未完成」，下次启动仍会展开。
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OnboardingState {
+    /// 完成时间；有值后不再自动展开
+    #[serde(default)]
+    pub completed_at: Option<String>,
+    /// 跳过时间；两个时间都为空时下次仍会展开
+    #[serde(default)]
+    pub skipped_at: Option<String>,
+    /// 中断后回到哪一步（1–4）；0 = 还没开始
+    #[serde(default)]
+    pub last_step: u8,
+}
+
+impl OnboardingState {
+    /// 是否应该自动展开向导：既没完成过、也没跳过过。
+    pub fn auto_open(&self) -> bool {
+        self.completed_at.is_none() && self.skipped_at.is_none()
+    }
+
+    /// 步骤夹取到 0–4，避免手改配置写出越界值。
+    pub fn sanitized(mut self) -> Self {
+        self.last_step = self.last_step.min(4);
         self
     }
 }
@@ -283,4 +320,57 @@ pub struct StopOutcome {
     pub needs_force: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pid: Option<u32>,
+}
+
+#[cfg(test)]
+mod onboarding_tests {
+    use super::*;
+
+    #[test]
+    fn fresh_config_auto_opens() {
+        let cfg = Config::default();
+        assert!(cfg.onboarding.auto_open(), "全新配置应自动展开向导");
+    }
+
+    #[test]
+    fn skip_or_complete_stops_auto_open() {
+        let mut o = OnboardingState::default();
+        assert!(o.auto_open());
+
+        o.skipped_at = Some("2026-11-03T01:00:00+08:00".into());
+        assert!(!o.auto_open(), "跳过后不该再自动展开");
+
+        // 重开（清 skippedAt）后又会展开
+        o.skipped_at = None;
+        assert!(o.auto_open());
+
+        o.completed_at = Some("2026-11-03T01:00:00+08:00".into());
+        assert!(!o.auto_open(), "完成后不该再自动展开");
+    }
+
+    #[test]
+    fn last_step_is_clamped_to_four() {
+        let mut cfg = Config::default();
+        cfg.onboarding.last_step = 99;
+        assert_eq!(cfg.sanitized().onboarding.last_step, 4);
+    }
+
+    /// 老 `app.json` 没有 `onboarding` 字段：必须照常反序列化，并视为「未完成」。
+    #[test]
+    fn legacy_config_without_onboarding_still_loads() {
+        let json = r#"{
+            "schemaVersion": 1,
+            "defaultHome": "C:\\Users\\FXS\\.dsh",
+            "homeRoot": "C:\\Users\\FXS",
+            "launchTimeoutSec": 90,
+            "pollIntervalMs": 500,
+            "restorePointerAfterLaunch": true
+        }"#;
+        let cfg: Config = serde_json::from_str(json).unwrap();
+        assert!(cfg.onboarding.auto_open());
+        assert_eq!(cfg.onboarding.last_step, 0);
+        // 回写时也会把 onboarding 一并落盘
+        let text = serde_json::to_string(&cfg).unwrap();
+        assert!(text.contains("\"onboarding\""));
+    }
 }

@@ -361,6 +361,10 @@ pub fn run() {
             commands::health,
             commands::permission_report,
             commands::relaunch_elevated,
+            commands::onboarding_state,
+            commands::onboarding_complete,
+            commands::onboarding_skip,
+            commands::onboarding_reset,
         ])
         .run(tauri::generate_context!())
         .expect("启动 Tauri 应用失败");

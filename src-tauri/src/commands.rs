@@ -581,6 +581,98 @@ pub fn health(state: State<'_, AppState>) -> Result<Health, AppError> {
     })
 }
 
+// ---------------------------------------------------------------- 初始化向导
+
+/// 首次使用引导的视图（`docs/design-onboarding.md` §5）。
+///
+/// 环境对象**复用** `permission_report`，不新增探测逻辑。
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OnboardingView {
+    /// 是否应该自动展开：既没完成过、也没跳过过
+    pub auto_open: bool,
+    pub completed_at: Option<String>,
+    pub skipped_at: Option<String>,
+    pub last_step: u8,
+    pub environment: crate::perm::PermissionReport,
+    /// 能看到这个面板就说明 WebView2 已工作，所以恒为 true
+    pub webview_available: bool,
+    pub has_instance: bool,
+    pub versions: Vec<VersionInfo>,
+    pub user_profile: String,
+    pub home_root: String,
+    pub default_home: String,
+}
+
+fn onboarding_view(state: &AppState) -> OnboardingView {
+    let cfg = state.config.lock().unwrap().clone();
+    OnboardingView {
+        auto_open: cfg.onboarding.auto_open(),
+        completed_at: cfg.onboarding.completed_at.clone(),
+        skipped_at: cfg.onboarding.skipped_at.clone(),
+        last_step: cfg.onboarding.last_step,
+        environment: crate::perm::report(),
+        webview_available: true,
+        has_instance: !state.store.list_instances().is_empty(),
+        versions: state.versions_now(),
+        user_profile: crate::util::user_home().to_string_lossy().to_string(),
+        home_root: cfg.effective_home_root(),
+        default_home: cfg.default_home.clone(),
+    }
+}
+
+fn mutate_onboarding(
+    state: &AppState,
+    f: impl FnOnce(&mut crate::model::OnboardingState),
+) -> Result<(), AppError> {
+    let mut cfg = state.config.lock().unwrap().clone();
+    f(&mut cfg.onboarding);
+    cfg = cfg.sanitized();
+    state.store.save_config(&cfg)?;
+    *state.config.lock().unwrap() = cfg;
+    Ok(())
+}
+
+#[tauri::command]
+pub fn onboarding_state(state: State<'_, AppState>) -> OnboardingView {
+    onboarding_view(&state)
+}
+
+/// 完成：写 `completedAt`，此后不再自动展开。
+#[tauri::command]
+pub fn onboarding_complete(
+    state: State<'_, AppState>,
+    last_step: Option<u8>,
+) -> Result<OnboardingView, AppError> {
+    mutate_onboarding(&state, |o| {
+        o.completed_at = Some(now_iso());
+        o.last_step = last_step.unwrap_or(4);
+    })?;
+    state.logger().info("初始化向导：已完成");
+    Ok(onboarding_view(&state))
+}
+
+/// 跳过：写 `skippedAt`，不预建任何数据；设置页仍可重开。
+#[tauri::command]
+pub fn onboarding_skip(state: State<'_, AppState>) -> Result<OnboardingView, AppError> {
+    mutate_onboarding(&state, |o| {
+        o.skipped_at = Some(now_iso());
+    })?;
+    state.logger().info("初始化向导：已跳过");
+    Ok(onboarding_view(&state))
+}
+
+/// 重开：清 `skippedAt` 与步骤，保留 `completedAt`（不强制重跑）。
+#[tauri::command]
+pub fn onboarding_reset(state: State<'_, AppState>) -> Result<OnboardingView, AppError> {
+    mutate_onboarding(&state, |o| {
+        o.skipped_at = None;
+        o.last_step = 0;
+    })?;
+    Ok(onboarding_view(&state))
+}
+
+
 // 让 `LaunchPhase` 参与序列化（供前端类型生成时可见）
 pub fn _phase_name(p: LaunchPhase) -> &'static str {
     p.as_str()
