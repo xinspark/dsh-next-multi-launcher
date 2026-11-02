@@ -3,6 +3,7 @@
   import type { Config, ConfigPatch, UpdateInfo } from './types';
   import type { Lang } from './i18n';
   import { api, errorText, type UiError } from './api';
+  import Switch from './Switch.svelte';
   import { online, checkUpdate as checkUpdateShared } from './refresh.svelte.js';
   import { RELEASES_URL, REPO_URL, STAR_URL } from './links';
 
@@ -150,11 +151,11 @@
         <span>{t('settings.language')}</span>
         <span class="field-hint">{t('settings.languageHint')}</span>
       </div>
-      <div class="inline">
-        <button class="btn ghost" class:active={lang === 'zh'} onclick={() => lang !== 'zh' && onToggleLang()}>
+      <div class="segmented">
+        <button class="tab" class:active={lang === 'zh'} onclick={() => lang !== 'zh' && onToggleLang()}>
           中文
         </button>
-        <button class="btn ghost" class:active={lang === 'en'} onclick={() => lang !== 'en' && onToggleLang()}>
+        <button class="tab" class:active={lang === 'en'} onclick={() => lang !== 'en' && onToggleLang()}>
           English
         </button>
       </div>
@@ -165,14 +166,14 @@
         <span>{t('settings.theme')}</span>
         <span class="field-hint">{t('settings.themeHint')}</span>
       </div>
-      <div class="inline">
-        <button class="btn ghost" class:active={theme === 'system'} onclick={() => (theme = 'system')}>
+      <div class="segmented">
+        <button class="tab" class:active={theme === 'system'} onclick={() => (theme = 'system')}>
           {t('settings.themeSystem')}
         </button>
-        <button class="btn ghost" class:active={theme === 'light'} onclick={() => (theme = 'light')}>
+        <button class="tab" class:active={theme === 'light'} onclick={() => (theme = 'light')}>
           {t('settings.themeLight')}
         </button>
-        <button class="btn ghost" class:active={theme === 'dark'} onclick={() => (theme = 'dark')}>
+        <button class="tab" class:active={theme === 'dark'} onclick={() => (theme = 'dark')}>
           {t('settings.themeDark')}
         </button>
       </div>
@@ -230,10 +231,14 @@
     </div>
 
     <div class="field">
-      <label class="check">
-        <input type="checkbox" bind:checked={restorePointer} />
+      <div class="switch-row">
         <span>{t('settings.restorePointer')}</span>
-      </label>
+        <Switch
+          checked={restorePointer}
+          label={t('settings.restorePointer')}
+          onchange={(next) => (restorePointer = next)}
+        />
+      </div>
       {#if !restorePointer}
         <span class="field-hint warn">{t('settings.restorePointerWarn')}</span>
       {/if}
@@ -297,10 +302,10 @@
       <span class="field-hint warn">{t('settings.browserDownloadHint')}</span>
     </div>
 
-    <label class="check">
-      <input type="checkbox" checked={autoCheck} onchange={(e) => toggleAutoCheck(e.currentTarget.checked)} />
+    <div class="switch-row">
       <span>{t('settings.autoCheck')}</span>
-    </label>
+      <Switch checked={autoCheck} label={t('settings.autoCheck')} onchange={toggleAutoCheck} />
+    </div>
     <span class="field-hint">{t('settings.autoCheckHint')}</span>
   </section>
 

@@ -44,9 +44,20 @@ body {
   background: transparent;
 }
 
+/* 焦点环：官方 design/parts/focus.css 的移植。
+   宽度写字面量：官方片段用的是 --dsw-focus-ring-width（2px），但那个名字由片段自己声明、不在本仓名册里，
+   而 verify-tokens 禁止出现名册外的 --dsw-* 名字。宽度是常量、不随主题变，写字面量比自造 token 更诚实。 */
 :focus-visible {
-  outline: 2px solid var(--dsw-alias-state-business-primary);
+  outline-style: solid;
+  outline-width: 2px;
+  outline-color: var(--dsw-focus-ring-color, var(--dsw-alias-state-business-primary));
   outline-offset: 2px;
+}
+
+/* 鼠标操作不显示焦点环（官方同款）：只有键盘导航才画环 */
+html[data-input-modality='pointer'] body :focus-visible:not(:read-write) {
+  --dsw-focus-ring-color: transparent;
+  outline-color: transparent;
 }
 
 button {
@@ -122,9 +133,10 @@ button {
 
 /* ------------------------------------------------------------ 按钮 */
 
+/* 小号按钮 = 原生 Button.sm：28px / radius-sm / 13px / padding 0 10px / gap 4px */
 .btn {
   height: 28px;
-  padding: 0 12px;
+  padding: 0 10px;
   border-radius: var(--dsw-radius-sm);
   border: 0.5px solid transparent;
   background: transparent;
@@ -133,7 +145,7 @@ button {
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   white-space: nowrap;
   transition: background var(--ds-transition-duration-fast) var(--ds-ease-in-out),
     border-color var(--ds-transition-duration-fast) var(--ds-ease-in-out);
@@ -187,6 +199,15 @@ button {
   justify-content: center;
 }
 
+/* 中号按钮 = 原生 Button.md：36px / radius-md / 14px / padding 0 14px。
+   用于「启动」这类页面级主操作，与小号按钮区分层级。 */
+.btn.md {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: var(--dsw-radius-md);
+  font: var(--dsw-font-s-14);
+}
+
 /* ------------------------------------------------------------ 指针条 */
 
 .pointerbar {
@@ -212,8 +233,8 @@ button {
 
 .pointer-value {
   color: var(--dsw-alias-label-primary);
+  font: var(--dsw-font-xxs-12);
   font-family: var(--ds-font-family-code);
-  font-size: 12px;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -239,15 +260,16 @@ button {
 
 /* ------------------------------------------------------------ 黄条 */
 
+/* 黄条 = 原生 approval 块：radius-lg + warn-tertiary 底 + warn-primary 40% 描边 + padding 12/14 */
 .banner {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   margin: 8px 20px 0;
-  padding: 8px 12px;
-  border-radius: var(--dsw-radius-sm);
-  border: 0.5px solid var(--dsw-alias-state-warn-secondary);
-  background: color-mix(in srgb, var(--dsw-alias-state-warn-primary) 12%, transparent);
+  padding: 10px 14px;
+  border-radius: var(--dsw-radius-lg);
+  border: 0.5px solid color-mix(in srgb, var(--dsw-alias-state-warn-primary) 40%, transparent);
+  background: var(--dsw-alias-state-warn-tertiary);
   color: var(--dsw-alias-state-warn-label);
   font: var(--dsw-font-xs-13);
 }
@@ -259,9 +281,10 @@ button {
 
 
 /* 危险级提示（权限不足）：用 error 色，与黄条区分 */
+/* 危险级提示（权限不足）：同几何、换 error 色（原生没有 error-tertiary，用 12% 混色代替） */
 .banner-danger {
-  border-color: var(--dsw-alias-state-error-secondary);
-  background: color-mix(in srgb, var(--dsw-alias-state-error-primary) 14%, transparent);
+  border-color: color-mix(in srgb, var(--dsw-alias-state-error-primary) 40%, transparent);
+  background: color-mix(in srgb, var(--dsw-alias-state-error-primary) 12%, transparent);
   color: var(--dsw-alias-state-error-primary);
 }
 
@@ -286,32 +309,50 @@ button {
 }
 
 /* 复选行 */
+/* 开关行：左侧说明、右侧原生开关（原生设置页的行式排布） */
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font: var(--dsw-font-xs-13);
+  color: var(--dsw-alias-label-primary);
+}
+
+/* 复选行 = 原生 Checkbox：16×16 + accent-color brand + gap 6 */
 .check {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font: var(--dsw-font-xs-13);
   color: var(--dsw-alias-label-primary);
   cursor: pointer;
 }
 
 .check input {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 0;
   accent-color: var(--dsw-alias-brand-primary);
+  cursor: inherit;
 }
 
 
 /* 下拉菜单（重启模式）—— 用 popover 渲染在顶层，不受列表/面板裁剪 */
+/* 浮层 = 原生 registry 浮层：bg-layer-2 + elevation-prominent + radius-lg + padding 8 + gap 4。
+   无边框：描边由 elevation 的 .5px stroke 出（原生就是这么画的）。 */
 .dropdown-menu[popover] {
   position: fixed;
   inset: auto;
   margin: 0;
-  padding: 4px;
+  padding: 8px;
   min-width: max-content;
-  gap: 2px;
-  background: var(--dsw-alias-bg-layer-1);
-  border: 0.5px solid var(--dsw-alias-border-l2);
-  border-radius: var(--dsw-radius-sm);
-  box-shadow: var(--dsw-shadow-lv2);
+  gap: 4px;
+  background: var(--dsw-alias-bg-layer-2);
+  border: 0;
+  border-radius: var(--dsw-radius-lg);
+  box-shadow: var(--dsw-elevation-prominent);
   color: var(--dsw-alias-label-primary);
   z-index: 60;
   top: anchor(bottom);
@@ -375,15 +416,17 @@ button {
 
 
 /* 使用提示条：说明已知限制与预期行为，比警告条更轻 */
+/* 提示条 = 原生 guide 块：border-l4 + radius-lg + bg-layer-1。
+   原来的 brand 8% 底色是自绘的，原生说明块用的是表层底 + 一级描边，靠左侧圆点做强调。 */
 .notice {
   display: flex;
   align-items: center;
   gap: 10px;
   margin: 8px 20px 0;
-  padding: 7px 12px;
-  border-radius: var(--dsw-radius-sm);
-  border: 0.5px solid var(--dsw-alias-border-l2);
-  background: color-mix(in srgb, var(--dsw-alias-brand-primary) 8%, transparent);
+  padding: 10px 12px;
+  border-radius: var(--dsw-radius-lg);
+  border: 0.5px solid var(--dsw-alias-border-l4);
+  background: var(--dsw-alias-bg-layer-1);
   color: var(--dsw-alias-label-secondary);
   font: var(--dsw-font-xs-13);
 }
@@ -418,13 +461,13 @@ button {
   white-space: nowrap;
 }
 
-/* 手动切到下一条提示（不关闭提示条，只换内容并重置轮播计时） */
+/* 提示条内的小按钮：12px 字号 + 单倍行高（原生 pageIntro 的 13/20 之外，它是按钮不是正文） */
 .notice-next {
   flex: none;
   border: 0;
   background: transparent;
   color: var(--dsw-alias-brand-primary);
-  font-size: 12px;
+  font: var(--dsw-font-xxs-12);
   line-height: 1;
   padding: 2px 4px;
   cursor: pointer;
@@ -546,8 +589,8 @@ button {
 }
 
 .row-id {
+  font: var(--dsw-font-xxs-12);
   font-family: var(--ds-font-family-code);
-  font-size: 12px;
   color: var(--dsw-alias-label-tertiary);
   white-space: nowrap;
   overflow: hidden;
@@ -557,8 +600,8 @@ button {
 }
 
 .row-path {
+  font: var(--dsw-font-xxs-12);
   font-family: var(--ds-font-family-code);
-  font-size: 12px;
   color: var(--dsw-alias-label-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -610,8 +653,11 @@ button {
   gap: 4px;
 }
 
+/* 向导标题 = 原生 wizardTitle：18/26 字重 600。
+   18/26 这一档没有对应 token（--dsw-font-m-18 实际是 16/28），故写字面量并显式给行高。 */
 .onboarding-title {
-  font-size: 15px;
+  font-size: 18px;
+  line-height: 26px;
   font-weight: 600;
   color: var(--dsw-alias-label-primary);
 }
@@ -702,6 +748,72 @@ button {
   color: var(--dsw-alias-label-primary);
 }
 
+/* 折叠标记 = 原生 chevron：transition .16s，展开态由 aria-expanded 驱动旋转 */
+.archive-toggle .caret {
+  display: inline-flex;
+  width: 10px;
+  justify-content: center;
+  transition: transform 160ms ease;
+}
+
+.archive-toggle[aria-expanded='true'] .caret {
+  transform: rotate(90deg);
+}
+
+.archive-toggle:focus-visible {
+  outline-offset: -2px;
+}
+
+/* ------------------------------------------------------------ 开关（原生 Switch） */
+
+/* 原生 Switch.module.css：轨道 36×20 / 999px 胶囊 / padding 2 / 拇指 16。
+   状态键在 aria-checked 上（不是 class）—— 视觉状态无法与辅助技术读到的状态不一致。 */
+.switch {
+  box-sizing: border-box;
+  position: relative;
+  flex: 0 0 auto;
+  width: 36px;
+  height: 20px;
+  padding: 2px;
+  border: 0;
+  border-radius: 999px;
+  corner-shape: round;
+  background: var(--dsw-alias-border-l3);
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.switch[aria-checked='true'] {
+  background: var(--dsw-alias-brand-primary);
+}
+
+.switch:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.switch:focus-visible {
+  outline-offset: 2px;
+}
+
+.switch .thumb {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  corner-shape: round;
+  background: var(--dsw-alias-label-primary-foreground);
+  transition: transform 120ms ease;
+}
+
+.switch[aria-checked='false'] .thumb {
+  background: var(--dsw-alias-switch-thumb);
+}
+
+.switch[aria-checked='true'] .thumb {
+  transform: translateX(16px);
+}
+
 .empty {
   padding: 28px 20px;
   color: var(--dsw-alias-label-tertiary);
@@ -747,14 +859,15 @@ button {
   font: var(--dsw-font-xxs-12);
 }
 
+/* 输入框 = 原生 Input：32px / radius-md(12) / border-l4 / bg-layer-1 / padding 0 8px */
 .input,
 .select {
   height: 32px;
-  border-radius: var(--dsw-radius-sm);
-  border: 0.5px solid var(--dsw-alias-border-l3);
-  background: var(--dsw-alias-bg-layer-2);
+  border-radius: var(--dsw-radius-md);
+  border: 0.5px solid var(--dsw-alias-border-l4);
+  background: var(--dsw-alias-bg-layer-1);
   color: var(--dsw-alias-label-primary);
-  padding: 0 10px;
+  padding: 0 8px;
   font: var(--dsw-font-s-14);
   width: 100%;
   min-width: 0;
@@ -787,8 +900,8 @@ textarea.input {
 }
 
 .mono {
+  font: var(--dsw-font-xxs-12);
   font-family: var(--ds-font-family-code);
-  font-size: 12px;
   color: var(--dsw-alias-label-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -901,13 +1014,18 @@ textarea.input {
 .checkbox {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font: var(--dsw-font-xs-13);
   color: var(--dsw-alias-label-secondary);
 }
 
 .checkbox input {
-  accent-color: var(--dsw-alias-state-business-primary);
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--dsw-alias-brand-primary);
+  cursor: inherit;
 }
 
 .error-text {
@@ -928,8 +1046,8 @@ textarea.input {
 }
 
 .version-row .tag {
+  font: var(--dsw-font-xxs-12);
   font-family: var(--ds-font-family-code);
-  font-size: 12px;
   color: var(--dsw-alias-label-primary);
 }
 
@@ -995,11 +1113,16 @@ textarea.input {
 
 /* ------------------------------------------------------------ 三视图（启动 / 版本 / 设置） */
 
+/* 视图切换 = 原生 SegmentedControl：轨道 radius-md + interactive-bg-hover + padding 4 + gap 2，
+   选中项是一枚抬起的小胶囊（bg-layer-1 + shadow-lv1）。原生用绝对定位的滑动指示器（靠 CSS 变量算位置），
+   这里只有 3 个固定项，静态胶囊是同一观感的最简实现。 */
 .nav-tabs {
-  display: flex;
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   gap: 2px;
-  padding: 2px;
-  border-radius: var(--dsw-radius-sm);
+  padding: 4px;
+  border-radius: var(--dsw-radius-md);
   background: var(--dsw-alias-interactive-bg-hover);
 }
 
@@ -1007,18 +1130,23 @@ textarea.input {
   border: 0;
   background: transparent;
   color: var(--dsw-alias-label-secondary);
-  font-size: 13px;
-  padding: 5px 14px;
+  font: var(--dsw-font-xs-13);
+  font-weight: 500;
+  height: 28px;
+  padding: 0 14px;
   border-radius: var(--dsw-radius-sm);
   cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--ds-transition-duration-fast) var(--ds-ease-in-out);
 }
 
 .nav-tab:hover {
-  background: var(--dsw-alias-interactive-bg-hover-solid);
+  color: var(--dsw-alias-label-primary);
 }
 
 .nav-tab.active {
-  background: var(--dsw-alias-bg-base);
+  background: var(--dsw-alias-bg-layer-1);
+  box-shadow: var(--dsw-shadow-lv1);
   color: var(--dsw-alias-label-primary);
 }
 
@@ -1037,20 +1165,21 @@ textarea.input {
   gap: 10px;
 }
 
+/* 页标题 = 原生 pageTitle：20/28 字重 500 */
 .page-head h2 {
   margin: 0;
-  font-size: 15px;
-  font-weight: 600;
+  font: var(--dsw-font-l-20);
   color: var(--dsw-alias-label-primary);
 }
 
+/* 卡片 = 原生设置页卡片：radius-lg(16) / border-l2 / 内边距 12 / 间距 8 */
 .card {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px 14px;
+  gap: 8px;
+  padding: 12px;
   border: 0.5px solid var(--dsw-alias-border-l2);
-  border-radius: var(--dsw-radius-sm);
+  border-radius: var(--dsw-radius-lg);
   background: var(--dsw-alias-settings-card-fill);
 }
 
@@ -1058,7 +1187,7 @@ textarea.input {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font: var(--dsw-font-xs-13);
   font-weight: 600;
   color: var(--dsw-alias-label-primary);
 }
@@ -1075,25 +1204,46 @@ textarea.input {
   background: var(--dsw-alias-interactive-bg-hover);
 }
 
+/* 渠道切换：与顶栏同一套原生分段控件形态（`.segmented` 是轨道，`.tab` 是分段） */
 .tabs {
   display: flex;
-  gap: 6px;
+  align-items: center;
+  gap: 10px;
+}
+
+.segmented {
+  display: inline-grid;
+  grid-auto-flow: column;
+  gap: 2px;
+  padding: 4px;
+  /* 轨道按内容宽度收缩：它常住在 flex 列里，不写 fit-content 会被拉满整行 */
+  width: fit-content;
+  border-radius: var(--dsw-radius-md);
+  background: var(--dsw-alias-interactive-bg-hover);
 }
 
 .tab {
-  border: 0.5px solid var(--dsw-alias-border-l2);
+  border: 0;
   background: transparent;
   color: var(--dsw-alias-label-secondary);
-  font-size: 12px;
-  padding: 4px 10px;
-  border-radius: 999px;
+  font: var(--dsw-font-xs-13);
+  font-weight: 500;
+  height: 28px;
+  padding: 0 16px;
+  border-radius: var(--dsw-radius-sm);
   cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--ds-transition-duration-fast) var(--ds-ease-in-out);
+}
+
+.tab:hover {
+  color: var(--dsw-alias-label-primary);
 }
 
 .tab.active {
-  background: var(--dsw-alias-button-primary-fill);
-  color: var(--dsw-alias-label-primary-foreground);
-  border-color: transparent;
+  background: var(--dsw-alias-bg-layer-1);
+  box-shadow: var(--dsw-shadow-lv1);
+  color: var(--dsw-alias-label-primary);
 }
 
 .save-bar {
@@ -1127,7 +1277,7 @@ textarea.input {
 }
 
 .star-title {
-  font-size: 13px;
+  font: var(--dsw-font-xs-13);
   font-weight: 600;
   color: var(--dsw-alias-label-primary);
 }
@@ -1191,8 +1341,8 @@ textarea.input {
 
 .load-error-mark {
   flex: none;
-  font-size: 12px;
-  font-weight: 700;
+  font: var(--dsw-font-xxs-12);
+  font-weight: 600;
   line-height: 1;
   color: var(--dsw-alias-state-error-primary);
 }
@@ -1213,4 +1363,24 @@ textarea.input {
 .badge.kind {
   color: var(--dsw-alias-label-caption);
   border-color: var(--dsw-alias-border-l2);
+}
+
+/* ------------------------------------------------------------ 动效降级 */
+
+/* 原生在 prefers-reduced-motion 下把过渡关掉（见 plugin-manager 的 guide/details chevron）。
+   只关装饰性过渡，不关进度指示（.spinner 是"正在发生"的唯一信号）。 */
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .row,
+  .row-item,
+  .tab,
+  .nav-tab,
+  .notice-next,
+  .archive-toggle,
+  .archive-toggle .caret,
+  .switch,
+  .switch .thumb,
+  .dropdown-menu[popover] button {
+    transition: none;
+  }
 }

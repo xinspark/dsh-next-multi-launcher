@@ -5,6 +5,35 @@
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [Unreleased]
+
+### 变更
+
+- **样式改造：以原生「插件详情页」为标尺**（规格与取证见 `docs-private/样式改造.md`，
+  原生 CSS 真值存档在 `docs-private/ref-plugin-detail-css.txt`）。逐项对齐原生控件的**几何与字阶**：
+  - 圆角按元素层级分档：卡片 `8 → radius-lg(16)`、输入框与选择器 `8 → radius-md(12)`。
+    此前控件层几乎全用 `radius-sm`，是"不像原生"的最大单一来源
+  - 输入框对齐原生 `Input`：描边 `border-l3 → l4`、底色 `bg-layer-2 → bg-layer-1`、内边距 `10 → 8`；
+    卡片内边距 `12/14 → 12`、间距 `10 → 8`
+  - 页标题 `15px/600 → 20/28/500`（原生 `pageTitle`）；向导标题 `15/600 → 18/26/600`（原生 `wizardTitle`）
+  - 顶栏视图切换与版本渠道切换统一成原生 `SegmentedControl` 形态：轨道 `radius-md` + `interactive-bg-hover`，
+    选中项是抬起的 `bg-layer-1` 胶囊 + `shadow-lv1`；替换原来的 `999px` 胶囊 + 主色实心
+  - 顶部提示条改为原生 `guide` 块（`border-l4` + `radius-lg` + `bg-layer-1`）；
+    黄条 / 红条改为原生 `approval` 块（`radius-lg` + `warn-tertiary` 底 + 40% 混色描边）
+  - 下拉浮层改为原生 `registry` 浮层（`bg-layer-2` + `elevation-prominent` + `radius-lg` + `padding 8` + `gap 4`）
+  - 补原生 `Switch`（36×20 轨道 / 16 拇指 / 状态键在 `aria-checked`）：设置页「恢复指针」「自动检查更新」
+    由复选框换成开关；**多选**（版本候选、删除确认）继续用 `checkbox`，并按原生 `Checkbox` 对齐 16×16 + `accent-color`
+  - 焦点环改走 `--dsw-focus-ring-color` + 输入模态分流（鼠标点击不画环、键盘导航才画）；
+    补 `prefers-reduced-motion` 降级；折叠条改由 `aria-expanded` 驱动箭头旋转
+  - 13 处裸 `font-size` 改为 token 或「原生档位 + 显式行高」，`font-weight: 700` 收回 600
+  - 「新建实例」主操作用中号按钮（36px，原生 `Button.md`），与顶栏其余小号按钮区分层级
+
+### 新增
+
+- `tools/lint-css.mjs`（`pnpm lint:css`，已接入 CI）：样式门禁四条规则——禁裸颜色、圆角只用 token、
+  **字号必须与行高成对**、字重不出界
+- `src/lib/Switch.svelte`：原生开关组件
+
 ## [1.0.5] - 2026-11-03
 
 ### 新增

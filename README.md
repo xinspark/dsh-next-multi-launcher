@@ -188,6 +188,7 @@ pnpm install
 pnpm tauri dev                    # 开发
 pnpm check                        # svelte-check（0 error 是门槛）
 pnpm verify                       # 设计 token 门禁
+pnpm lint:css                     # 样式门禁（禁 hex / 圆角只用 token / 字号成对 / 字重）
 cargo test --manifest-path src-tauri/Cargo.toml
 node tools/e2e.mjs                # 端到端（替身进程，15 项断言）
 node tools/check-links.mjs        # 文档链接校验

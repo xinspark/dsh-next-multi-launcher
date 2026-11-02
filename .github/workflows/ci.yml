@@ -26,6 +26,8 @@ jobs:
         run: pnpm build
       - name: Design token gate
         run: node tools/verify-tokens.mjs
+      - name: Style gate (hex / radius / 字号成对 / 字重)
+        run: node tools/lint-css.mjs
 
   rust:
     name: Rust (fmt / test / clippy)

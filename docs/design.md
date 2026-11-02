@@ -368,7 +368,16 @@ fn assert_safe_delete_target(p: &Path, default_home: &Path) -> Result<()>;
 
 `tools\verify-tokens.mjs`：扫描 `src\**\*.css|*.svelte` 里的每个 `var(--…)`，断言存在于 `tokens.lock.json`；同时校验 `design\parts\*` 的 sha256。缺席即失败（退出码 1）。
 
-DSH-NEXT 升级流程：重跑 `extract-tokens` → diff → 重跑 `verify-tokens` → 通过才抬基线版本号。
+`tools\lint-css.mjs`（`pnpm lint:css`）：管的是**token 用对没用对**，与上面"名字存不存在"互补，四条规则——
+① 禁裸颜色（`#hex` / `rgb()` / `hsl()`，只许 `var(--dsw-*)`）；
+② 圆角只许 `var(--dsw-radius-*)`（白名单 `0` / `999px` / `50%`）；
+③ 字号必须成对：字面量只允许原生确有、又没有对应 token 的档位（`10/11.5/12.5/13.5/15/18`），
+且同一规则里必须带 `line-height` 或 `font:` 简写——原生每一处字号都成对出现，落单就是缺陷；
+④ 字重不出界（原生只用 `400/500/600`）。
+为什么不禁"全部字面量"：原生详情页自己也写字面量（11 个字号档里 5 档没有 token），
+判据要跟着原生的事实走，见 `docs-private/样式改造.md` §2.2。
+
+DSH-NEXT 升级流程：重跑 `extract-tokens` → diff → 重跑 `verify-tokens` + `lint-css` → 通过才抬基线版本号。
 
 ## 8. 错误码与文案
 

@@ -218,19 +218,21 @@
     </div>
 
     <div class="tabs">
-      <button class="tab" class:active={channel === 'next'} onclick={() => switchChannel('next')}>
-        {t('versions.channel.next')}
-      </button>
-      <button
-        class="tab"
-        class:active={channel === 'next-preview'}
-        onclick={() => switchChannel('next-preview')}
-      >
-        {t('versions.channel.preview')}
-      </button>
-      <button class="tab" class:active={channel === 'native'} onclick={() => switchChannel('native')}>
-        {t('versions.channel.native')}
-      </button>
+      <div class="segmented">
+        <button class="tab" class:active={channel === 'next'} onclick={() => switchChannel('next')}>
+          {t('versions.channel.next')}
+        </button>
+        <button
+          class="tab"
+          class:active={channel === 'next-preview'}
+          onclick={() => switchChannel('next-preview')}
+        >
+          {t('versions.channel.preview')}
+        </button>
+        <button class="tab" class:active={channel === 'native'} onclick={() => switchChannel('native')}>
+          {t('versions.channel.native')}
+        </button>
+      </div>
       <span class="spacer"></span>
       <button
         class="btn tiny ghost"

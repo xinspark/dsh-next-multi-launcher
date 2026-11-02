@@ -80,8 +80,8 @@ node tools/verify-tokens.mjs
 ```
 
 ```
-{ "ok": true, "tokens": 1158, "varRefs": 233, "parts": 5, "failures": [], "warnings": [] }
-[verify] PASS：233 个 var() 全部来自名册；5 份 parts 未改动
+{ "ok": true, "tokens": 1158, "varRefs": 262, "parts": 5, "failures": [], "warnings": [] }
+[verify] PASS：262 个 var() 全部来自名册；5 份 parts 未改动
 ```
 
 红/绿测试（确认门禁真的会拦）：
@@ -91,6 +91,24 @@ node tools/verify-tokens.mjs
 | 写 `var(--dsw-nonexistent-probe)` | 规则 A 失败，退出码 1 | ✅ |
 | 改 `design/parts/scrollbar.css` 一个字节 | 规则 C 失败，退出码 1 | ✅ |
 | 还原 | PASS，退出码 0 | ✅ |
+
+### 1.3.1 样式门禁（1.1 起）
+
+`verify-tokens` 管"token 名字存不存在"，这道门管"**token 用对没用对**"：
+
+```powershell
+node tools/lint-css.mjs
+```
+
+```
+[lint-css] PASS：R1/R2/R3/R3b 全 0
+```
+
+四条规则：禁裸颜色 / 圆角只用 token / **字号必须与行高成对** / 字重不出界（判据与出处见 `design.md` §7.3）。
+改造前的基线是 **14 处**（13 处字号落单 + 1 处 `font-weight: 700`），逐条修完转绿。
+
+红/绿对照：把任一 `font: var(--dsw-font-xs-13)` 改回 `font-size: 13px`（不带 `line-height`）→
+必须报两条红（"该档有 token" + "没有配 line-height"）；还原 → 绿。
 
 ### 1.4 初始化向导（1.0.3 实测）
 
@@ -180,6 +198,7 @@ M2 的一处说明：在受限会话里 `sysinfo` 只能看到本作业内的进
 pnpm check
 pnpm build
 node tools/verify-tokens.mjs
+node tools/lint-css.mjs
 node tools/check-links.mjs
 cargo test --manifest-path src-tauri/Cargo.toml
 node tools/e2e.mjs

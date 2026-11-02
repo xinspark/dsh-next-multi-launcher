@@ -450,7 +450,7 @@
     <button class="btn ghost" onclick={toggleLang}>{t('header.lang')}</button>
     <button class="btn ghost" onclick={() => refresh()}>{t('header.refresh')}</button>
     {#if view === 'launch'}
-      <button class="btn primary" onclick={() => (dialog = { kind: 'new' })}>{t('header.new')}</button>
+      <button class="btn primary md" onclick={() => (dialog = { kind: 'new' })}>{t('header.new')}</button>
     {/if}
   </header>
 
@@ -578,12 +578,13 @@
             class="archive-toggle"
             role="button"
             tabindex="0"
+            aria-expanded={showArchived}
             onclick={() => (showArchived = !showArchived)}
             onkeydown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') showArchived = !showArchived;
             }}
           >
-            <span>{showArchived ? '▾' : '▸'}</span>
+            <span class="caret" aria-hidden="true">▸</span>
             <span>{t('list.archivedCount', { count: archivedViews.length })}</span>
           </div>
           {#if showArchived}
