@@ -31,6 +31,18 @@
 
 其它版本**未经验证**。升级 DSH-NEXT 后请按下方"如何适配新版本"重新跑一遍。
 
+## 为什么用独立 home，而不是官方 profile
+
+DSH-NEXT 自带的实例 / profile 切换**只隔离插件系统**（`plugins/`、`profiles/`）；
+会话（`sessions/`）、插件存储（`storages/`）、凭据（`.credentials.yaml`）仍在同一个 home 内，
+切换 profile 后这些数据互相可见。
+
+本工具用**独立 home** 实现整套隔离：`sessions/`（按 workspace 分组）、`storages/`、
+`.credentials.yaml` 都在各自 home 内，文件级互不可见；`electron-user-data` 也独立，
+因此 Electron 单实例锁互不冲突。
+
+边界：Agents Anywhere 账号（设备绑定）与内核版本仍是全局的，不随 home 隔离（见[能力边界](../../README.md#能力边界)）。
+
 ## 依赖契约（DSH-NEXT 侧）
 
 | 契约 | 用在哪 | 失效表现 |
