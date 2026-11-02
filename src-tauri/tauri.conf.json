@@ -1,0 +1,34 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "DSH-NEXT Multi-Launcher",
+  "version": "1.0.0",
+  "identifier": "com.dshnext.multi-launcher",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "pnpm build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "nsis"
+    ],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.ico"
+    ],
+    "publisher": "DSH-NEXT",
+    "shortDescription": "DSH-NEXT 应用多开启动器",
+    "longDescription": "管理多个原生 DSH-NEXT 实例：每个实例独立的名称、数据目录与壳版本；串行启动、指针自动回滚、数据完全隔离。"
+  },
+  "mainBinaryName": "DSH-NEXT-Multi"
+}

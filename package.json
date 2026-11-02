@@ -1,0 +1,34 @@
+{
+  "name": "dsh-next-multi-launcher",
+  "private": true,
+  "version": "1.0.0",
+  "description": "DSH-NEXT 应用多开启动器 / DSH-NEXT Multi-Launcher",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "tauri": "tauri",
+    "tokens": "node tools/extract-tokens.mjs --out design/tokens.lock.json",
+    "tokens:css": "node tools/extract-tokens.mjs --out design/tokens.lock.json --css src/styles/tokens.css",
+    "verify": "node tools/verify-tokens.mjs",
+    "sign": "pwsh -NoProfile -File tools/sign-exe.ps1"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.1.0"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^5.0.0",
+    "@tauri-apps/cli": "^2.1.0",
+    "svelte": "^5.0.0",
+    "svelte-check": "^4.0.0",
+    "typescript": "^5.6.0",
+    "vite": "^6.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+[package]
+name = "e2e-stub"
+version = "0.1.0"
+edition = "2021"
+description = "端到端验收用的 DSH-NEXT 替身进程（不依赖真实安装树）"
+
+[[bin]]
+name = "e2e-stub"
+path = "src/main.rs"
+
+[profile.release]
+opt-level = "z"
+lto = true
+strip = true
+codegen-units = 1

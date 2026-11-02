@@ -1,0 +1,32 @@
+# 依赖与构建产物
+node_modules/
+dist/
+src-tauri/target/
+tools/e2e-stub/target/
+target/
+
+# 本机版本树（目录链接，不进仓库）
+versions/
+
+# 便携模式数据（运行时生成）
+DSH-NEXT-Multi-data/
+
+# 私有文档（公开文档在 docs/）
+docs-private/*
+!docs-private/README.md
+
+# 临时产物
+design/*.b
+*.log
+.probe
+*.tmp
+
+# 编辑器
+.vscode/
+.idea/
+
+# 便携版可执行文件与安装包
+DSH-NEXT-Multi.exe
+dist-app/
+*.cer
+

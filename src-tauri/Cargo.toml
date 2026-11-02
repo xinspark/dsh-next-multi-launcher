@@ -1,0 +1,32 @@
+[package]
+name = "dsh-next-multi-launcher"
+version = "1.0.0"
+description = "DSH-NEXT 应用多开启动器"
+authors = ["DSH-NEXT Multi-Launcher"]
+edition = "2021"
+rust-version = "1.77"
+
+[lib]
+name = "launcher_core"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sysinfo = "0.33"
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+
+[features]
+# 生产构建（不连 dev server）时由 CLI 打开；不要把默认特性改成它。
+custom-protocol = ["tauri/custom-protocol"]
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true
