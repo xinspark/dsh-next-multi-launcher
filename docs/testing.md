@@ -9,7 +9,7 @@
 
 ## 1. 自动化测试
 
-### 1.1 单元测试（53 项）
+### 1.1 单元测试（70 项）
 
 ```powershell
 cargo test --manifest-path src-tauri/Cargo.toml
@@ -30,8 +30,8 @@ cargo test --manifest-path src-tauri/Cargo.toml
 实测：
 
 ```
-running 53 tests
-test result: ok. 53 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+running 70 tests
+test result: ok. 70 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 ```
 
 ### 1.2 端到端（替身进程，15 项断言）
@@ -80,8 +80,8 @@ node tools/verify-tokens.mjs
 ```
 
 ```
-{ "ok": true, "tokens": 1158, "varRefs": 180, "parts": 5, "failures": [], "warnings": [] }
-[verify] PASS：180 个 var() 全部来自名册；5 份 parts 未改动
+{ "ok": true, "tokens": 1158, "varRefs": 233, "parts": 5, "failures": [], "warnings": [] }
+[verify] PASS：233 个 var() 全部来自名册；5 份 parts 未改动
 ```
 
 红/绿测试（确认门禁真的会拦）：

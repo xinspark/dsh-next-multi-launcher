@@ -43,7 +43,7 @@
 | **停止** | 优雅退出 → 超时 → 强制结束整组（含 host 子进程） |
 | **权限** | 关键目录不可写时自动请求管理员，界面可手动触发 |
 | **原生对齐** | 1158 个设计 token 从 `app.asar` 抽取，门禁防漂移 |
-| **可验证** | 53 项 Rust 单测、15 项端到端断言、UI 自动化检查 |
+| **可验证** | 70 项 Rust 单测、15 项端到端断言、UI 自动化检查 |
 
 ## 快速开始
 
@@ -137,11 +137,11 @@ Get-FileHash .\DSH-NEXT-Multi.exe -Algorithm SHA256
 |---|---|
 | 全部文档导航 | [docs/README.md](docs/README.md) |
 | 设计与取舍 | [docs/design.md](docs/design.md) |
-| 初始化向导设计（1.1 规格） | [docs/design-onboarding.md](docs/design-onboarding.md) |
+| 初始化向导（已实现） | [docs/design-onboarding.md](docs/design-onboarding.md) |
 | 架构与数据流 | [docs/reference/architecture.md](docs/reference/architecture.md) |
 | 数据格式（`app.json` / 实例 / 指针） | [docs/reference/data-format.md](docs/reference/data-format.md) |
 | 版本兼容性与依赖契约 | [docs/reference/compatibility.md](docs/reference/compatibility.md) |
-| 错误码 `E1000`–`E1012` | [docs/reference/error-codes.md](docs/reference/error-codes.md) |
+| 错误码 `E1000`–`E1013` | [docs/reference/error-codes.md](docs/reference/error-codes.md) |
 | 配置项与环境变量 | [docs/guide/configuration.md](docs/guide/configuration.md) |
 | 故障排查 | [docs/guide/troubleshooting.md](docs/guide/troubleshooting.md) |
 | 踩过的坑（症状→根因→证据） | [docs/experience/](docs/experience/README.md) |
