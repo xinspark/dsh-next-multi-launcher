@@ -15,6 +15,7 @@
 | 文档 | 内容 |
 |---|---|
 | [设计说明](design.md) | v1.0 设计：机制、边界、取舍 |
+| [初始化向导设计](design-onboarding.md) | 首次使用引导：结构、IPC、兜底、验收（1.1 规格） |
 | [版本兼容性](reference/compatibility.md) | 已验证版本、依赖契约、升级适配 |
 | [架构与数据流](reference/architecture.md) | 模块职责、启动管道、指针生命周期 |
 | [数据格式](reference/data-format.md) | `app.json` / 实例文件 / 指针文件字段 |
