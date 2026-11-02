@@ -412,9 +412,27 @@ button {
 }
 
 .notice-ticker .notice-text {
+  flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* 手动切到下一条提示（不关闭提示条，只换内容并重置轮播计时） */
+.notice-next {
+  flex: none;
+  border: 0;
+  background: transparent;
+  color: var(--dsw-alias-brand-primary);
+  font-size: 12px;
+  line-height: 1;
+  padding: 2px 4px;
+  cursor: pointer;
+  border-radius: var(--dsw-radius-sm);
+}
+
+.notice-next:hover {
+  background: var(--dsw-alias-button-ghost-active-hover);
 }
 
 /* ------------------------------------------------------------ 主区 */

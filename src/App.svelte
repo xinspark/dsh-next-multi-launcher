@@ -37,8 +37,13 @@
   let permission = $state<PermissionReport | null>(null);
   /** 正在重启的实例 id：重启期间显示提示条，实例起来后自动清除 */
   let restartingId = $state<string | null>(null);
-  /** 使用提示：单行轮播，每条 30s，不可关闭（?noticeMs= 仅供调试） */
-  const NOTICES = ['notice.restartLimit', 'notice.homeSwitch'] as const;
+  /** 使用提示：单行轮播，每条 30s，可手动「下一个」，不可关闭（?noticeMs= 仅供调试） */
+  const NOTICES = [
+    'notice.restartLimit',
+    'notice.homeSwitch',
+    'notice.dshNextOnly',
+    'notice.signing'
+  ] as const;
   const NOTICE_MS =
     Number(new URLSearchParams(location.search).get('noticeMs')) || 30_000;
   let noticeIndex = $state(0);
@@ -100,15 +105,22 @@
     }
   }
 
+  /** 切到下一条提示；手动切换会重置轮播计时，保证新的一条也能完整停留 */
+  function advanceNotice() {
+    noticeIndex = (noticeIndex + 1) % NOTICES.length;
+    if (noticeTimer) {
+      clearInterval(noticeTimer);
+      noticeTimer = setInterval(advanceNotice, NOTICE_MS);
+    }
+  }
+
     onMount(async () => {
     const stored = localStorage.getItem('dshla.lang');
     if (stored === 'en' || stored === 'zh') lang = stored;
     await refresh();
     if (location.hash === '#settings') dialog = { kind: 'settings' };
     pollTimer = setInterval(refresh, 2000);
-    noticeTimer = setInterval(() => {
-      noticeIndex = (noticeIndex + 1) % NOTICES.length;
-    }, NOTICE_MS);
+    noticeTimer = setInterval(advanceNotice, NOTICE_MS);
     tickTimer = setInterval(() => (now = Date.now()), 1000);
     try {
       unlisten = await listen('launch:progress', () => {
@@ -380,6 +392,9 @@
     {#key noticeIndex}
       <span class="notice-text" in:fly={{ y: 6, duration: 220 }}>{t(NOTICES[noticeIndex])}</span>
     {/key}
+    <button class="notice-next" onclick={advanceNotice} title={t('notice.nextHint')}>
+      {t('notice.next')}
+    </button>
   </div>
 
   {#if defaultHomeWarning}

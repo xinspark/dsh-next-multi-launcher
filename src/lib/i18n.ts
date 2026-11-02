@@ -27,6 +27,12 @@ const zh: Dict = {
     '由于代码限制，目前非默认 DSH-NEXT 实例的「重启 / 重启到安全模式」只能在启动器里正常使用。',
   'notice.homeSwitch':
     '由于多开机制，DSH-NEXT 实例启动时可能弹出「数据目录变更」提示，点击「继续」即可。',
+  'notice.dshNextOnly':
+    '本启动器只支持 DSH-NEXT（社区增强桌面版，dshdesktop.cn），不支持原生 DSH——两者的数据目录与启动参数不同。',
+  'notice.signing':
+    '本程序未做商业代码签名，首次运行出现 SmartScreen 提示属正常；请用 Release 页的 SHA256 核对文件。',
+  'notice.next': '下一个',
+  'notice.nextHint': '切换到下一条提示（不会关闭提示条）',
   'toast.restarting': '正在重启…',
   'state.safeMode': '安全模式',
   'settings.title': '设置',
@@ -213,6 +219,12 @@ const en: Dict = {
     'Because of a current code limitation, restarting a non-default DSH-NEXT instance (including safe mode) only works from this launcher.',
   'notice.homeSwitch':
     'Because of the multi-instance mechanism, DSH-NEXT may show a “data directory changed” dialog on startup — just click Continue.',
+  'notice.dshNextOnly':
+    'This launcher supports DSH-NEXT only (the community desktop build, dshdesktop.cn), not native DSH — they differ in data directory and launch flags.',
+  'notice.signing':
+    'This build is not commercially code-signed; a SmartScreen prompt on first run is expected. Verify the file against the SHA256 on the release page.',
+  'notice.next': 'Next',
+  'notice.nextHint': 'Show the next notice (the bar stays)',
   'toast.restarting': 'Restarting…',
   'state.safeMode': 'safe mode',
   'settings.title': 'Settings',
