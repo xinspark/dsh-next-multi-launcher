@@ -123,7 +123,7 @@ DSH-NEXT 启动时读一个**全局指针文件**（`%APPDATA%\DSH NEXT\home\des
 
 ## 构建与测试
 
-环境：Node ≥ 20、pnpm ≥ 9、Rust ≥ 1.77（MSVC 工具链）、WebView2。
+环境：Node ≥ 20、pnpm ≥ 10、Rust ≥ 1.77（MSVC 工具链）、WebView2。
 
 ```powershell
 pnpm install
