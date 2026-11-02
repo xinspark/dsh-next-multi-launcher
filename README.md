@@ -186,5 +186,4 @@ git tag -a v1.0.0 -m "v1.0.0"
 
 ## 许可
 
-[MIT](LICENSE)。图标中的鲸鱼剪影取自 DSH-NEXT 的官方图标资源，仅用于表明本工具与
-DSH-NEXT 的配套关系；DSH-NEXT 本身的许可与版权归其作者所有。
+[MIT](LICENSE)。DSH-NEXT 本身的许可与版权归其作者所有。
