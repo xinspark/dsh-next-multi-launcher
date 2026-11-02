@@ -286,6 +286,9 @@
 
     <div class="onboarding-foot">
       <button class="btn ghost" onclick={skip} disabled={busy}>{t('onboarding.skip')}</button>
+      {#if !canFinish}
+        <span class="field-hint">{t('onboarding.finishBlocked')}</span>
+      {/if}
       <span class="spacer"></span>
       <button class="btn primary" onclick={finish} disabled={busy || !canFinish}>
         {t('onboarding.finish')}

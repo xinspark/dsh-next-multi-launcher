@@ -97,6 +97,7 @@ const zh: Dict = {
   'onboarding.launchFailed': '启动失败，可在主界面重试',
   'onboarding.skip': '跳过',
   'onboarding.finish': '完成并进入',
+  'onboarding.finishBlocked': '先选一个可用版本（没有就点「跳过」，稍后在版本页补）',
   'onboarding.relaunched': '已请求以管理员身份重启，请在新的窗口继续',
   'onboarding.relaunchFailed': '提权被拒绝或取消',
   'settings.currentVersion': '当前版本 v{version}',
@@ -187,6 +188,8 @@ const zh: Dict = {
   'warn.defaultHomeNoInstance':
     '默认数据目录 {home} 没有对应实例，双击桌面图标会直接进入它。',
   'warn.defaultHomeAction': '按此目录新建',
+  'warn.noVersion': '还没有可用的 DSH-NEXT 版本：新建实例前，先去「版本」导入安装目录或下载安装包。',
+  'warn.noVersionAction': '去导入版本',
   'warn.unknownPointer': '指针指向未知目录 {home}（没有任何实例使用它）。',
   'warn.unknownPointerAction': '恢复默认',
   'warn.pointerUnwritable':
@@ -408,6 +411,7 @@ const en: Dict = {
   'onboarding.launchFailed': 'Launch failed; retry from the main window',
   'onboarding.skip': 'Skip',
   'onboarding.finish': 'Finish and continue',
+  'onboarding.finishBlocked': 'Pick a usable version first (or Skip and add one later)',
   'onboarding.relaunched': 'Elevation requested; continue in the new window',
   'onboarding.relaunchFailed': 'Elevation was denied or cancelled',
   'settings.currentVersion': 'Current v{version}',
@@ -490,6 +494,8 @@ const en: Dict = {
   'warn.defaultHomeNoInstance':
     'Default home {home} has no instance; double-clicking the desktop icon goes straight there.',
   'warn.defaultHomeAction': 'Create from this home',
+  'warn.noVersion': 'No usable DSH-NEXT version yet: import an install folder or download an installer from the Versions page before creating instances.',
+  'warn.noVersionAction': 'Import a version',
   'warn.unknownPointer': 'Pointer points to unknown home {home} (no instance uses it).',
   'warn.unknownPointerAction': 'Restore default',
   'warn.pointerUnwritable':

@@ -102,6 +102,18 @@
     }
   }
 
+  /** 向导打开时的刷新：同时把它的 versions 拉新。
+   *  否则刚导入的版本不会出现在面板下拉里，看起来像「导入没生效」。 */
+  async function refreshOnboarding() {
+    await refresh();
+    if (!onboarding) return;
+    try {
+      onboarding = await api.onboardingState();
+    } catch {
+      /* 取不到就沿用旧数据，不打断用户 */
+    }
+  }
+
   async function guarded(action: () => Promise<void>) {
     try {
       await action();
@@ -162,6 +174,11 @@
   const archivedViews = $derived(snapshot?.instances.filter((v) => v.instance.archived) ?? []);
   const selectedView = $derived(snapshot?.instances.find((v) => v.instance.id === selectedId) ?? null);
   const runningCount = $derived(activeViews.filter((v) => v.running).length);
+
+  /** 一个可用版本都没有：连新建实例都做不了，得先把用户引到版本页 */
+  const noVersionWarning = $derived(
+    snapshot ? !snapshot.versions.some((v) => v.valid) : false
+  );
 
   const defaultHomeWarning = $derived.by(() => {
     if (!snapshot) return null;
@@ -436,7 +453,17 @@
     </div>
   {/if}
 
-  {#if defaultHomeWarning}
+  {#if noVersionWarning}
+    <div class="banner banner-warn">
+      <span>{t('warn.noVersion')}</span>
+      <span class="spacer"></span>
+      <button class="btn tiny ghost" onclick={() => go('versions')}>
+        {t('warn.noVersionAction')}
+      </button>
+    </div>
+  {/if}
+
+  {#if defaultHomeWarning && !noVersionWarning}
     <div class="banner">
       <span>{t('warn.defaultHomeNoInstance', { home: shortPath(defaultHomeWarning, 52) })}</span>
       <span class="spacer"></span>
@@ -601,7 +628,7 @@
       go('versions');
     }}
     onNotify={notify}
-    onRefresh={refresh}
+    onRefresh={refreshOnboarding}
   />
 {/if}
 
