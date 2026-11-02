@@ -167,7 +167,7 @@ spawn "DSH NEXT.exe"
 
 ```
 <项目目录>\
-  docs\设计说明.md  docs\实施计划.md  docs\env-check.md
+  docs\design.md  docs\testing.md  docs\reference\
   design\tokens.lock.json  design\controls.md  design\parts\
   tools\extract-tokens.mjs  tools\verify-tokens.mjs
   src-tauri\  src\  package.json  README.md

@@ -110,8 +110,7 @@ DSH-NEXT 启动时读一个**全局指针文件**（`%APPDATA%\DSH NEXT\home\des
 | 想看什么 | 去哪 |
 |---|---|
 | 全部文档导航 | [docs/README.md](docs/README.md) |
-| 设计与取舍 | [docs/设计说明.md](docs/设计说明.md) |
-| 实施计划与验收矩阵 | [docs/实施计划.md](docs/实施计划.md) |
+| 设计与取舍 | [docs/design.md](docs/design.md) |
 | 架构与数据流 | [docs/reference/architecture.md](docs/reference/architecture.md) |
 | 数据格式（`app.json` / 实例 / 指针） | [docs/reference/data-format.md](docs/reference/data-format.md) |
 | 错误码 `E1000`–`E1012` | [docs/reference/error-codes.md](docs/reference/error-codes.md) |
@@ -119,8 +118,8 @@ DSH-NEXT 启动时读一个**全局指针文件**（`%APPDATA%\DSH NEXT\home\des
 | 故障排查 | [docs/guide/troubleshooting.md](docs/guide/troubleshooting.md) |
 | 踩过的坑（症状→根因→证据） | [docs/experience/](docs/experience/README.md) |
 | 项目反馈索引 | [docs/feedback/](docs/feedback/README.md) |
-| 验收记录 | [docs/acceptance.md](docs/acceptance.md) |
-| 环境取证 | [docs/env-check.md](docs/env-check.md) |
+| 验收记录 | [docs/testing.md](docs/testing.md) |
+| 版本兼容性 | [docs/reference/compatibility.md](docs/reference/compatibility.md) |
 
 ## 构建与测试
 
