@@ -12,8 +12,8 @@ src-tauri/src/
 ├── store.rs        # app.json / 实例文件 / 校验规则
 ├── versions.rs     # 版本树扫描、junction 登记、asar 版本读取
 ├── discover.rs     # 自动发现安装目录（快捷方式/注册表/常见路径/进程）
-├── catalog.rs      # 版本目录：三渠道可下载清单（GitHub Releases / 官网直链）
-├── update.rs       # 启动器自身更新检查（只提示，不下载）
+├── catalog.rs      # 版本目录：三渠道清单；安装包优先挑选、latest、内核版本、加速前缀
+├── update.rs       # 启动器自身更新检查（只提示，不下载；与目录共用加速前缀）
 ├── asar.rs         # 最小 asar 读取（package.json）
 ├── guard.rs        # 删除安全网（盘根/系统目录/默认环境）
 ├── perm.rs         # 权限探测与提权重启
@@ -24,6 +24,21 @@ src-tauri/src/
 ```
 
 前端（`src/`）：`App.svelte` 持有快照与轮询，组件只做展示；`lib/api.ts` 统一把 Rust 错误转成可展示结构。
+
+## 初始化向导
+
+`OnboardingPanel.svelte` 是盖在主界面上的单页面板，状态来自 `onboarding_state`
+（复用 `permission_report`，不新增探测）。四个 IPC：`onboarding_state` /
+`onboarding_complete` / `onboarding_skip` / `onboarding_reset`。
+`Config.onboarding` 三字段全空即「从未引导」，所以老 `app.json` 无需迁移。
+详见 [design-onboarding.md](../design-onboarding.md)。
+
+## 在线目录与加速前缀
+
+`catalog_list` / `update_check` 都是 **async 命令 + `spawn_blocking`**：
+同步命令跑在主线程上，GitHub 请求最长 10 秒会把窗口一起卡住。
+配置了 `downloadMirror` 时，API 请求、安装包地址、更新检查共用同一个前缀
+（实测 `gh-proxy.com` 可代理 `api.github.com`，`ghproxy.net` 只代理下载）。
 
 ## 启动管道（关键时序）
 

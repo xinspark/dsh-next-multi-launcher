@@ -32,6 +32,8 @@
   "launchTimeoutSec": 90,
   "pollIntervalMs": 500,
   "restorePointerAfterLaunch": true,
+  "downloadMirror": "",
+  "onboarding": { "completedAt": "2026-11-03T01:30:00+08:00", "skippedAt": null, "lastStep": 5 },
   "lastPointer": { "home": "C:\\Users\\<用户名>\\.dsh-lab", "at": "2026-11-02T12:34:56+08:00" }
 }
 ```
@@ -39,10 +41,12 @@
 | 字段 | 说明 |
 |---|---|
 | `defaultHome` | 双击桌面图标应进入的环境；启动成功后指针还原到它 |
-| `homeRoot` | 新建实例时 home 的**默认值**前缀（`<homeRoot>\.dsh-<id>`），不限制手改 |
+| `homeRoot` | 新建实例时 home 的**默认值**前缀（`<homeRoot>\.dsh-<id>`），不限制手改；**空串 = 跟随 `%USERPROFILE%`** |
 | `launchTimeoutSec` | 启动超时，夹取 10–600 |
 | `pollIntervalMs` | 进程轮询间隔，夹取 100–5000 |
 | `restorePointerAfterLaunch` | 启动成功后是否把指针还原为 `defaultHome` |
+| `downloadMirror` | 下载加速前缀（如 `https://gh-proxy.com`）；空 = 直连 GitHub。作用于安装包下载、版本目录 API、更新检查 |
+| `onboarding` | 初始化向导状态：`completedAt`（完成后不再自动展开）、`skippedAt`（跳过时间）、`lastStep`（0–5，中断后回到的位置）。三项全空 = 从未引导过 |
 | `lastPointer` | 上一次写指针的记录，仅用于诊断 |
 
 ## 3. 实例文件 `instances\<id>.json`
