@@ -11,6 +11,17 @@
 
 ![主界面](docs/images/ui-main.png)
 
+## 平台支持
+
+**当前仅支持 Windows。** 原因很实际：发布者只有 Windows 环境，DSH-NEXT 的实际使用场景也在 Windows，
+因此没有 macOS / Linux 的构建与验收条件。
+
+跨平台并非架构限制——前端（Svelte）与 Tauri 本身都是跨平台的，阻塞在 Rust 侧的 Windows 假设：
+`#[cfg(windows)]`（8 处，提权 / 目录链接 / 隐藏控制台）、路径分隔符、`%APPDATA%` 等环境变量、
+以及按 Windows 命令行形态解析进程归属。
+
+如果你有对应平台的环境并愿意适配，**欢迎提交 PR**，清单见 [CONTRIBUTING](CONTRIBUTING.md#跨平台适配)。
+
 ## 为什么需要它
 
 DSH-NEXT 启动时读一个**全局指针文件**（`%APPDATA%\DSH NEXT\home\desktop-next-location.json`），

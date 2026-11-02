@@ -3,6 +3,25 @@
 启动器不修改 DSH-NEXT 本体，但**依赖它的若干外部事实**。这些事实一旦变化，多开就会失效。
 本文件记录已验证版本、依赖契约，以及升级后如何重新适配。
 
+## 平台支持
+
+| 平台 | 状态 | 说明 |
+|---|---|---|
+| Windows 10/11 (x64) | ✅ 支持 | 唯一经过构建与验收的平台 |
+| macOS | ❌ 未支持 | 无构建与验收环境；欢迎社区适配 |
+| Linux | ❌ 未支持 | 同上 |
+
+代码里的平台假设集中在四个文件，适配时优先看它们：
+
+| 文件 | 假设 | 适配方向 |
+|---|---|---|
+| `util.rs` | 路径拼接、`%APPDATA%` / `%LOCALAPPDATA%` / `%USERPROFILE%` | `PathBuf::join` + `dirs` crate |
+| `scan.rs` | 命令行含 `--user-data-dir=<home>\electron-user-data`、`\profiles\desktop` | 按目标平台的 DSH-NEXT 命令行重新取证 |
+| `perm.rs` | `IsUserAnAdmin`、`ShellExecuteW "runas"` | mac `geteuid` / linux `pkexec` |
+| `versions.rs` | `mklink /J`（junction） | Unix `symlink` |
+
+`tauri.conf.json` 的 `bundle.targets` 目前只有 `nsis`；跨平台需要补 `dmg` / `appimage` / `deb` 与对应图标。
+
 ## 已验证版本
 
 | 壳版本 | 内核（`@deepseek-ai/dsh`） | 结果 | 验证方式 |

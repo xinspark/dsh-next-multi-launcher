@@ -63,6 +63,22 @@ node tools/ui-check.mjs # 端到端 UI 检查（需先 pnpm dev）
 2. 启动器日志：`%LOCALAPPDATA%\DSH-NEXT-Multi\logs\launcher-*.log`（或便携模式 `DSH-NEXT-Multi-data\logs\`）；
 3. `DSH-NEXT-Multi.exe --e2e-status` 的输出（脱敏后）。
 
+## 跨平台适配
+
+当前仅支持 Windows（见 [README](README.md#平台支持)）。如果你有 macOS / Linux 环境，欢迎适配：
+
+1. **先取证**：在目标平台上运行 DSH-NEXT，记录指针文件位置、`home` → userData 的映射、
+   进程命令行形态（主进程是否带 `--user-data-dir`、host 的子进程参数）。这是所有改动的前提，
+   写进 `docs/reference/compatibility.md` 的"依赖契约"表；
+2. **路径层**：`util.rs` 的 `%VAR%` 与反斜杠拼接改为 `PathBuf` + `dirs`；
+3. **提权**：`perm.rs` 按平台分支（mac `geteuid`，linux `pkexec`），不要假设 `runas`；
+4. **版本树**：`versions.rs` 的 junction 改为 Unix `symlink`；
+5. **进程扫描**：`scan.rs` 的路径解析与子进程角色判定按新平台的命令行重写；
+6. **打包**：`tauri.conf.json` 补 `targets` 与图标（`.icns` / 多种 png）；
+7. **验收**：在 PR 里附该平台的 `cargo test`、`node tools/e2e.mjs`、真实窗口多开步骤与截图。
+
+PR 请标注适配的平台与版本（如 `macOS 15 arm64`）。没有真实环境证据的适配 PR 会被要求补证据。
+
 ## 许可证
 
 提交即表示你同意以 [MIT](./LICENSE) 许可证授权你的贡献。
