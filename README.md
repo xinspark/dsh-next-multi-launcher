@@ -56,8 +56,9 @@ DSH-NEXT 启动时读一个**全局指针文件**（`%APPDATA%\DSH NEXT\home\des
 - **下载**：从 Releases 取 `DSH-NEXT-Multi.exe`；
 - **源码构建**：见[构建与测试](#构建与测试)。
 
-> exe 未做商业代码签名，首次运行 SmartScreen 可能提示 —— 点「更多信息 → 仍要运行」。
-> 想消除「未知发布者」可本地签名：`pnpm sign`（见[发布](#发布维护者)）。
+> 本项目**没有购买商业代码签名证书**，首次运行可能看到「Windows 已保护你的电脑」或「无法验证发布者」——
+> 这是 Windows 对未签名程序的默认行为，点「更多信息 → 仍要运行」即可。
+> 用 SHA256 校验文件、或自己从源码构建（无提示），见[关于代码签名](#关于代码签名)。
 
 ### 3. 三步用起来
 
@@ -116,6 +117,38 @@ DSH-NEXT 启动时读一个**全局指针文件**（`%APPDATA%\DSH NEXT\home\des
 | 自动更新管理 | 只提示风险，不改 `app-update.yml`，不写 DSH 安装目录 / 注册表 / 快捷方式 |
 | SmartScreen 红色拦截 | 自签名无效，需 EV 证书或信誉积累 |
 
+## 关于代码签名
+
+本项目**当前不购买商业代码签名证书**。取舍如下：
+
+| 现象 | 原因 | 怎么处理 |
+|---|---|---|
+| 「Windows 已保护你的电脑」（SmartScreen 红屏） | 程序未获得信誉，且没有 EV 证书 | 点「更多信息 → 仍要运行」；本项目是 MIT 开源，可自行构建 |
+| 「无法验证发布者」（打开文件警告） | exe 的证书链不受你的机器信任 | 同上；或用下方 SHA256 确认文件没被篡改 |
+
+**校验下载的文件**（Release 正文附有该版本的 SHA256）：
+
+```powershell
+Get-FileHash .\DSH-NEXT-Multi.exe -Algorithm SHA256
+# 与 Release 页面上的 SHA256 逐字符比对
+```
+
+**不想看到任何提示**：从源码构建（`pnpm tauri build --no-bundle`），本地构建的程序没有网络来源标记。
+
+为什么不随 Release 附带"安装信任证书"的脚本？因为那要求用户把一张**未知根证书**装进系统，
+这是不可接受的安全做法，也容易被误判为恶意软件。自签名证书只在装它的机器上有效，对其他人等同未签名。
+
+维护者如需本机自签名（仅自己机器不提示）：`pnpm sign`（见[发布](#发布维护者)）。
+
+### 长期方案
+
+| 方案 | 成本 | 效果 |
+|---|---|---|
+| 不签名（当前） | 0 | UAC 与 SmartScreen 各提示一次 |
+| [SignPath Foundation](https://signpath.org/) | 免费（开源项目） | 解决 UAC；SmartScreen 靠信誉积累 |
+| 个人版 OV 证书（如 Certum） | 约 ¥600/年 | 解决 UAC；SmartScreen 需几周信誉 |
+| EV 证书 | 约 ¥2300/年 | **零提示**（即时信誉） |
+
 ## 文档
 
 | 想看什么 | 去哪 |
@@ -161,7 +194,7 @@ pnpm tauri build --no-bundle      # 出 exe
 # 2) 构建并复制便携 exe
 pnpm tauri build --no-bundle
 Copy-Item src-tauri\target\release\DSH-NEXT-Multi.exe . -Force
-# 3) 签名（自签名，消除「未知发布者」）
+# 3) 可选：本机自签名（仅你自己的机器不提示，对外无效）
 pnpm sign
 # 4) 打 tag
 git tag -a v1.0.0 -m "v1.0.0"
