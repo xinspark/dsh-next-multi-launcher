@@ -28,6 +28,8 @@ export interface Config {
   launchTimeoutSec: number;
   pollIntervalMs: number;
   restorePointerAfterLaunch: boolean;
+  /** 下载加速前缀：空串 = 直连 GitHub（第三方代理会失效，故做成可改配置） */
+  downloadMirror: string;
   lastPointer?: LastPointer;
 }
 
@@ -143,6 +145,7 @@ export interface ConfigPatch {
   launchTimeoutSec?: number;
   pollIntervalMs?: number;
   restorePointerAfterLaunch?: boolean;
+  downloadMirror?: string;
 }
 
 export interface PermissionReport {
@@ -172,7 +175,13 @@ export interface CatalogEntry {
   publishedAt?: string;
   size: number;
   assetName: string;
+  /** 资产形态：'installer'（安装包）/ 'portable'（便携包） */
+  kind: 'installer' | 'portable' | string;
   url: string;
   digest?: string;
   prerelease: boolean;
+  /** 该版本对应的内核版本（实时解析自 release 正文），解析不到就是 undefined */
+  kernelVersion?: string;
+  /** 仅 latest 行：它此刻指向的真实应用版本 */
+  appVersion?: string;
 }

@@ -542,6 +542,7 @@
   {:else if view === 'versions'}
     <VersionView
       versions={snapshot?.versions ?? []}
+      downloadMirror={snapshot?.config.downloadMirror ?? ''}
       {t}
       onChanged={() => refresh()}
       onNotify={notify}

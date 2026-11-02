@@ -25,6 +25,10 @@
   let timeoutSec = $state(untrack(() => config.launchTimeoutSec));
   let pollMs = $state(untrack(() => config.pollIntervalMs));
   let restorePointer = $state(untrack(() => config.restorePointerAfterLaunch));
+  let downloadMirror = $state(untrack(() => config.downloadMirror ?? ''));
+
+  /** 实测可用的 GitHub 加速前缀（2026-11）；第三方服务随时会挂，所以只做快捷填充，不做默认值 */
+  const MIRROR_PRESETS = ['https://gh-proxy.com/', 'https://ghproxy.net/'];
 
   let saving = $state(false);
   let error = $state<string | null>(null);
@@ -52,7 +56,8 @@
       defaultHome !== (config.defaultHome ?? '') ||
       timeoutSec !== config.launchTimeoutSec ||
       pollMs !== config.pollIntervalMs ||
-      restorePointer !== config.restorePointerAfterLaunch
+      restorePointer !== config.restorePointerAfterLaunch ||
+      downloadMirror !== (config.downloadMirror ?? '')
   );
 
   function reset() {
@@ -61,6 +66,7 @@
     timeoutSec = config.launchTimeoutSec;
     pollMs = config.pollIntervalMs;
     restorePointer = config.restorePointerAfterLaunch;
+    downloadMirror = config.downloadMirror ?? '';
     error = null;
   }
 
@@ -73,7 +79,8 @@
         defaultHome: defaultHome.trim(),
         launchTimeoutSec: timeoutSec,
         pollIntervalMs: pollMs,
-        restorePointerAfterLaunch: restorePointer
+        restorePointerAfterLaunch: restorePointer,
+        downloadMirror: downloadMirror.trim()
       });
     } catch (err) {
       error = errorText(err as UiError);
@@ -208,6 +215,21 @@
       {#if !restorePointer}
         <span class="field-hint warn">{t('settings.restorePointerWarn')}</span>
       {/if}
+    </div>
+
+    <div class="field">
+      <div class="field-label">
+        <span>{t('settings.downloadMirror')}</span>
+        <span class="field-hint">{t('settings.downloadMirrorHint')}</span>
+      </div>
+      <input class="input" bind:value={downloadMirror} placeholder="https://gh-proxy.com/" />
+      <div class="inline wrap">
+        {#each MIRROR_PRESETS as preset (preset)}
+          <button class="btn tiny ghost" onclick={() => (downloadMirror = preset)}>{preset}</button>
+        {/each}
+        <button class="btn tiny ghost" onclick={() => (downloadMirror = '')}>{t('settings.clear')}</button>
+      </div>
+      <span class="field-hint">{t('settings.downloadMirrorNote')}</span>
     </div>
   </section>
 

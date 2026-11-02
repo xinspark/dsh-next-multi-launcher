@@ -78,6 +78,7 @@ pub fn message_for(code: &str) -> &'static str {
         "E1010" => "该版本正被实例引用，不能删除 / version in use",
         "E1011" => "数据目录仍有进程占用，先停止实例 / home still in use",
         "E1012" => "参数无效 / invalid argument",
+        "E1013" => "下载源请求失败（网络、限流或上游不可达）/ catalog request failed",
         "E1000" => "内部错误 / internal error",
         _ => "未知错误 / unknown error",
     }
@@ -91,7 +92,7 @@ mod tests {
     fn codes_have_chinese_messages() {
         for code in [
             "E1001", "E1002", "E1003", "E1004", "E1005", "E1006", "E1007", "E1008", "E1009",
-            "E1010", "E1011", "E1012",
+            "E1010", "E1011", "E1012", "E1013",
         ] {
             let msg = message_for(code);
             assert!(

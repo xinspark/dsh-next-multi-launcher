@@ -81,7 +81,12 @@ pub fn run_if_requested() -> Option<i32> {
 
 /// 排障用：检查启动器自身的新版本（只打印，不下载）。
 fn check_update() -> i32 {
-    let info = crate::update::check(env!("CARGO_PKG_VERSION"));
+    // 与界面同一套配置：`--check-update` 也要能用加速前缀（GitHub 在国内不可达时）
+    let mirror = Store::from_env()
+        .load_config()
+        .map(|c| c.download_mirror)
+        .unwrap_or_default();
+    let info = crate::update::check(env!("CARGO_PKG_VERSION"), &mirror);
     emit!(
         "{}",
         serde_json::to_string_pretty(&info).unwrap_or_default()
@@ -443,7 +448,12 @@ fn path_display(p: &Path) -> String {
 
 /// 排障用：打印某渠道的版本目录（next / next-preview / native）。
 fn catalog(channel: &str) -> i32 {
-    match crate::catalog::list(channel) {
+    // 与界面一致：读用户的「下载加速前缀」，否则国内排障时命令行与 GUI 行为不一致
+    let mirror = Store::from_env()
+        .load_config()
+        .map(|c| c.download_mirror)
+        .unwrap_or_default();
+    match crate::catalog::list(channel, &mirror) {
         Ok(list) => {
             emit!(
                 "{}",

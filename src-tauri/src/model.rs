@@ -32,6 +32,11 @@ pub struct Config {
     pub poll_interval_ms: u64,
     /// 启动成功后是否把指针还原为 `default_home`（默认 true）。
     pub restore_pointer_after_launch: bool,
+    /// 下载加速前缀（可选）：GitHub 安装包地址前面拼上它再交给浏览器。
+    /// 空串 = 直连 GitHub。第三方代理随时会失效，所以做成用户可改的配置，
+    /// 不在代码里写死任何一家。
+    #[serde(default)]
+    pub download_mirror: String,
     #[serde(default)]
     pub last_pointer: Option<LastPointer>,
 }
@@ -45,6 +50,7 @@ impl Default for Config {
             launch_timeout_sec: 90,
             poll_interval_ms: 500,
             restore_pointer_after_launch: true,
+            download_mirror: String::new(),
             last_pointer: None,
         }
     }

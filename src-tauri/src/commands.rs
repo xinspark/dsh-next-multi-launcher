@@ -355,6 +355,8 @@ pub struct ConfigPatch {
     pub launch_timeout_sec: Option<u64>,
     pub poll_interval_ms: Option<u64>,
     pub restore_pointer_after_launch: Option<bool>,
+    /// 下载加速前缀：空串 = 直连 GitHub
+    pub download_mirror: Option<String>,
 }
 
 #[tauri::command]
@@ -382,6 +384,16 @@ pub fn config_set(state: State<'_, AppState>, patch: ConfigPatch) -> Result<Conf
     }
     if let Some(v) = patch.restore_pointer_after_launch {
         cfg.restore_pointer_after_launch = v;
+    }
+    if let Some(mirror) = patch.download_mirror {
+        let mirror = mirror.trim().trim_end_matches('/').to_string();
+        if !mirror.is_empty() && !(mirror.starts_with("http://") || mirror.starts_with("https://")) {
+            return Err(AppError::new(
+                "E1012",
+                format!("下载加速前缀必须是 http(s) 地址：{mirror}"),
+            ));
+        }
+        cfg.download_mirror = mirror;
     }
     cfg = cfg.sanitized();
     state.store.save_config(&cfg)?;
@@ -503,16 +515,33 @@ fn open_in_browser(url: &str) -> std::io::Result<()> {
 }
 
 /// 检查启动器自身是否有新版本（只提示，不下载）。
+///
+/// 网络请求最长 8 秒，而**同步命令跑在主线程上**（会把窗口一起卡住），
+/// 所以丢到阻塞线程池：前端才能真的把「加载中」画出来。
+///
+/// 注意：`async` 命令的 future 必须是 `'static`，不能用 `State<'_, _>` 跨 await，
+/// 因此这里拿 `AppHandle` 并在 await 之前把 logger 取出来。
 #[tauri::command]
-pub fn update_check(state: State<'_, AppState>) -> crate::update::UpdateInfo {
-    let info = crate::update::check(env!("CARGO_PKG_VERSION"));
+pub async fn update_check(app: tauri::AppHandle) -> crate::update::UpdateInfo {
+    use tauri::Manager;
+    let logger = app.state::<AppState>().logger();
+    // 与版本目录共用「下载加速前缀」：GitHub API 在国内常不可达
+    let mirror = app.state::<AppState>().config.lock().unwrap().download_mirror.clone();
+    let info = tauri::async_runtime::spawn_blocking(move || {
+        crate::update::check(env!("CARGO_PKG_VERSION"), &mirror)
+    })
+    .await
+    .unwrap_or_else(|err| {
+        crate::update::failed(
+            env!("CARGO_PKG_VERSION"),
+            format!("更新检查任务失败：{err}"),
+        )
+    });
     match (&info.latest, info.error.as_deref()) {
         (Some(tag), _) if info.has_update => {
-            state
-                .logger()
-                .info(format!("发现新版本 {tag}（当前 {}）", info.current));
+            logger.info(format!("发现新版本 {tag}（当前 {}）", info.current));
         }
-        (None, Some(err)) => state.logger().info(format!("更新检查失败：{err}")),
+        (None, Some(err)) => logger.info(format!("更新检查失败：{err}")),
         _ => {}
     }
     info
@@ -558,8 +587,25 @@ pub fn _phase_name(p: LaunchPhase) -> &'static str {
 }
 
 /// 版本目录：列出某渠道可下载的版本（只返回清单，不下载）。
+///
+/// 同 `update_check`：GitHub 请求最长 10 秒，不能占着主线程。
+/// 配了「下载加速前缀」时，连 API 请求也走它（实测 gh-proxy.com 能代理 api.github.com）。
 #[tauri::command]
-pub fn catalog_list(channel: String) -> Result<Vec<crate::catalog::CatalogEntry>, AppError> {
-    crate::catalog::list(&channel)
-        .map_err(|e| AppError::new("E1012", format!("获取版本目录失败：{e}")))
+pub async fn catalog_list(
+    app: tauri::AppHandle,
+    channel: String,
+) -> Result<Vec<crate::catalog::CatalogEntry>, AppError> {
+    let mirror = {
+        use tauri::Manager;
+        app.state::<AppState>()
+            .config
+            .lock()
+            .unwrap()
+            .download_mirror
+            .clone()
+    };
+    tauri::async_runtime::spawn_blocking(move || crate::catalog::list(&channel, &mirror))
+        .await
+        .map_err(|e| AppError::new("E1000", format!("版本目录任务失败：{e}")))?
+        .map_err(|e| AppError::new("E1013", e))
 }

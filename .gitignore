@@ -27,6 +27,7 @@ design/*.b
 
 # 便携版可执行文件与安装包
 DSH-NEXT-Multi.exe
+DSH-NEXT-Multi-dev.exe
 dist-app/
 *.cer
 

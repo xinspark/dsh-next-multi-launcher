@@ -583,6 +583,18 @@ button {
   border-color: transparent;
 }
 
+/* 「最新」标记：与默认徽标同款高亮，避免再造一套观感 */
+.badge.latest {
+  color: var(--dsw-alias-label-primary);
+  background: var(--dsw-alias-interactive-bg-hover-solid);
+  border-color: transparent;
+}
+
+.expand-toggle {
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
 .row-line2 {
   display: flex;
   align-items: center;
@@ -1072,4 +1084,70 @@ textarea.input {
 .btn.active {
   background: var(--dsw-alias-button-ghost-active-hover);
   color: var(--dsw-alias-label-primary);
+}
+
+/* ------------------------------------------------------------ 在线下载：加载 / 失败 */
+
+/* 转圈只用一条 token 动画（--animate-spin 来自 DSH 原生名册） */
+.spinner {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  border: 2px solid var(--dsw-alias-border-l3);
+  border-top-color: var(--dsw-alias-label-secondary);
+  border-radius: 50%;
+  animation: var(--animate-spin);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 2px;
+  font: var(--dsw-font-xxs-12);
+  color: var(--dsw-alias-label-secondary);
+}
+
+.load-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 0.5px solid var(--dsw-alias-state-error-secondary);
+  border-radius: var(--dsw-radius-sm);
+  background: color-mix(in srgb, var(--dsw-alias-state-error-primary) 8%, transparent);
+  font: var(--dsw-font-xxs-12);
+  color: var(--dsw-alias-label-primary);
+}
+
+.load-error-mark {
+  flex: none;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--dsw-alias-state-error-primary);
+}
+
+.load-error-title {
+  flex: none;
+  color: var(--dsw-alias-state-error-primary);
+}
+
+.load-error-detail {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--dsw-alias-label-secondary);
+}
+
+.badge.kind {
+  color: var(--dsw-alias-label-caption);
+  border-color: var(--dsw-alias-border-l2);
 }

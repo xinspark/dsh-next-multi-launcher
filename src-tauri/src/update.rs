@@ -50,9 +50,23 @@ pub fn is_newer(current: &str, latest: &str) -> bool {
     false
 }
 
+/// 组装更新检查的 API 地址；`mirror` 非空时走加速前缀（与版本目录共用同一个设置）。
+fn api_url(mirror: &str) -> String {
+    let base = format!("https://api.github.com/repos/{REPO}/releases/latest");
+    let prefix = mirror.trim().trim_end_matches('/');
+    if prefix.is_empty() {
+        base
+    } else {
+        format!("{prefix}/{base}")
+    }
+}
+
 /// 查询最新发布；网络失败时返回带 `error` 的结果而不是 `Err`。
-pub fn check(current: &str) -> UpdateInfo {
-    let url = format!("https://api.github.com/repos/{REPO}/releases/latest");
+///
+/// `mirror` 是设置里的「下载加速前缀」：GitHub API 在国内常不可达，
+/// 配了前缀就一起走它（实测 `gh-proxy.com` 可代理 `api.github.com`）。
+pub fn check(current: &str, mirror: &str) -> UpdateInfo {
+    let url = api_url(mirror);
     let client = match reqwest::blocking::Client::builder()
         .user_agent(concat!(
             "dsh-next-multi-launcher/",
@@ -75,7 +89,13 @@ pub fn check(current: &str) -> UpdateInfo {
     };
 
     if !resp.status().is_success() {
-        return failed(current, format!("GitHub 返回 {}", resp.status().as_u16()));
+        let status = resp.status().as_u16();
+        let reset = resp
+            .headers()
+            .get("x-ratelimit-reset")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|s| s.trim().parse::<i64>().ok());
+        return failed(current, crate::catalog::github_error(status, reset));
     }
 
     let body: serde_json::Value = match resp.json() {
@@ -111,7 +131,7 @@ pub fn check(current: &str) -> UpdateInfo {
     }
 }
 
-fn failed(current: &str, reason: String) -> UpdateInfo {
+pub fn failed(current: &str, reason: String) -> UpdateInfo {
     UpdateInfo {
         current: current.to_string(),
         latest: None,
@@ -125,6 +145,26 @@ fn failed(current: &str, reason: String) -> UpdateInfo {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn mirror_prefix_is_applied_to_api_url() {
+        let direct = api_url("");
+        assert_eq!(
+            direct,
+            format!("https://api.github.com/repos/{REPO}/releases/latest")
+        );
+        // 空白 = 未配置
+        assert_eq!(api_url("   "), direct);
+        // 结尾有没有斜杠都拼得对
+        assert_eq!(
+            api_url("https://gh-proxy.com/"),
+            format!("https://gh-proxy.com/{direct}")
+        );
+        assert_eq!(
+            api_url("https://gh-proxy.com"),
+            format!("https://gh-proxy.com/{direct}")
+        );
+    }
 
     #[test]
     fn numeric_segments_not_string_order() {
