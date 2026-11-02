@@ -42,7 +42,8 @@
     'notice.restartLimit',
     'notice.homeSwitch',
     'notice.dshNextOnly',
-    'notice.signing'
+    'notice.signing.sha256',
+    'notice.signing.smartScreen'
   ] as const;
   const NOTICE_MS =
     Number(new URLSearchParams(location.search).get('noticeMs')) || 30_000;

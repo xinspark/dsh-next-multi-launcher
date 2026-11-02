@@ -29,8 +29,10 @@ const zh: Dict = {
     '由于多开机制，DSH-NEXT 实例启动时可能弹出「数据目录变更」提示，点击「继续」即可。',
   'notice.dshNextOnly':
     '本启动器只支持 DSH-NEXT（社区增强桌面版，dshdesktop.cn），不支持原生 DSH——两者的数据目录与启动参数不同。',
-  'notice.signing':
+  'notice.signing.sha256':
     '本程序未做商业代码签名，首次运行出现 SmartScreen 提示属正常；请用 Release 页的 SHA256 核对文件。',
+  'notice.signing.smartScreen':
+    '未做商业签名时，启动器启动可能弹窗出现红框警告（Windows 已保护你的电脑），这是正常现象：点击【更多信息】→【仍要运行】即可。',
   'notice.next': '下一个',
   'notice.nextHint': '切换到下一条提示（不会关闭提示条）',
   'toast.restarting': '正在重启…',
@@ -221,8 +223,10 @@ const en: Dict = {
     'Because of the multi-instance mechanism, DSH-NEXT may show a “data directory changed” dialog on startup — just click Continue.',
   'notice.dshNextOnly':
     'This launcher supports DSH-NEXT only (the community desktop build, dshdesktop.cn), not native DSH — they differ in data directory and launch flags.',
-  'notice.signing':
-    'This build is not commercially code-signed; a SmartScreen prompt on first run is expected. Verify the file against the SHA256 on the release page.',
+  'notice.signing.sha256':
+    'This build is not commercially code-signed. A SmartScreen prompt on first run is expected; verify the file against the SHA256 on the release page.',
+  'notice.signing.smartScreen':
+    'Without a commercial signature, launch may show the red “Windows protected your PC” warning — that is expected. Click “More info” → “Run anyway”.',
   'notice.next': 'Next',
   'notice.nextHint': 'Show the next notice (the bar stays)',
   'toast.restarting': 'Restarting…',
