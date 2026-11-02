@@ -232,12 +232,13 @@ pub fn install_candidates() -> Vec<PathBuf> {
     if let Some(dir) = install_dir_from_running() {
         out.push(dir);
     }
-    out.push(PathBuf::from(r"E:\FXS\APP\DSH NEXT"));
     if let Some(local) = crate::util::env_path("LOCALAPPDATA") {
         out.push(local.join("Programs").join("DSH NEXT"));
+        out.push(local.join("Programs").join("DSH Desktop"));
     }
     if let Some(pf) = crate::util::env_path("ProgramFiles") {
         out.push(pf.join("DSH NEXT"));
+        out.push(pf.join("DSH Desktop"));
     }
     out
 }

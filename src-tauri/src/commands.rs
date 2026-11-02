@@ -407,6 +407,28 @@ pub fn version_import(state: State<'_, AppState>, dir: String) -> Result<Version
     Ok(info)
 }
 
+/// 自动发现 DSH-NEXT 安装目录（快捷方式 / 注册表 / 常见路径 / 运行中进程）。
+///
+/// 返回候选列表，前端展示后由用户勾选，再逐个调用 `version_import`。
+/// 只读操作，不改版本树。
+#[tauri::command]
+pub fn version_discover(
+    state: State<'_, AppState>,
+) -> Result<Vec<crate::discover::DiscoverCandidate>, AppError> {
+    let registered: Vec<PathBuf> = state
+        .versions_now()
+        .into_iter()
+        .map(|v| PathBuf::from(v.dir))
+        .collect();
+    let found = crate::discover::scan(&registered);
+    state.logger().info(format!(
+        "自动发现：{} 个候选（有效 {}）",
+        found.len(),
+        found.iter().filter(|c| c.valid).count()
+    ));
+    Ok(found)
+}
+
 #[tauri::command]
 pub fn version_remove(state: State<'_, AppState>, tag: String) -> Result<(), AppError> {
     let all = state.store.list_instances();

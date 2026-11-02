@@ -9,7 +9,7 @@
 
 ## 1. 自动化测试
 
-### 1.1 单元测试（46 项）
+### 1.1 单元测试（51 项）
 
 ```powershell
 cargo test --manifest-path src-tauri/Cargo.toml
@@ -24,13 +24,14 @@ cargo test --manifest-path src-tauri/Cargo.toml
 | `versions` | 扫描与 invalid 标记、登记校验、删除被引用 E1010、真实目录非空拒绝删 |
 | `launcher` | 入队串行与位置、重复入队 E1012、找不到 exe → E1004 且不动指针、取消、状态归位 |
 | `guard` | 盘根 / 默认 home / `%USERPROFILE%` / 上级目录 / `..` / 数据目录 / 大小写不敏感 |
+| `discover` | `\\?\` 前缀剥离、UNC 还原、路径大小写不敏感比较、同目录只保留首次来源 |
 | `util` | 路径规范化、原子写无残留 tmp、大小写不敏感比较 |
 
 实测：
 
 ```
-running 46 tests
-test result: ok. 46 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+running 51 tests
+test result: ok. 51 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 ```
 
 ### 1.2 端到端（替身进程，15 项断言）
@@ -90,6 +91,31 @@ node tools/verify-tokens.mjs
 | 写 `var(--dsw-nonexistent-probe)` | 规则 A 失败，退出码 1 | ✅ |
 | 改 `design/parts/scrollbar.css` 一个字节 | 规则 C 失败，退出码 1 | ✅ |
 | 还原 | PASS，退出码 0 | ✅ |
+
+### 1.5 自动扫描（真实 IPC）
+
+扫描走「界面 → IPC → PowerShell（快捷方式/注册表）→ Rust 校验」，三段都要证据：
+
+```powershell
+# 1) 命令行直接看候选
+DSH-NEXT-Multi.exe --discover
+
+# 2) 真实 GUI 端点：用 WebView2 远程调试驱动点击（开发期脚本，不随仓库发布）
+#    env: WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9333
+```
+
+实测（2026-11-02，本机）：
+
+```
+rows: [{"tag":"快捷方式","mono":"E:\\FXS\\APP\\DSH NEXT","checked":true},
+       {"tag":"快捷方式","mono":"E:\\FXS\\APP\\DSH","checked":false}]
+hint: 找到 2 个候选
+```
+
+- 有效目录默认勾选，无效目录灰掉不可选；
+- 已登记的版本会显示「已登记」徽标且不可重复勾选；
+- 结果按「有效 → 未登记 → 路径」排序。
+
 
 ## 2. 验收矩阵（M0–M5）
 

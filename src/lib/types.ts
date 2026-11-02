@@ -60,6 +60,16 @@ export interface VersionInfo {
   linkTarget?: string;
 }
 
+/** 自动扫描到的安装目录候选 */
+export interface DiscoverCandidate {
+  path: string;
+  source: 'shortcut' | 'registry' | 'common' | 'process' | string;
+  valid: boolean;
+  shellVersion?: string;
+  kernelVersion?: string;
+  registered: boolean;
+}
+
 export interface RunningInfo {
   home: string;
   shellPid: number;

@@ -130,6 +130,31 @@ export function mockCall(cmd: string, args?: Record<string, unknown>): unknown {
       return mockSnapshot().config;
     case 'version_scan':
       return versions;
+    case 'version_discover':
+      return [
+        {
+          path: 'E:\\FXS\\APP\\DSH NEXT',
+          source: 'shortcut',
+          valid: true,
+          shellVersion: '2.0.21-next',
+          kernelVersion: '0.2.1-rc.4',
+          registered: false
+        },
+        {
+          path: 'C:\\Users\\demo\\AppData\\Local\\Programs\\DSH Desktop',
+          source: 'registry',
+          valid: true,
+          shellVersion: '2.0.20-next',
+          kernelVersion: '0.2.0-rc.9',
+          registered: false
+        },
+        {
+          path: 'D:\\Somewhere\\DSH',
+          source: 'common',
+          valid: false,
+          registered: false
+        }
+      ];
     case 'version_import':
       return versions[0];
     case 'version_remove':

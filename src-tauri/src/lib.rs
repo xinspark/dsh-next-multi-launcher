@@ -3,6 +3,7 @@
 pub mod asar;
 pub mod cli;
 pub mod commands;
+pub mod discover;
 pub mod errors;
 pub mod guard;
 pub mod launcher;
@@ -349,6 +350,7 @@ pub fn run() {
             commands::version_scan,
             commands::version_import,
             commands::version_remove,
+            commands::version_discover,
             commands::pick_directory,
             commands::open_path,
             commands::health,

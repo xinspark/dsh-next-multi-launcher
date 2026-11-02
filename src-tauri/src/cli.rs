@@ -72,8 +72,19 @@ pub fn run_if_requested() -> Option<i32> {
         )),
         "--e2e-status" => Some(e2e_status()),
         "--scan-debug" => Some(scan_debug()),
+        "--discover" => Some(discover()),
         _ => None,
     }
+}
+
+/// 排障用：自动发现 DSH-NEXT 安装目录（快捷方式 / 注册表 / 常见路径 / 进程）。
+fn discover() -> i32 {
+    let items = crate::discover::scan(&[]);
+    emit!(
+        "{}",
+        serde_json::to_string_pretty(&json!({ "candidates": items })).unwrap_or_default()
+    );
+    0
 }
 
 /// 排障用：把扫到的 DSH 进程逐条打出来（名字 / pid / 父 pid / 命令行）。

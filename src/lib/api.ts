@@ -9,7 +9,8 @@ import type {
   InstancePayload,
   Snapshot,
   StopOutcome,
-  VersionInfo
+  VersionInfo,
+  DiscoverCandidate
 } from './types';
 
 /** 浏览器里预览界面时没有 Tauri 运行时，走 mock（只在 dev 构建里生效）。 */
@@ -70,6 +71,7 @@ export const api = {
   scanVersions: () => call<VersionInfo[]>('version_scan'),
   importVersion: (dir: string) => call<VersionInfo>('version_import', { dir }),
   removeVersion: (tag: string) => call<void>('version_remove', { tag }),
+  discoverVersions: () => call<DiscoverCandidate[]>('version_discover'),
 
   permissionReport: () => call<PermissionReport>('permission_report'),
   relaunchElevated: () => call<boolean>('relaunch_elevated'),

@@ -11,6 +11,7 @@ src-tauri/src/
 ├── pointer.rs      # 指针读写、备份、回滚
 ├── store.rs        # app.json / 实例文件 / 校验规则
 ├── versions.rs     # 版本树扫描、junction 登记、asar 版本读取
+├── discover.rs     # 自动发现安装目录（快捷方式/注册表/常见路径/进程）
 ├── asar.rs         # 最小 asar 读取（package.json）
 ├── guard.rs        # 删除安全网（盘根/系统目录/默认环境）
 ├── perm.rs         # 权限探测与提权重启
