@@ -83,6 +83,8 @@ export const api = {
   permissionReport: () => call<PermissionReport>('permission_report'),
   relaunchElevated: () => call<boolean>('relaunch_elevated'),
 
+  applyWindowTheme: (theme: string) => call<void>('apply_window_theme', { theme }),
+
   onboardingState: () => call<OnboardingView>('onboarding_state'),
   onboardingComplete: (lastStep = 4) =>
     call<OnboardingView>('onboarding_complete', { lastStep }),

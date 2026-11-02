@@ -361,6 +361,22 @@ pub struct ConfigPatch {
     pub theme: Option<String>,
 }
 
+/// 把原生窗口外框（标题栏 / 边框）切到对应主题；`system` 则交还给系统。
+///
+/// Web 内容靠 `data-theme` + CSS token 切换，但**窗口外框是系统画的**，
+/// 不显式告诉 Windows，浅色界面就会顶着一个深色标题栏。
+#[tauri::command]
+pub fn apply_window_theme(window: tauri::WebviewWindow, theme: String) -> Result<(), AppError> {
+    let target = match theme.trim().to_lowercase().as_str() {
+        "light" => Some(tauri::Theme::Light),
+        "dark" => Some(tauri::Theme::Dark),
+        _ => None,
+    };
+    window
+        .set_theme(target)
+        .map_err(|e| AppError::new("E1000", format!("设置窗口主题失败：{e}")))
+}
+
 #[tauri::command]
 pub fn config_set(state: State<'_, AppState>, patch: ConfigPatch) -> Result<Config, AppError> {
     let mut cfg = state.config.lock().unwrap().clone();

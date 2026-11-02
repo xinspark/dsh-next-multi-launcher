@@ -17,6 +17,7 @@
   import SettingsView from './lib/SettingsView.svelte';
   import OnboardingPanel from './lib/OnboardingPanel.svelte';
   import brandUrl from './assets/brand.png';
+  import brandLightUrl from './assets/brand-light.png';
   import Modal from './lib/Modal.svelte';
 
   type View = 'launch' | 'versions' | 'settings';
@@ -55,7 +56,8 @@
   const ONLINE_REFRESH_MS = 10 * 60 * 1000;
   const NOTICE_MS =
     Number(new URLSearchParams(location.search).get('noticeMs')) || 30_000;
-  let noticeIndex = $state(0);
+  /** 启动时从随机一条开始轮播（固定从第 0 条开始，用户永远只看得到前几条） */
+  let noticeIndex = $state(Math.floor(Math.random() * NOTICES.length));
   /** 当前运行在安全模式的实例（取第一个用于提示条） */
   const safeModeView = $derived(
     snapshot?.instances.find((v) => v.running?.safeMode) ?? null
@@ -191,9 +193,25 @@
     else delete el.dataset.theme;
   }
 
-  // 配置一变就同步（保存设置后立即生效）
+  /** 实际生效的明暗（`system` 时看系统），用于换图标这类非 CSS 的东西 */
+  let resolvedTheme = $state<'light' | 'dark'>('dark');
+  const brandResolved = $derived(resolvedTheme === 'light' ? brandLightUrl : brandUrl);
+
+  // 配置一变就同步（保存设置后立即生效）：网页内容用 data-theme，
+  // 原生窗口外框交给系统命令，图标也一起换，否则浅色界面里会挂一块深色图标。
   $effect(() => {
-    if (snapshot) applyTheme(snapshot.config.theme);
+    const theme = (snapshot?.config.theme ?? 'system').trim().toLowerCase() || 'system';
+    applyTheme(theme);
+    void api.applyWindowTheme(theme).catch(() => {});
+
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const sync = () => {
+      resolvedTheme =
+        theme === 'light' ? 'light' : theme === 'dark' ? 'dark' : mq.matches ? 'dark' : 'light';
+    };
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
   });
 
   function setLang(next: Lang) {
@@ -410,7 +428,7 @@
 <div class="app">
   <header class="titlebar">
     <div class="brand">
-      <img class="brand-mark" src={brandUrl} alt="" aria-hidden="true" />
+      <img class="brand-mark" src={brandResolved} alt="" aria-hidden="true" />
       <div class="brand-text">
         <div class="brand-title">{t('app.title')}</div>
         <div class="brand-sub">{t('app.subtitle')} · {t('app.version', { version: snapshot?.appVersion ?? '—' })}</div>
