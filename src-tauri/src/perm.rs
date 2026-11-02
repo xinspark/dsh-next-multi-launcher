@@ -5,7 +5,6 @@
 //! 就会写不了指针（启动实例失败 E1001）或建不了 WebView2 目录。
 //! 因此启动器需要在权限不足时能明确告知，并支持“以管理员身份重启”。
 
-use std::path::Path;
 
 /// 当前进程是否以管理员（高完整性）身份运行。
 pub fn is_admin() -> bool {
@@ -74,18 +73,13 @@ pub fn relaunch_elevated() -> bool {
 }
 
 /// 需要提权的判据：指针目录写不了，或数据目录已退到“便携/临时”位置。
-pub fn needs_elevation(pointer_writable: bool, data_dir: &Path) -> bool {
-    if !pointer_writable {
-        return true;
-    }
-    // 标准位置是 %LOCALAPPDATA%\DSH-NEXT-Multi；不在那里说明标准位置不可写
-    let standard = crate::util::env_path("LOCALAPPDATA")
-        .or_else(|| crate::util::env_path("APPDATA"))
-        .map(|p| p.join("DSH-NEXT-Multi"));
-    match standard {
-        Some(expected) => !crate::util::path_eq(data_dir, &expected),
-        None => false,
-    }
+/// 是否需要提权：**只看指针目录能不能写**。
+///
+/// 早先这里还用「数据目录是否等于 `%LOCALAPPDATA%\DSH-NEXT-Multi`」来判断，
+/// 结果把「便携模式 / 自定义数据目录」误判成需要提权，横幅还会写成「指针目录不可写」——
+/// 两种情况的原因完全不同。数据目录能跑起来就说明它可写，不需要再推断。
+pub fn needs_elevation(pointer_writable: bool) -> bool {
+    !pointer_writable
 }
 
 /// 一次性权限体检，供界面展示与排障。
@@ -117,6 +111,18 @@ pub fn report() -> PermissionReport {
         data_writable,
         pointer_path: pointer_file.to_string_lossy().to_string(),
         pointer_writable,
-        needs_elevation: needs_elevation(pointer_writable, &data_dir),
+        needs_elevation: needs_elevation(pointer_writable),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// 只有指针不可写才需要提权：便携模式/自定义数据目录不再误报。
+    #[test]
+    fn elevation_only_depends_on_pointer_writability() {
+        assert!(needs_elevation(false));
+        assert!(!needs_elevation(true));
     }
 }

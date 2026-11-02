@@ -17,7 +17,7 @@
 | 中文名（界面 / 窗口标题 / 安装包显示名） | **DSH-NEXT 应用多开启动器** |
 | 英文名（仓库 / 代码标识 / exe） | **DSH-NEXT Multi-Launcher** |
 | 可执行文件 | `DSH-NEXT-Multi.exe` |
-| 自数据目录 | `%LOCALAPPDATA%\DSH-NEXT-Multi\` |
+| 自数据目录 | `<文档>\DSH-NEXT-Multi\`（未发布起；旧位置首次启动自动迁移） |
 | 日志前缀 | `dsh-next-multi-YYYYMMDD.log` |
 | 托盘 | v1.0 不常驻托盘 |
 
@@ -175,7 +175,7 @@ spawn "DSH NEXT.exe"
   tools\extract-tokens.mjs  tools\verify-tokens.mjs
   src-tauri\  src\  package.json  README.md
 
-%LOCALAPPDATA%\DSH-NEXT-Multi\
+<文档>\DSH-NEXT-Multi\
   app.json
   instances\*.json
   logs\launcher-YYYYMMDD.log

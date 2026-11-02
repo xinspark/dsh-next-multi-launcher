@@ -3,6 +3,7 @@
   import type { Config, ConfigPatch, UpdateInfo } from './types';
   import type { Lang } from './i18n';
   import { api, errorText, type UiError } from './api';
+  import { online, checkUpdate as checkUpdateShared } from './refresh.svelte.js';
   import { REPO_URL, STAR_URL } from './links';
 
   interface Props {
@@ -35,9 +36,9 @@
   let error = $state<string | null>(null);
 
   // 更新检查
-  let update = $state<UpdateInfo | null>(null);
+  const update = $derived(online.update);
   let checking = $state(false);
-  let checkedAt = $state<string | null>(null);
+  const checkedAt = $derived(online.updateCheckedAt);
   let autoCheck = $state(
     untrack(() => {
       try {
@@ -99,13 +100,11 @@
     }
   }
 
+  // 更新检查与版本目录共用一次刷新（启动一次 + 每 10 分钟一次）；这里只做手动触发
   async function checkUpdate() {
     checking = true;
     try {
-      update = await api.updateCheck();
-      checkedAt = new Date().toLocaleTimeString();
-    } catch (err) {
-      update = { current: '', hasUpdate: false, error: errorText(err as UiError) };
+      await checkUpdateShared(true);
     } finally {
       checking = false;
     }

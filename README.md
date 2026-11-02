@@ -16,6 +16,21 @@
 
 ![主界面](docs/images/ui-main.png)
 
+## 它多开的是什么：DSH-NEXT
+
+本启动器**不包含** DSH，也不修改它——它只是把你自己装好的 DSH-NEXT 起成多个独立窗口。
+先有 DSH-NEXT，才有这个工具。
+
+| 名称 | 是什么 | 去哪拿 |
+|---|---|---|
+| **DSH**（DeepSeek Harness） | 上游内核 | [deepseek-ai/deepseek-harness](https://github.com/deepseek-ai/deepseek-harness) |
+| **DSH-NEXT** | DSH 的桌面发行版，**本启动器针对它** | [官网 dshdesktop.cn](https://www.dshdesktop.cn/) · [Releases](https://github.com/anywhere-labs/dsh-desktop/releases) |
+| **原生 DSH 桌面端** | 官方直链版本 | [下载地址](https://download.deepseek.com/desktop/dsh-latest-windows-x64.exe) |
+
+- 版本页可在线下载 **DSH-NEXT 正式 / 预览** 与 **原生 DSH** 三个渠道，也能导入已解包的安装目录；
+- **原生 DSH 只支持「登记 + 启动」，不支持多开与版本导入**——它没有 DSH-NEXT 的那套指针机制，启动器里会明确提示；
+- 没有任何账号体系或云端依赖：本工具只在你的机器上读写文件，联网仅用于查版本与下载安装包。
+
 ## 隔离范围：比官方 profile 多了什么
 
 | 层 | 官方 profile 切换 | 本启动器（独立 home） | 证据 |
@@ -46,6 +61,21 @@
 | **权限** | 关键目录不可写时自动请求管理员，界面可手动触发 |
 | **原生对齐** | 1158 个设计 token 从 `app.asar` 抽取，门禁防漂移 |
 | **可验证** | 70 项 Rust 单测、15 项端到端断言、UI 自动化检查 |
+
+## 界面
+
+三视图：`启动 / 版本 / 设置`（`#launch` / `#versions` / `#settings` 可深链）。
+
+版本页：`latest` 与历史版本实时解析并标注内核版本，默认只列 3 条；`刷新` 与在线状态共享一次拉取
+（启动时一次，之后每 10 分钟一次，其余手动）。
+
+![版本页](docs/images/ui-versions.png)
+
+首次启动的初始化向导：语言 → 环境体检 → 默认数据目录树根 → 选版本 → 实例。
+
+![初始化向导](docs/images/ui-onboarding.png)
+
+![设置页](docs/images/ui-settings.png)
 
 ## 快速开始
 
@@ -82,8 +112,6 @@
 「重启」+ 按当前状态二选一（进入 / 退出安全模式）。
 
 重启期间顶部显示「正在重启「X」…」；实例运行在安全模式时，顶部常驻提示条并带「退出安全模式」按钮。
-
-![安全模式](docs/images/ui-safe-mode.png)
 
 ### 顶部提示（单行轮播）
 

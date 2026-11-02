@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { untrack } from 'svelte';
+  import { onMount, untrack } from 'svelte';
   import type { CatalogEntry, DiscoverCandidate, VersionInfo } from './types';
   import { api, errorText, truncate, type UiError } from './api';
   import { NATIVE_DOWNLOAD_URL, NEXT_OFFICIAL_URL, NEXT_RELEASES_URL, REPO_URL } from './links';
+  import { online, refreshCurrent } from './refresh.svelte.js';
 
   interface Props {
     versions: VersionInfo[];
@@ -18,11 +19,6 @@
   type Channel = 'next' | 'next-preview' | 'native';
 
   let channel = $state<Channel>('next');
-  let catalogs = $state<Record<string, CatalogEntry[]>>({});
-  /** 正在拉取的渠道（null = 空闲）；用渠道而不是布尔量，快速切 tab 时才不会串 */
-  let loadingChannel = $state<Channel | null>(null);
-  /** 各渠道各自的失败信息：一个源挂了不影响另一个，重试即可清除 */
-  let catalogErrors = $state<Record<string, string>>({});
   let error = $state<string | null>(null);
   let busy = $state(false);
 
@@ -44,43 +40,21 @@
     return versions.find((v) => v.valid)?.tag ?? '';
   }
 
-  async function load(ch: Channel, force = false) {
-    if (!force && catalogs[ch]) return;
-    // 同一渠道已有请求在飞：不重复发（否则连点重试会堆请求）
-    if (loadingChannel === ch) return;
-    loadingChannel = ch;
-    catalogErrors = { ...catalogErrors, [ch]: '' };
-    try {
-      const list = await api.catalogList(ch);
-      catalogs = { ...catalogs, [ch]: list };
-    } catch (err) {
-      catalogErrors = { ...catalogErrors, [ch]: errorText(err as UiError) };
-    } finally {
-      if (loadingChannel === ch) loadingChannel = null;
-    }
-  }
-
-  // 挂载时拉一次「正式」渠道；切 tab 时（channel 变化）再拉。
-  //
-  // 关键：`load()` 会读并写 `catalogs` / `catalogErrors`，必须整次调用 `untrack`——
-  // 否则 effect 会追踪到这两个读取，又被自己的写入反复触发，形成微任务死循环：
-  // IPC 回包永远排不上队，界面表现为「一直加载，既不成功也不失败」。
-  $effect(() => {
-    const ch = channel;
-    void untrack(() => load(ch));
-  });
-
+  // 目录与更新检查的状态都在 refresh 模块里：启动拉一次、之后每 10 分钟一次，
+  // 此外只有点「刷新」才拉。这里切 tab 只换显示。
   function switchChannel(next: Channel) {
     channel = next;
-    void load(next);
   }
 
+  async function refresh() {
+    await refreshCurrent(channel);
+  }
   /** 在线下载默认只列最新的几条，其余折叠（旧版本很少用，列表一长就难扫） */
   const PAGE_SIZE = 3;
   let expanded = $state<Record<string, boolean>>({});
 
   function shownEntries(ch: Channel): CatalogEntry[] {
-    const list = catalogs[ch] ?? [];
+    const list = online.catalogs[ch] ?? [];
     return expanded[ch] ? list : list.slice(0, PAGE_SIZE);
   }
 
@@ -236,6 +210,9 @@
   <section class="card">
     <div class="card-title">
       <span>{t('versions.online')}</span>
+      {#if online.loadedAt}
+        <span class="field-hint">{t('versions.lastLoaded', { time: online.loadedAt })}</span>
+      {/if}
       <span class="spacer"></span>
       <span class="field-hint">{t('versions.browserHint')}</span>
     </div>
@@ -254,37 +231,45 @@
       <button class="tab" class:active={channel === 'native'} onclick={() => switchChannel('native')}>
         {t('versions.channel.native')}
       </button>
+      <span class="spacer"></span>
+      <button
+        class="btn tiny ghost"
+        onclick={refresh}
+        disabled={online.loadingPair || online.loadingChannel === channel}
+      >
+        {online.loadingPair || online.loadingChannel === channel ? t('versions.loading') : t('versions.refresh')}
+      </button>
     </div>
 
     {#if channel === 'native'}
       <div class="field-hint warn">{t('versions.nativeWarn')}</div>
     {/if}
 
-    {#if catalogErrors[channel]}
+    {#if online.errors[channel]}
       <div class="load-error" role="alert">
         <span class="load-error-mark" aria-hidden="true">!</span>
         <span class="load-error-title">{t('versions.loadFailed')}</span>
-        <span class="load-error-detail" title={catalogErrors[channel]}>
-          {truncate(catalogErrors[channel], 72)}
+        <span class="load-error-detail" title={online.errors[channel]}>
+          {truncate(online.errors[channel], 72)}
         </span>
         <span class="spacer"></span>
         <button
           class="btn tiny ghost"
-          onclick={() => load(channel, true)}
-          disabled={loadingChannel === channel}
+          onclick={refresh}
+          disabled={online.loadingChannel === channel}
         >
-          {loadingChannel === channel ? t('versions.loading') : t('versions.retry')}
+          {online.loadingChannel === channel ? t('versions.loading') : t('versions.retry')}
         </button>
       </div>
       {#if channel !== 'native'}
         <div class="field-hint">{t('versions.netHint')}</div>
       {/if}
-    {:else if loadingChannel === channel && !catalogs[channel]}
+    {:else if online.loadingChannel === channel && !online.catalogs[channel]}
       <div class="loading-row" role="status">
         <span class="spinner" aria-hidden="true"></span>
         <span>{t('versions.loading')}</span>
       </div>
-    {:else if !catalogs[channel] || catalogs[channel].length === 0}
+    {:else if !online.catalogs[channel] || online.catalogs[channel].length === 0}
       <div class="empty">{t('versions.empty')}</div>
     {:else}
       {#each shownEntries(channel) as entry (entry.tag)}
@@ -324,11 +309,11 @@
           </button>
         </div>
       {/each}
-      {#if (catalogs[channel]?.length ?? 0) > PAGE_SIZE}
+      {#if (online.catalogs[channel]?.length ?? 0) > PAGE_SIZE}
         <button class="btn tiny ghost expand-toggle" onclick={() => toggleExpanded(channel)}>
           {expanded[channel]
             ? t('versions.collapse')
-            : t('versions.showAll', { count: catalogs[channel].length })}
+            : t('versions.showAll', { count: online.catalogs[channel].length })}
         </button>
       {/if}
     {/if}

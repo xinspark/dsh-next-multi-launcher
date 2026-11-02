@@ -34,10 +34,17 @@ pub fn data_dir() -> PathBuf {
     static CACHE: std::sync::OnceLock<PathBuf> = std::sync::OnceLock::new();
     CACHE
         .get_or_init(|| {
-            let standard = env_path("LOCALAPPDATA")
-                .or_else(|| env_path("APPDATA"))
-                .unwrap_or_else(std::env::temp_dir)
-                .join("DSH-NEXT-Multi");
+            // 默认放「文档」（跟随用户重定向：可能被移到 D: 或 OneDrive）。
+            let standard = documents_dir().join("DSH-NEXT-Multi");
+            // 老版本放在 %LOCALAPPDATA%\DSH-NEXT-Multi：新位置还没有数据时搬一次，
+            // 同卷直接 rename；跨卷只搬必要内容（配置/实例/备份/日志），缓存重建即可。
+            if !standard.exists() {
+                if let Some(legacy) = legacy_data_dir() {
+                    if legacy.join("app.json").exists() {
+                        migrate_data_dir(&legacy, &standard);
+                    }
+                }
+            }
             if is_writable_dir(&standard) {
                 return standard;
             }
@@ -52,6 +59,71 @@ pub fn data_dir() -> PathBuf {
             standard
         })
         .clone()
+}
+
+/// 「文档」文件夹。用 Known Folder API 取，才能跟随用户改过的位置
+/// （OneDrive 重定向、挪到别的盘都会反映出来）。
+pub fn documents_dir() -> PathBuf {
+    #[cfg(windows)]
+    {
+        use windows::Win32::System::Com::CoTaskMemFree;
+        use windows::Win32::UI::Shell::{SHGetKnownFolderPath, FOLDERID_Documents, KF_FLAG_DEFAULT};
+        unsafe {
+            if let Ok(p) = SHGetKnownFolderPath(&FOLDERID_Documents, KF_FLAG_DEFAULT, None) {
+                let text = p.to_string().unwrap_or_default();
+                CoTaskMemFree(Some(p.0 as *const core::ffi::c_void));
+                if !text.trim().is_empty() {
+                    return PathBuf::from(text);
+                }
+            }
+        }
+    }
+    user_home().join("Documents")
+}
+
+/// 老版本的数据目录（`%LOCALAPPDATA%\DSH-NEXT-Multi`）。
+fn legacy_data_dir() -> Option<PathBuf> {
+    env_path("LOCALAPPDATA")
+        .or_else(|| env_path("APPDATA"))
+        .map(|p| p.join("DSH-NEXT-Multi"))
+}
+
+/// 把老数据目录搬到新位置：同卷 rename；跨卷只拷贝必要内容。
+pub fn migrate_data_dir(old: &Path, new: &Path) {
+    if let Some(parent) = new.parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+    if std::fs::rename(old, new).is_ok() {
+        return;
+    }
+    // 跨卷：只搬配置、实例、备份与日志；cache/webview2 让新位置重建
+    let _ = std::fs::create_dir_all(new);
+    for name in ["app.json", "instances", "backup", "logs"] {
+        let from = old.join(name);
+        if !from.exists() {
+            continue;
+        }
+        let to = new.join(name);
+        if from.is_dir() {
+            let _ = copy_dir(&from, &to);
+        } else {
+            let _ = std::fs::copy(&from, &to);
+        }
+    }
+}
+
+fn copy_dir(from: &Path, to: &Path) -> std::io::Result<()> {
+    std::fs::create_dir_all(to)?;
+    for entry in std::fs::read_dir(from)? {
+        let entry = entry?;
+        let target = to.join(entry.file_name());
+        if entry.file_type()?.is_dir() {
+            copy_dir(&entry.path(), &target)?;
+        } else {
+            std::fs::copy(entry.path(), &target)?;
+        }
+    }
+    Ok(())
 }
 
 /// 目录可写 = 能建目录 + 能写探针文件（两者都过才算）。
@@ -237,6 +309,25 @@ impl Logger {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+
+    /// 迁移：同卷 rename 生效，数据(配置/实例)跟着搬走，旧目录消失。
+    #[test]
+    fn migrate_moves_config_and_instances() {
+        let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("target").join(format!("migrate-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&base);
+        let old = base.join("old");
+        let new = base.join("new");
+        std::fs::create_dir_all(old.join("instances")).unwrap();
+        std::fs::write(old.join("app.json"), b"{}").unwrap();
+        std::fs::write(old.join("instances").join("a.json"), b"{}").unwrap();
+
+        migrate_data_dir(&old, &new);
+
+        assert!(new.join("app.json").exists(), "配置没搬过去");
+        assert!(new.join("instances").join("a.json").exists(), "实例没搬过去");
+        let _ = std::fs::remove_dir_all(&base);
+    }
 
     #[test]
     fn norm_path_is_case_insensitive_and_trimmed() {

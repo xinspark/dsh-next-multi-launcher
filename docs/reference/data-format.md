@@ -22,7 +22,7 @@
 
 ## 2. 启动器配置 `app.json`
 
-位置：`<数据目录>\app.json`（默认 `%LOCALAPPDATA%\DSH-NEXT-Multi\`，便携模式为 `<应用根>\DSH-NEXT-Multi-data\`）。
+位置：`<数据目录>\app.json`。默认数据目录是**「文档」下的 `DSH-NEXT-Multi`**（跟随用户重定向，可能在 D: 或 OneDrive）；便携模式为 `<应用根>\DSH-NEXT-Multi-data\`；`DSH_MULTI_DATA_DIR` 可覆盖。旧位置的 `%LOCALAPPDATA%\DSH-NEXT-Multi` 会在首次启动时自动迁移一次。
 
 ```json
 {

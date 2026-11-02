@@ -4,6 +4,7 @@
   import { listen } from '@tauri-apps/api/event';
 
   import { api, errorText, type UiError } from './lib/api';
+  import { refreshAll } from './lib/refresh.svelte.js';
   import { translate, type Lang } from './lib/i18n';
   import type { ConfigPatch, InstanceView, PermissionReport, Snapshot, OnboardingView } from './lib/types';
   import { shortPath } from './lib/format';
@@ -50,6 +51,8 @@
     'notice.signing.sha256',
     'notice.signing.smartScreen'
   ] as const;
+  /** 在线状态自动刷新间隔：10 分钟 */
+  const ONLINE_REFRESH_MS = 10 * 60 * 1000;
   const NOTICE_MS =
     Number(new URLSearchParams(location.search).get('noticeMs')) || 30_000;
   let noticeIndex = $state(0);
@@ -59,6 +62,8 @@
   );
 
   let pollTimer: ReturnType<typeof setInterval> | undefined;
+  /** 在线状态（版本目录 + 更新检查）每 10 分钟刷新一次 */
+  let onlineTimer: ReturnType<typeof setInterval> | undefined;
   let tickTimer: ReturnType<typeof setInterval> | undefined;
   let toastTimer: ReturnType<typeof setTimeout> | undefined;
   let noticeTimer: ReturnType<typeof setInterval> | undefined;
@@ -154,6 +159,9 @@
     else if (location.hash === '#launch') view = 'launch';
     pollTimer = setInterval(refresh, 2000);
     noticeTimer = setInterval(advanceNotice, NOTICE_MS);
+    // 启动拉一次（版本目录 + 更新检查一起），之后每 10 分钟一次；其余时候只有手动「刷新」
+    void refreshAll();
+    onlineTimer = setInterval(() => void refreshAll(true), ONLINE_REFRESH_MS);
     tickTimer = setInterval(() => (now = Date.now()), 1000);
     try {
       unlisten = await listen('launch:progress', () => {
@@ -166,6 +174,7 @@
 
   onDestroy(() => {
     if (pollTimer) clearInterval(pollTimer);
+    if (onlineTimer) clearInterval(onlineTimer);
     if (tickTimer) clearInterval(tickTimer);
     if (toastTimer) clearTimeout(toastTimer);
     unlisten?.();
