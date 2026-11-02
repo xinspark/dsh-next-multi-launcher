@@ -10,6 +10,8 @@
 所以我做了这个启动器：**每个实例一个完整独立的数据目录**，给汐一个只属于它的家。
 它就是同一份 DSH-NEXT 安装跑出的多个原生窗口——真窗口、真托盘、真 Community Market，不是 webview 套壳。
 
+> 简称「**NUL 启动器**」（图标右下角的下标即 NUL）。
+
 [![CI](https://github.com/XinSpark/dsh-next-multi-launcher/actions/workflows/ci.yml/badge.svg)](https://github.com/XinSpark/dsh-next-multi-launcher/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078D6.svg)](#平台支持)
