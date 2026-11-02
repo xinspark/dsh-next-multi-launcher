@@ -9,7 +9,7 @@
 
 ## 1. 自动化测试
 
-### 1.1 单元测试（51 项）
+### 1.1 单元测试（53 项）
 
 ```powershell
 cargo test --manifest-path src-tauri/Cargo.toml
@@ -30,8 +30,8 @@ cargo test --manifest-path src-tauri/Cargo.toml
 实测：
 
 ```
-running 51 tests
-test result: ok. 51 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+running 53 tests
+test result: ok. 53 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 ```
 
 ### 1.2 端到端（替身进程，15 项断言）

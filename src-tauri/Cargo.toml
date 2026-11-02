@@ -1,6 +1,6 @@
 [package]
 name = "dsh-next-multi-launcher"
-version = "1.0.1"
+version = "1.0.2"
 description = "DSH-NEXT 应用多开启动器"
 authors = ["XinSpark"]
 edition = "2021"
@@ -23,6 +23,16 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 sysinfo = "0.33"
 chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+
+# 自动发现走原生 API：COM IShellLink 解析快捷方式、winreg 读注册表，不依赖外部命令
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.62", features = [
+  "Win32_Foundation",
+  "Win32_Storage_FileSystem",
+  "Win32_System_Com",
+  "Win32_UI_Shell",
+] }
+winreg = "0.56"
 
 [features]
 # 生产构建（不连 dev server）时由 CLI 打开；不要把默认特性改成它。
