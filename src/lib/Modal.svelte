@@ -1,6 +1,7 @@
 <script lang="ts">
   // 通用模态外壳：遮罩 + 卡片 + 标题栏。内容用 snippet 传入。
   import type { Snippet } from 'svelte';
+  import Icon from './Icon.svelte';
 
   interface Props {
     title: string;
@@ -28,7 +29,9 @@
     <div class="modal-head">
       <span>{title}</span>
       <span class="spacer"></span>
-      <button class="btn icon tiny" aria-label="close" onclick={onClose}>✕</button>
+      <button class="btn icon tiny" aria-label="close" onclick={onClose}
+        ><Icon name="close" width={1.5} /></button
+      >
     </div>
     <div class="modal-body">
       {@render children()}

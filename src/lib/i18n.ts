@@ -10,7 +10,7 @@ const zh: Dict = {
   'app.subtitle': '原生多实例 · 数据隔离',
   'app.version': '版本 {version}',
 
-  'header.new': '+ 新建实例',
+  'header.new': '新建实例',
   'header.importVersion': '导入版本',
   'header.lang': 'EN',
   'header.settings': '设置',
@@ -348,7 +348,7 @@ const en: Dict = {
   'app.subtitle': 'Native multi-instance · isolated data',
   'app.version': 'v{version}',
 
-  'header.new': '+ New instance',
+  'header.new': 'New instance',
   'header.importVersion': 'Import version',
   'header.lang': '中文',
   'header.settings': 'Settings',

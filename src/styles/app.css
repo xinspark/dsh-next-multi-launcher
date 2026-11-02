@@ -65,6 +65,12 @@ button {
   color: inherit;
 }
 
+/* 原生图标（16×16，描边继承 currentColor）：不要给它加阴影或改尺寸，尺寸由 prop 决定 */
+.svg-icon {
+  flex: none;
+  display: block;
+}
+
 /* ------------------------------------------------------------ 骨架 */
 
 .app > * {
@@ -348,6 +354,7 @@ button {
   margin: 0;
   padding: 8px;
   min-width: max-content;
+  max-width: calc(100vw - 24px);
   gap: 4px;
   background: var(--dsw-alias-bg-layer-2);
   border: 0;
@@ -368,17 +375,26 @@ button {
 .dropdown-menu[popover] button {
   text-align: left;
   border: 0;
-  background: none;
+  background: transparent;
   color: var(--dsw-alias-label-primary);
-  padding: 6px 12px;
-  border-radius: var(--dsw-radius-sm);
+  /* 选项 = 原生 registryOption：radius-md(12) + padding 8/10 + gap 4 */
+  padding: 8px 10px;
+  border-radius: var(--dsw-radius-md);
   font: var(--dsw-font-xs-13);
   white-space: nowrap;
+  min-width: 0;
   cursor: pointer;
+  transition: background var(--ds-transition-duration-fast) var(--ds-ease-in-out);
 }
 
+/* 悬停底色曾经写成 bg-layer-2 —— 与浮层底色同一个值，肉眼完全看不见。 */
 .dropdown-menu[popover] button:hover {
-  background: var(--dsw-alias-bg-layer-2);
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+.dropdown-menu[popover] button:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 
@@ -461,21 +477,26 @@ button {
   white-space: nowrap;
 }
 
-/* 提示条内的小按钮：12px 字号 + 单倍行高（原生 pageIntro 的 13/20 之外，它是按钮不是正文） */
+/* 提示条里的「下一条」：按小号 ghost 按钮的规格（24px / radius-sm / border-l3），
+   保留品牌色作为行动色；此前它是一枚无边框的裸文字按钮，与全站控件不成体系。 */
 .notice-next {
   flex: none;
-  border: 0;
+  height: 24px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  border: 0.5px solid var(--dsw-alias-border-l3);
+  border-radius: var(--dsw-radius-sm);
   background: transparent;
   color: var(--dsw-alias-brand-primary);
   font: var(--dsw-font-xxs-12);
   line-height: 1;
-  padding: 2px 4px;
   cursor: pointer;
-  border-radius: var(--dsw-radius-sm);
+  transition: background var(--ds-transition-duration-fast) var(--ds-ease-in-out);
 }
 
 .notice-next:hover {
-  background: var(--dsw-alias-button-ghost-active-hover);
+  background: var(--dsw-alias-interactive-bg-hover);
 }
 
 /* ------------------------------------------------------------ 主区 */
@@ -484,8 +505,15 @@ button {
   display: grid;
   /* 第一列必须能收缩（minmax(0, 1fr)），否则行内 nowrap 内容会把详情面板顶出窗口 */
   grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
+  /* 第一行是页头（跨两列），第二行才是列表 + 详情 —— 三个视图的页头因此落在同一 y/左边距 */
+  grid-template-rows: auto minmax(0, 1fr);
   min-height: 0;
   min-width: 0;
+}
+
+.main > .page-head {
+  grid-column: 1 / -1;
+  padding: 14px 20px 0;
 }
 
 .list-pane {
@@ -751,8 +779,7 @@ button {
 /* 折叠标记 = 原生 chevron：transition .16s，展开态由 aria-expanded 驱动旋转 */
 .archive-toggle .caret {
   display: inline-flex;
-  width: 10px;
-  justify-content: center;
+  width: 16px;
   transition: transform 160ms ease;
 }
 

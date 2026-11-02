@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { InstanceView, VersionInfo } from './types';
   import { hhmm, formatDate, uptime, elapsedSec } from './format';
+  import Icon from './Icon.svelte';
 
   interface Props {
     view: InstanceView;
@@ -198,7 +199,8 @@
     <button
       class="btn ghost tiny"
       style="anchor-name: --restart-detail"
-      popovertarget="restart-detail">{t('restart.label')} ▾</button
+      popovertarget="restart-detail"
+      >{t('restart.label')}<Icon name="chevron-down" width={1.5} /></button
     >
     <div
       id="restart-detail"

@@ -27,12 +27,23 @@
     补 `prefers-reduced-motion` 降级；折叠条改由 `aria-expanded` 驱动箭头旋转
   - 13 处裸 `font-size` 改为 token 或「原生档位 + 显式行高」，`font-weight: 700` 收回 600
   - 「新建实例」主操作用中号按钮（36px，原生 `Button.md`），与顶栏其余小号按钮区分层级
+  - **三个视图页头统一到同一位置**：启动视图补上原生 `page-head`（标题「启动」+ 运行中/实例数），
+    与版本、设置的标题落在同一个 y 与左边距；实例列表的计数从列头移到页头，避免重复
+  - **提示条「下一条」**改成小号 ghost 按钮规格（24px / `radius-sm` / `border-l3`），
+    原来是没边框的裸文字按钮，与全站控件不成体系
+  - **下拉菜单**：浮层改原生 `registry` 规格（`bg-layer-2` + `elevation-prominent` + `radius-lg` + `padding 8`），
+    选项改原生 `registryOption`（`radius-md` + `padding 8/10`）；并**修掉 hover 底色与浮层同色**
+    （`bg-layer-2` 对 `bg-layer-2`，肉眼完全看不见悬停）——这是本次唯一的功能级样式缺陷
+  - **图标**：新增 `src/lib/icons.ts` + `src/lib/Icon.svelte`，path 逐字取自
+    `dsh-client-ui-primitives` 的 `Icon*Artwork`（16×16 / `fill:none` / 描边继承 `currentColor`），
+    替换四处字符图形：关闭 `✕`、下拉 `▾`×2、折叠 `▸`、新建实例的 `+`（文案同步去掉前置加号）
 
 ### 新增
 
 - `tools/lint-css.mjs`（`pnpm lint:css`，已接入 CI）：样式门禁四条规则——禁裸颜色、圆角只用 token、
   **字号必须与行高成对**、字重不出界
 - `src/lib/Switch.svelte`：原生开关组件
+- `src/lib/Icon.svelte` + `src/lib/icons.ts`：原生图标的唯一渲染口与 path 名册
 
 ## [1.0.5] - 2026-11-03
 

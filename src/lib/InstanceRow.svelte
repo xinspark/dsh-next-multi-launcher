@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { InstanceView } from './types';
   import { shortPath, hhmm, uptime, elapsedSec } from './format';
+  import Icon from './Icon.svelte';
 
   interface Props {
     view: InstanceView;
@@ -85,7 +86,8 @@
         class="btn tiny ghost"
         style="anchor-name: --restart-{inst.id}"
         popovertarget="restart-{inst.id}"
-        onclick={(e) => e.stopPropagation()}>{t('restart.label')} ▾</button
+        onclick={(e) => e.stopPropagation()}
+        >{t('restart.label')}<Icon name="chevron-down" width={1.5} /></button
       >
       <div
         id="restart-{inst.id}"

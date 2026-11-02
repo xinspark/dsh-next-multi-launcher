@@ -16,6 +16,7 @@
   import VersionView from './lib/VersionView.svelte';
   import SettingsView from './lib/SettingsView.svelte';
   import OnboardingPanel from './lib/OnboardingPanel.svelte';
+  import Icon from './lib/Icon.svelte';
   import brandUrl from './assets/brand.png';
   import brandLightUrl from './assets/brand-light.png';
   import Modal from './lib/Modal.svelte';
@@ -450,7 +451,10 @@
     <button class="btn ghost" onclick={toggleLang}>{t('header.lang')}</button>
     <button class="btn ghost" onclick={() => refresh()}>{t('header.refresh')}</button>
     {#if view === 'launch'}
-      <button class="btn primary md" onclick={() => (dialog = { kind: 'new' })}>{t('header.new')}</button>
+      <button class="btn primary md" onclick={() => (dialog = { kind: 'new' })}>
+      <Icon name="plus" width={1.5} />
+      {t('header.new')}
+    </button>
     {/if}
   </header>
 
@@ -541,11 +545,13 @@
   {/if}
 
   <main class="main">
+    <div class="page-head">
+      <h2>{t('nav.launch')}</h2>
+      <span class="field-hint">{t('footer.counts', { running: runningCount, total: activeViews.length })}</span>
+    </div>
     <section class="list-pane">
       <div class="pane-head">
         <span>{t('list.title')}</span>
-        <span class="spacer"></span>
-        <span>{t('footer.counts', { running: runningCount, total: activeViews.length })}</span>
       </div>
 
       <div class="list">
@@ -584,7 +590,7 @@
               if (e.key === 'Enter' || e.key === ' ') showArchived = !showArchived;
             }}
           >
-            <span class="caret" aria-hidden="true">▸</span>
+            <span class="caret" aria-hidden="true"><Icon name="chevron-right" width={1.5} /></span>
             <span>{t('list.archivedCount', { count: archivedViews.length })}</span>
           </div>
           {#if showArchived}
