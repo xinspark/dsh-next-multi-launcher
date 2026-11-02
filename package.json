@@ -1,6 +1,6 @@
 {
   "name": "dsh-next-multi-launcher",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "DSH-NEXT 应用多开启动器 / DSH-NEXT Multi-Launcher",
   "type": "module",
   "scripts": {
