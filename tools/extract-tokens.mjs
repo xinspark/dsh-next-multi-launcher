@@ -435,7 +435,7 @@ if (cssOut) {
   const darkDecl = (t) => `  ${t.name}: ${t.value.dark};`;
   const lines = [];
   lines.push('/* 由 tools/extract-tokens.mjs 从 DSH-NEXT app.asar 生成，请勿手改。');
-  lines.push(`   来源：${asarPath}`);
+  lines.push(`   来源：${portablePath(asarPath)}`);
   lines.push(`   asar sha256：${asarSha}`);
   lines.push(`   token 数：${tokens.length}（light ${light.length} / dark ${dark.length}） */`);
   lines.push('');

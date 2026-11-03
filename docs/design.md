@@ -379,6 +379,32 @@ fn assert_safe_delete_target(p: &Path, default_home: &Path) -> Result<()>;
 
 DSH-NEXT 升级流程：重跑 `extract-tokens` → diff → 重跑 `verify-tokens` + `lint-css` → 通过才抬基线版本号。
 
+### 7.4 控件与表面规格（样式改造后的基准）
+
+标尺是原生「插件详情页」（取证见 `docs-private/样式改造.md`，原生 CSS 真值存档在
+`docs-private/ref-plugin-detail-css.txt`）。**圆角不是一个数，而是按层分档**：
+
+| 层 | 规格 | 原生出处 |
+|---|---|---|
+| 卡片 | `radius-lg`(16) + `border-l2` + `padding 12` + `gap 8` | 设置页卡片 |
+| 输入框 | 32px / `radius-md`(12) / `border-l4` / `bg-layer-1` / `padding 0 8px` | `Input.module.css` |
+| 小按钮 | 28px / `radius-sm` / 13px / `padding 0 10px` / `gap 4px` | `Button.sm` |
+| 中按钮 | 36px / `radius-md` / 14px / `padding 0 14px` | `Button.md` |
+| 图标 | 16×16、`fill:none`、描边 `currentColor`；几何取自官方 `Icon*Artwork` | primitives |
+| 分段控件 | 轨道 `radius-md` + `interactive-bg-hover` + `padding 4` + `gap 2`；选中项 `radius-sm` + `bg-layer-1` + `shadow-lv1` | `SegmentedControl.module.css` |
+| 菜单（重启等） | `--dsw-menu-surface-fill` + `blur(40px) saturate(150%)` + `elevation-prominent`；行 32px / `radius-md` / 16px 图标位 | MenuSurface |
+| 选择器（版本等） | 闭合 `registryToggle`；展开 `registry` + `registryOption`（选中行加粗 + 对勾） | registry |
+| 说明块 / 告警块 | `guide`（`border-l4` + `radius-lg` + `bg-layer-1`）/ `approval`（`warn-tertiary` + 40% 混色描边） | plugin-manager |
+| 焦点环 | 2px，颜色 `--dsw-focus-ring-color`；**鼠标模态不画环**（`html[data-input-modality=pointer]`） | `parts/focus.css` |
+| 动效 | 过渡用 `--ds-transition-duration-fast`；`prefers-reduced-motion` 关装饰过渡（进度指示不关） | — |
+
+**两类浮层不能混**：菜单是"半透明模糊表面 + 抬起"，选择器是"实心表层 + 描边"。
+曾经两者都按 registry 画，结果是菜单既要 backdrop 又要实底，最后变成"看得见穿"。
+
+样式文件按层拆分，导入顺序即层叠顺序（`src/main.ts`）：
+`base.css`（reset/焦点/图标/骨架/基元）→ `chrome.css`（指针条/提示条/浮层/徽标）→
+`panes.css`（主区/向导/开关/详情/模态/底栏）→ `views.css`（三视图/选择器/下载/动效）。
+
 ## 8. 错误码与文案
 
 | 码 | 场景 | 行内文案（中文） | 处理建议 |

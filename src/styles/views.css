@@ -1,0 +1,275 @@
+/* 视图层：启动 / 版本 / 设置三视图、文件选择器、在线下载状态、动效降级。 */
+
+/* ------------------------------------------------------------ 三视图（启动 / 版本 / 设置） */
+
+/* 视图切换 = 原生 SegmentedControl：轨道 radius-md + interactive-bg-hover + padding 4 + gap 2，
+   选中项是一枚抬起的小胶囊（bg-layer-1 + shadow-lv1）。原生用绝对定位的滑动指示器（靠 CSS 变量算位置），
+   这里只有 3 个固定项，静态胶囊是同一观感的最简实现。 */
+.nav-tabs {
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 2px;
+  padding: 4px;
+  border-radius: var(--dsw-radius-md);
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+.nav-tab {
+  border: 0;
+  background: transparent;
+  color: var(--dsw-alias-label-secondary);
+  font: var(--dsw-font-xs-13);
+  font-weight: 500;
+  height: 28px;
+  padding: 0 14px;
+  border-radius: var(--dsw-radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--ds-transition-duration-fast) var(--ds-ease-in-out);
+}
+
+.nav-tab:hover {
+  color: var(--dsw-alias-label-primary);
+}
+
+.nav-tab.active {
+  background: var(--dsw-alias-bg-layer-1);
+  box-shadow: var(--dsw-shadow-lv1);
+  color: var(--dsw-alias-label-primary);
+}
+
+.page {
+  padding: 14px 20px 90px;
+  overflow: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.page-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+/* 页标题 = 原生 pageTitle：20/28 字重 500 */
+.page-head h2 {
+  margin: 0;
+  font: var(--dsw-font-l-20);
+  color: var(--dsw-alias-label-primary);
+}
+
+/* 卡片 = 原生设置页卡片：radius-lg(16) / border-l2 / 内边距 12 / 间距 8 */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  border-radius: var(--dsw-radius-lg);
+  background: var(--dsw-alias-settings-card-fill);
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: var(--dsw-font-xs-13);
+  font-weight: 600;
+  color: var(--dsw-alias-label-primary);
+}
+
+.row-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: var(--dsw-radius-sm);
+}
+
+.row-item:hover {
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+/* 渠道切换：与顶栏同一套原生分段控件形态（`.segmented` 是轨道，`.tab` 是分段） */
+.tabs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.segmented {
+  display: inline-grid;
+  grid-auto-flow: column;
+  gap: 2px;
+  padding: 4px;
+  /* 轨道按内容宽度收缩：它常住在 flex 列里，不写 fit-content 会被拉满整行 */
+  width: fit-content;
+  border-radius: var(--dsw-radius-md);
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+.tab {
+  border: 0;
+  background: transparent;
+  color: var(--dsw-alias-label-secondary);
+  font: var(--dsw-font-xs-13);
+  font-weight: 500;
+  height: 28px;
+  padding: 0 16px;
+  border-radius: var(--dsw-radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--ds-transition-duration-fast) var(--ds-ease-in-out);
+}
+
+.tab:hover {
+  color: var(--dsw-alias-label-primary);
+}
+
+.tab.active {
+  background: var(--dsw-alias-bg-layer-1);
+  box-shadow: var(--dsw-shadow-lv1);
+  color: var(--dsw-alias-label-primary);
+}
+
+.save-bar {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding: 10px 14px;
+  border-top: 0.5px solid var(--dsw-alias-border-l2);
+  background: var(--dsw-alias-bg-base);
+}
+
+.save-bar .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--dsw-alias-state-warn-primary);
+}
+
+.star-card {
+  border-color: var(--dsw-alias-brand-primary);
+}
+
+.star-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.star-title {
+  font: var(--dsw-font-xs-13);
+  font-weight: 600;
+  color: var(--dsw-alias-label-primary);
+}
+
+.field-hint.warn {
+  color: var(--dsw-alias-state-warn-label);
+}
+
+.inline.wrap {
+  flex-wrap: wrap;
+}
+
+.input.narrow {
+  max-width: 120px;
+}
+
+.btn.active {
+  background: var(--dsw-alias-button-ghost-active-hover);
+  color: var(--dsw-alias-label-primary);
+}
+
+/* ------------------------------------------------------------ 在线下载：加载 / 失败 */
+
+/* 转圈只用一条 token 动画（--animate-spin 来自 DSH 原生名册） */
+.spinner {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  border: 2px solid var(--dsw-alias-border-l3);
+  border-top-color: var(--dsw-alias-label-secondary);
+  border-radius: 50%;
+  animation: var(--animate-spin);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 2px;
+  font: var(--dsw-font-xxs-12);
+  color: var(--dsw-alias-label-secondary);
+}
+
+.load-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 0.5px solid var(--dsw-alias-state-error-secondary);
+  border-radius: var(--dsw-radius-sm);
+  background: color-mix(in srgb, var(--dsw-alias-state-error-primary) 8%, transparent);
+  font: var(--dsw-font-xxs-12);
+  color: var(--dsw-alias-label-primary);
+}
+
+.load-error-mark {
+  flex: none;
+  font: var(--dsw-font-xxs-12);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--dsw-alias-state-error-primary);
+}
+
+.load-error-title {
+  flex: none;
+  color: var(--dsw-alias-state-error-primary);
+}
+
+.load-error-detail {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--dsw-alias-label-secondary);
+}
+
+.badge.kind {
+  color: var(--dsw-alias-label-caption);
+  border-color: var(--dsw-alias-border-l2);
+}
+
+/* ------------------------------------------------------------ 动效降级 */
+
+/* 原生在 prefers-reduced-motion 下把过渡关掉（见 plugin-manager 的 guide/details chevron）。
+   只关装饰性过渡，不关进度指示（.spinner 是"正在发生"的唯一信号）。 */
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .row,
+  .row-item,
+  .tab,
+  .nav-tab,
+  .notice-next,
+  .archive-toggle,
+  .archive-toggle .caret,
+  .switch,
+  .switch .thumb,
+  .dropdown-menu[popover] button {
+    transition: none;
+  }
+}

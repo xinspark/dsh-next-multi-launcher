@@ -22143,8 +22143,8 @@
   "skipped": [],
   "generatedCss": {
     "path": "src/styles/tokens.css",
-    "sha256": "f59444033c5f580c5df98ae4060dedbf70c77f69b27b049a59765030e8f1ca61",
-    "bytes": 90804
+    "sha256": "29856260ecdd02741b6a15dbe95d6ffdf651b4f7b378a073fd3c3d8ff54fb45b",
+    "bytes": 90794
   },
   "undefinedRefs": [
     {

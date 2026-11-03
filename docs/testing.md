@@ -110,6 +110,30 @@ node tools/lint-css.mjs
 红/绿对照：把任一 `font: var(--dsw-font-xs-13)` 改回 `font-size: 13px`（不带 `line-height`）→
 必须报两条红（"该档有 token" + "没有配 line-height"）；还原 → 绿。
 
+### 1.3.2 视觉验收（截图）
+
+样式类改动没法用断言证明"像原生"，所以留了一步截图核对。做法是真机窗口 + CDP：
+
+```powershell
+# 1) 用隔离数据目录起真机窗口，并打开调试端口
+$env:DSH_MULTI_DATA_DIR='<临时目录>\data'
+$env:DSH_MULTI_WINDOW_SIZE='1400x1010'
+$env:WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS='--remote-debugging-port=9333'
+.\DSH-NEXT-Multi.exe
+# 2) 连 CDP 切视图 + Page.captureScreenshot（DPR 1.4）
+# 3) 与 docs/images/ui-*.png 并排比对：控件高度、圆角、字号、间距逐项看
+```
+
+判据分两类：
+
+- **可读计算值**：圆角、字号、行高、表面色——`Runtime.evaluate` 读 `getComputedStyle`
+  （本轮实测 `card 16px` / `input 12px` / `segment track 12px` / 菜单 `blur(40px) saturate(1.5)`）；
+- **只能看图**：页头位置、横幅高度、行内按钮是否挤在一起。本轮两次缺陷都是看图发现的——
+  横幅落进 `1fr` 行被拉成整屏高、菜单在窗口底部被裁。
+
+`docs/images/ui-main.png` / `ui-versions.png` / `ui-settings.png` / `ui-onboarding.png`
+随每次样式改动重截（浅色、1400×1010@1.4），避免文档展示的是过期界面。
+
 ### 1.4 初始化向导（1.0.3 实测）
 
 用独立数据目录起一个干净环境，逐项点过：

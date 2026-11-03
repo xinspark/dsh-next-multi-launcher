@@ -9,50 +9,64 @@
 
 ### 变更
 
-- **样式改造：以原生「插件详情页」为标尺**（规格与取证见 `docs-private/样式改造.md`，
-  原生 CSS 真值存档在 `docs-private/ref-plugin-detail-css.txt`）。逐项对齐原生控件的**几何与字阶**：
-  - 圆角按元素层级分档：卡片 `8 → radius-lg(16)`、输入框与选择器 `8 → radius-md(12)`。
+- **样式改造：以原生「插件详情页」为标尺**。逐项对齐原生控件的几何、字阶与表面，
+  规格与取证见 `docs-private/样式改造.md`（原生 CSS 真值存档在 `docs-private/ref-plugin-detail-css.txt`）：
+  - 圆角按元素层级分档：卡片 `8 → radius-lg(16)`、输入框 `8 → radius-md(12)`；
     此前控件层几乎全用 `radius-sm`，是"不像原生"的最大单一来源
   - 输入框对齐原生 `Input`：描边 `border-l3 → l4`、底色 `bg-layer-2 → bg-layer-1`、内边距 `10 → 8`；
     卡片内边距 `12/14 → 12`、间距 `10 → 8`
   - 页标题 `15px/600 → 20/28/500`（原生 `pageTitle`）；向导标题 `15/600 → 18/26/600`（原生 `wizardTitle`）
-  - 顶栏视图切换与版本渠道切换统一成原生 `SegmentedControl` 形态：轨道 `radius-md` + `interactive-bg-hover`，
-    选中项是抬起的 `bg-layer-1` 胶囊 + `shadow-lv1`；替换原来的 `999px` 胶囊 + 主色实心
+  - 13 处裸 `font-size` 改为 token 或「原生档位 + 显式行高」，`font-weight: 700` 收回 600
+  - 顶栏视图切换、版本渠道切换、语言、主题统一成原生 `SegmentedControl` 形态：
+    轨道 `radius-md` + `interactive-bg-hover`，选中项是抬起的 `bg-layer-1` 胶囊 + `shadow-lv1`
   - 顶部提示条改为原生 `guide` 块（`border-l4` + `radius-lg` + `bg-layer-1`）；
     黄条 / 红条改为原生 `approval` 块（`radius-lg` + `warn-tertiary` 底 + 40% 混色描边）
-  - 下拉浮层改为原生 `registry` 浮层（`bg-layer-2` + `elevation-prominent` + `radius-lg` + `padding 8` + `gap 4`）
-  - **顶栏改三列栅格**：左右各 `1fr`、中间 `auto`，「启动 / 版本 / 设置」的分段控件**永远停在窗口正中**，
-    不再随右侧按钮数量（启动页多一个「新建实例」）左右漂移 —— 三视图实测同一个 x
-  - **菜单改用官方 MenuSurface 三件套**（`--dsw-menu-surface-fill` + `blur(40px) saturate(150%)` + `elevation-prominent`），
-    行高 32px / `radius-md` / 16px 图标位；并加 `position-try-fallbacks: flip-block` ——
-    **修掉详情面板底部那颗菜单向下开出窗口、被裁掉一半的缺陷**
-  - **版本选择器不再是原生 `<select>`**（它的下拉列表无法上样式）：新增 `SelectMenu.svelte`，
-    闭合态对齐原生 `registryToggle`、展开态对齐 `registry` + `registryOption`（选中行加粗 + 对勾），
-    详情 / 新建实例 / 初始化向导三处统一使用
-  - 重启按钮的箭头换成原生 chevron（12px / 线宽 1.2，`label-tertiary`），菜单项补图标（重启 / 安全模式）
-  - 补原生 `Switch`（36×20 轨道 / 16 拇指 / 状态键在 `aria-checked`）：设置页「恢复指针」「自动检查更新」
-    由复选框换成开关；**多选**（版本候选、删除确认）继续用 `checkbox`，并按原生 `Checkbox` 对齐 16×16 + `accent-color`
+  - 「下一条」由裸文字按钮改为小号 ghost 规格（24px / `radius-sm` / `border-l3`）
   - 焦点环改走 `--dsw-focus-ring-color` + 输入模态分流（鼠标点击不画环、键盘导航才画）；
     补 `prefers-reduced-motion` 降级；折叠条改由 `aria-expanded` 驱动箭头旋转
-  - 13 处裸 `font-size` 改为 token 或「原生档位 + 显式行高」，`font-weight: 700` 收回 600
-  - 「新建实例」主操作用中号按钮（36px，原生 `Button.md`），与顶栏其余小号按钮区分层级
-  - **三个视图页头统一到同一位置**：启动视图补上原生 `page-head`（标题「启动」+ 运行中/实例数），
-    与版本、设置的标题落在同一个 y 与左边距；实例列表的计数从列头移到页头，避免重复
-  - **提示条「下一条」**改成小号 ghost 按钮规格（24px / `radius-sm` / `border-l3`），
-    原来是没边框的裸文字按钮，与全站控件不成体系
-  - **下拉菜单**：浮层改原生 `registry` 规格（`bg-layer-2` + `elevation-prominent` + `radius-lg` + `padding 8`），
-    选项改原生 `registryOption`（`radius-md` + `padding 8/10`）；并**修掉 hover 底色与浮层同色**
-    （`bg-layer-2` 对 `bg-layer-2`，肉眼完全看不见悬停）——这是本次唯一的功能级样式缺陷
-  - **图标**：新增 `src/lib/icons.ts` + `src/lib/Icon.svelte`，path 逐字取自
-    `dsh-client-ui-primitives` 的 `Icon*Artwork`（16×16 / `fill:none` / 描边继承 `currentColor`），
-    替换四处字符图形：关闭 `✕`、下拉 `▾`×2、折叠 `▸`、新建实例的 `+`（文案同步去掉前置加号）
+- **两类浮层分清楚**（此前一律按同一种画，导致"半透明看得见穿"）：
+  - 菜单（重启等）用官方 **MenuSurface 三件套**：`--dsw-menu-surface-fill` + `blur(40px) saturate(150%)`
+    + `elevation-prominent`；行高 32px / `radius-md` / 16px 图标位
+  - 选择器（版本等）用 **registry 浮层**：`registryToggle` 闭合态 + `registry` / `registryOption` 展开态
+    （选中行加粗 + 对勾）；原生 `<select>` 的弹出列表无法上样式，已由 `SelectMenu.svelte` 取代
+- **顶栏改三列栅格**：左右各 `1fr`、中间 `auto`，分段控件永远停在窗口正中，
+  不再随右侧按钮数量（启动页多一个「新建实例」）左右漂移
+- **页头位置统一**：指针条与全部横幅上移到三视图共用区，启动视图补上 `page-head`
+  （标题「启动」+ 运行中/实例数）；三视图标题实测落在同一个 y 与左边距
+- 补原生 `Switch`（36×20 / 16 拇指 / 状态键在 `aria-checked`）：设置页「恢复指针」「自动检查更新」
+  由复选框换成开关；**多选**（版本候选、删除确认）继续用 `checkbox`，按原生 `Checkbox` 对齐 16×16 + `accent-color`
+- **图标**：新增原生图标渲染口，path 逐字取自 `dsh-client-ui-primitives` 的 `Icon*Artwork`
+  （16×16 / `fill:none` / 描边继承 `currentColor`），替换 `✕`、`▾`×2、`▸`、`+` 四处字符图形
+  （「新建实例」文案同步去掉前置加号）；重启按钮箭头改为 12px 原生 chevron
+- 「新建实例」主操作用中号按钮（36px，原生 `Button.md`），与顶栏其余小号按钮区分层级
+
+### 修复
+
+- **菜单在窗口底部被裁**：详情面板底部那颗菜单总是向下开，开出窗口一半不可见。
+  加 `position-try-fallbacks: flip-block`，空间不够自动向上翻
+- **菜单悬停看不见**：`button:hover` 用了与浮层底色相同的 `bg-layer-2`，改成 `interactive-bg-hover`
+- **横幅被拉成整屏高**：`.app` 原本写死 5 行栅格，而横幅数量在 0~7 条之间变化，
+  多出来的一条会落进 `1fr` 行；改成纵向 flex + 内容区 `flex: 1`
+- **版本页「本地导入」**的输入框占位符是开发者本机路径（且反斜杠被双重转义），改为字典文案；
+  该行补上「选择目录」按钮
 
 ### 新增
 
 - `tools/lint-css.mjs`（`pnpm lint:css`，已接入 CI）：样式门禁四条规则——禁裸颜色、圆角只用 token、
   **字号必须与行高成对**、字重不出界
-- `src/lib/Switch.svelte`：原生开关组件
 - `src/lib/Icon.svelte` + `src/lib/icons.ts`：原生图标的唯一渲染口与 path 名册
+- `src/lib/Switch.svelte`：原生开关
+- `src/lib/SelectMenu.svelte`：原生风格下拉选择（替代原生 `<select>`）
+- `src/lib/DirPickButton.svelte`：「选择目录」按钮，设置 / 向导 / 版本导入三处共用
+
+### 维护
+
+- **样式按层拆分**：`app.css`（1519 行）→ `base.css` / `chrome.css` / `panes.css` / `views.css`，
+  导入顺序即层叠顺序；拆分前后声明序列逐条比对一致（1219 条）
+- **生成物不再记录本机路径**：`extract-tokens` 的 asar 位置改为 `--asar` → `DSH_ASAR` → 常见安装目录，
+  lock / controls / 生成的 `tokens.css` 头部只写可移植路径；
+  `icon-linked` 同理（`DSH_APP_ICON`）
+- 删除一次性宣传脚本 `tools/promo/`（引用私有路径与凭据文件）；测试夹具里的本机路径统一为中性示例
 
 ## [1.0.5] - 2026-11-03
 
