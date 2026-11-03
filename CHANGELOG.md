@@ -5,7 +5,7 @@
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
-## [Unreleased]
+## [1.1.0] - 2026-11-03
 
 ### 变更
 
@@ -230,7 +230,8 @@
 - 多开时全局指针唯一，同时运行多个非默认实例时只有最后启动的那个能正确重启
 - SmartScreen 对未签名 exe 的红色拦截无法用自签名消除
 
-[Unreleased]: https://github.com/XinSpark/dsh-next-multi-launcher/compare/v1.0.5...HEAD
+[Unreleased]: https://github.com/XinSpark/dsh-next-multi-launcher/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/XinSpark/dsh-next-multi-launcher/releases/tag/v1.1.0
 [1.0.5]: https://github.com/XinSpark/dsh-next-multi-launcher/releases/tag/v1.0.5
 [1.0.4]: https://github.com/XinSpark/dsh-next-multi-launcher/releases/tag/v1.0.4
 [1.0.3]: https://github.com/XinSpark/dsh-next-multi-launcher/releases/tag/v1.0.3
