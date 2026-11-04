@@ -1,6 +1,6 @@
 [package]
 name = "dsh-next-multi-launcher"
-version = "1.1.0"
+version = "1.1.1"
 description = "DSH-NEXT 应用多开启动器"
 authors = ["XinSpark"]
 edition = "2021"
