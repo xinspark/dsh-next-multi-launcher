@@ -11,6 +11,7 @@ use crate::launcher::{stop_instance, LaunchRequest};
 use crate::model::{
     Config, Instance, InstanceView, LaunchPhase, Snapshot, StopOutcome, VersionInfo,
 };
+use crate::pointer::LastHome;
 use crate::scan;
 use crate::store::{self, normalize_home, same_home, slugify};
 use crate::util::{now_iso, path_eq};
@@ -219,7 +220,7 @@ pub fn instance_delete(
     if let Some(current) = state.pointer.read_home() {
         if same_home(&current, &inst.home) {
             let cfg = state.config.lock().unwrap().clone();
-            let _ = state.pointer.restore_default(&cfg.default_home);
+            let _ = restore_default_pointer(&state, &cfg.default_home);
         }
     }
     state
@@ -334,12 +335,22 @@ pub fn instance_restart(
 
 // ---------------------------------------------------------------- 指针 / 配置
 
+/// 指针与「上次启动目录」一起还原。
+/// 只还指针的话，DSH-NEXT 下次启动会拿旧 last-home 比对，弹出「数据目录与上次不同」。
+fn restore_default_pointer(state: &AppState, home: &str) -> Result<(), AppError> {
+    state.pointer.restore_default(home)?;
+    if let Err(err) = LastHome::beside(&state.pointer).restore_default(home) {
+        state.logger().error(format!("还原上次启动目录失败：{err}"));
+    }
+    Ok(())
+}
+
 #[tauri::command]
 pub fn pointer_restore_default(
     state: State<'_, AppState>,
 ) -> Result<crate::model::PointerSnapshot, AppError> {
     let cfg = state.config.lock().unwrap().clone();
-    state.pointer.restore_default(&cfg.default_home)?;
+    restore_default_pointer(&state, &cfg.default_home)?;
     state
         .logger()
         .info(format!("指针已还原为默认 home {}", cfg.default_home));

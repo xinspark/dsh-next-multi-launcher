@@ -9,7 +9,7 @@
 
 ## 1. 自动化测试
 
-### 1.1 单元测试（72 项）
+### 1.1 单元测试（78 项）
 
 ```powershell
 cargo test --manifest-path src-tauri/Cargo.toml
@@ -19,9 +19,9 @@ cargo test --manifest-path src-tauri/Cargo.toml
 |---|---|
 | `asar` | 索引解析、缺 kernel 降级为 `?`、坏头不 panic、`offset` 为字符串也能读、unpacked 条目 |
 | `scan` | 引号/无引号/转义引号的 `--user-data-dir`、host 的 `\profiles\`（含**路径带空格**）、主进程角色判定、两 home 分组、安全模式识别 |
-| `pointer` | 写→读→回滚、两空格缩进格式、缺文件/坏 JSON、恢复默认 |
+| `pointer` | 写→读→回滚、两空格缩进格式、缺文件/坏 JSON、恢复默认、**目录里不再留 `.launcher-bak`**、`last-home` 与指针同目录/写→回滚/恢复默认 |
 | `store` | 配置默认值/夹取、实例 CRUD、home 重复 E1003、版本缺失 E1004、ID 规则 E1008、盘根拒绝、`home_root` 只提供默认值 |
-| `versions` | 扫描与 invalid 标记、登记校验、删除被引用 E1010、真实目录非空拒绝删 |
+| `versions` | 扫描与 invalid 标记、登记校验、删除被引用 E1010、真实目录非空拒绝删、**原地升级后改名登记并改实例引用**、真实目录不改名 |
 | `launcher` | 入队串行与位置、重复入队 E1012、找不到 exe → E1004 且不动指针、取消、状态归位 |
 | `guard` | 盘根 / 默认 home / `%USERPROFILE%` / 上级目录 / `..` / 数据目录 / 大小写不敏感 |
 | `discover` | `\\?\` 前缀剥离、UNC 还原、路径大小写不敏感比较、同目录只保留首次来源 |
@@ -30,8 +30,8 @@ cargo test --manifest-path src-tauri/Cargo.toml
 实测：
 
 ```
-running 72 tests
-test result: ok. 72 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+running 78 tests
+test result: ok. 78 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 ```
 
 ### 1.2 端到端（替身进程，15 项断言）
@@ -205,15 +205,21 @@ M2 的一处说明：在受限会话里 `sysinfo` 只能看到本作业内的进
    # 2) 新建两个实例（home 不同），依次点「启动」
    # 3) 观察：两个窗口、任务管理器里两条 --user-data-dir，各自 home 正确
    # 4) 顶栏「全局指针」应恢复为默认 home
+   # 5) 关键：切换实例时**不应**出现 DSH-NEXT 的「数据目录与上次不同」确认框
+   #    （出现过一次就说明 last-home 没同步；默认按钮会把这次启动改回上一个实例）
    ```
 
-2. **目录链接（mklink /J）**：受限进程无权创建解析点，`versions::register` 返回 E1004；
+2. **原地升级后版本号跟随**：拿旧版本登记一份链接，再用安装包原地升级它，重开启动器——
+   版本页应显示新版本号（`versions\<新版本>`），实例的版本字段也一并改过来。
+   单测 `versions::tests::reconcile_renames_link_and_remaps_instances` 覆盖同一路径。
+
+3. **目录链接（mklink /J）**：受限进程无权创建解析点，`versions::register` 返回 E1004；
    普通用户态下 `mklink /J` 可用。单测在支持时校验链接、不支持时校验错误码。
 
-3. **优雅关闭**：替身没有窗口，`taskkill` 的 WM_CLOSE 无效，故 e2e 用 `--force`；
+4. **优雅关闭**：替身没有窗口，`taskkill` 的 WM_CLOSE 无效，故 e2e 用 `--force`；
    真实 DSH 的 15 秒优雅关闭需手工点一次「停止」。
 
-4. **NSIS 安装包**：需要把 NSIS 下载到 `%LOCALAPPDATA%\tauri`，受限环境会被拒；
+5. **NSIS 安装包**：需要把 NSIS 下载到 `%LOCALAPPDATA%\tauri`，受限环境会被拒；
    普通用户态终端重跑 `pnpm tauri build` 即可得到安装包。
 
 ## 4. 复跑全部

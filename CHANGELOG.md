@@ -5,6 +5,28 @@
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.1.1] - 2026-11-05
+
+### 变更
+
+- **适配 DSH-NEXT `2.0.22-next` / 内核 `0.2.2-rc.1`**：设计 token 由 1158 增至 1191
+  （+34 / −1 / 33 个改值），`design/tokens.lock.json` 与 `src/styles/tokens.css` 重新抽取；
+  菜单表面 `--dsw-menu-surface-fill` 随之更新（浅 `#f8f9fa94 → #fcfdfeb3`、深 `#43454a73 → #303136a3`）
+
+### 修复
+
+- **原地升级后版本页仍显示旧版本号**：`versions\<tag>` 的目录名是登记那一刻写死的，
+  DSH-NEXT 原地升级只换掉链接目标里的内容，于是版本页停在旧号、实例版本字段也跟着过时、
+  「在线下载」认不出新版本已安装（旧版本反倒挂上「已安装」）。启动时对账
+  （`versions::reconcile`）：把链接改名成 asar 里的真实版本号，引用旧 tag 的实例一并改过来；
+  真实目录不改名，新版本号已有登记则跳过
+- **切换实例被「数据目录与上次不同」模态拦住**：DSH-NEXT 除指针外还维护
+  `desktop-next-last-home.json`，两者不一致就弹框，且默认按钮「改用上次的目录」会把这次启动
+  改回上一个实例（接着就是 `E1005` 超时）。新增 `pointer::LastHome`：与指针同写、失败同回滚、
+  成功后一起还原成默认 home
+- **指针备份无限增长**：`.launcher-bak[N]` 只是诊断用途，实测在 home 目录攒到 39 份。
+  旧值改为只留在内存里用于回滚，目录里不再落备份文件
+
 ## [1.1.0] - 2026-11-03
 
 ### 变更
@@ -230,7 +252,8 @@
 - 多开时全局指针唯一，同时运行多个非默认实例时只有最后启动的那个能正确重启
 - SmartScreen 对未签名 exe 的红色拦截无法用自签名消除
 
-[Unreleased]: https://github.com/XinSpark/dsh-next-multi-launcher/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/XinSpark/dsh-next-multi-launcher/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/XinSpark/dsh-next-multi-launcher/releases/tag/v1.1.1
 [1.1.0]: https://github.com/XinSpark/dsh-next-multi-launcher/releases/tag/v1.1.0
 [1.0.5]: https://github.com/XinSpark/dsh-next-multi-launcher/releases/tag/v1.0.5
 [1.0.4]: https://github.com/XinSpark/dsh-next-multi-launcher/releases/tag/v1.0.4

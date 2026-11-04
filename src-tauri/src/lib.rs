@@ -113,6 +113,14 @@ fn build_state(app: tauri::AppHandle, logger: Logger) -> AppState {
         Some(tag) => logger.info(format!("可用版本：{tag}")),
         None => logger.warn("没有可用版本，先在界面里导入一份解包目录"),
     }
+    // DSH-NEXT 原地升级后，`versions\<旧版本>` 这条链接的目标已经变成新版本：
+    // 把目录名与实例引用一起改过来，否则版本页会一直显示旧版本号。
+    for moved in versions.reconcile(&store) {
+        logger.info(format!(
+            "版本登记跟随安装树更新：{} → {}",
+            moved.from, moved.to
+        ));
+    }
     let first_version = versions.valid_tags().first().cloned().unwrap_or_default();
     if let Some(inst) = store.ensure_default_instance(&cfg, &first_version) {
         logger.info(format!("首次运行：已为默认数据目录建实例 {}", inst.id));

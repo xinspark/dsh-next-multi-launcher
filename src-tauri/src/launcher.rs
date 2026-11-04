@@ -11,7 +11,7 @@ use std::time::{Duration, Instant};
 
 use crate::errors::AppError;
 use crate::model::{Config, LastPointer, LaunchPhase, LaunchStatus, StopOutcome};
-use crate::pointer::Pointer;
+use crate::pointer::{LastHome, Pointer};
 use crate::scan;
 use crate::store::Store;
 use crate::util::{now_iso, Logger};
@@ -90,9 +90,11 @@ impl Launcher {
         let queue: Arc<Mutex<VecDeque<String>>> = Arc::new(Mutex::new(VecDeque::new()));
         let cancelled: Arc<Mutex<HashSet<String>>> = Arc::new(Mutex::new(HashSet::new()));
 
+        let record = LastHome::beside(&pointer);
         let worker = Worker {
             store,
             pointer,
+            record,
             config,
             logger,
             sink: sink.clone(),
@@ -233,6 +235,8 @@ impl Launcher {
 struct Worker {
     store: Store,
     pointer: Pointer,
+    /// `desktop-next-last-home.json`：DSH-NEXT 拿它和本次 home 比对，不同就弹数据目录确认框。
+    record: LastHome,
     config: Arc<Mutex<Config>>,
     logger: Logger,
     sink: Arc<dyn ProgressSink>,
@@ -306,6 +310,16 @@ impl Worker {
         self.cancelled.lock().unwrap().remove(id);
     }
 
+    /// 把指针与「上次启动目录」一起还原；还原失败只记日志（不覆盖原始的失败原因）。
+    fn rollback(&self, backup: &crate::pointer::PointerBackup, record: &Option<String>) {
+        if let Err(err) = self.pointer.restore(backup) {
+            self.logger.error(format!("回滚指针失败：{err}"));
+        }
+        if let Err(err) = self.record.restore(record) {
+            self.logger.error(format!("回滚上次启动目录失败：{err}"));
+        }
+    }
+
     fn handle(&mut self, req: LaunchRequest) {
         let id = req.instance_id.clone();
         let started = Instant::now();
@@ -343,7 +357,7 @@ impl Worker {
             return;
         }
 
-        // 2. 写指针（先备份）
+        // 2. 写指针（旧值留在内存里备用）
         let backup = match self.pointer.write(&req.home) {
             Ok(b) => b,
             Err(err) => {
@@ -352,8 +366,22 @@ impl Worker {
             }
         };
 
+        // 2b. 同步「上次启动目录」：不同步的话，DSH-NEXT 2.0.22 会把这次切实例当成
+        //     “数据目录与上次不同”，弹模态并要求确认，默认按钮还会改回上一个实例。
+        let record_prev = match self.record.write(&req.home) {
+            Ok(prev) => prev,
+            Err(err) => {
+                // 记录写失败时它本身没被改动，只回滚指针，别把旧的 last-home 删掉
+                if let Err(restore) = self.pointer.restore(&backup) {
+                    self.logger.error(format!("回滚指针失败：{restore}"));
+                }
+                self.fail(&id, started, err);
+                return;
+            }
+        };
+
         if self.is_cancelled(&id) {
-            let _ = self.pointer.restore(&backup);
+            self.rollback(&backup, &record_prev);
             self.emit(LaunchStatus::idle(&id));
             self.cancelled.lock().unwrap().remove(&id);
             return;
@@ -375,7 +403,7 @@ impl Worker {
         {
             Ok(c) => c,
             Err(err) => {
-                let _ = self.pointer.restore(&backup);
+                self.rollback(&backup, &record_prev);
                 self.fail(
                     &id,
                     started,
@@ -448,7 +476,7 @@ impl Worker {
             // 启动即退出：超过宽限期仍没有 home 进程
             if let Some(status) = child_exit {
                 if started.elapsed() >= EXIT_GRACE {
-                    let _ = self.pointer.restore(&backup);
+                    self.rollback(&backup, &record_prev);
                     self.fail(
                         &id,
                         started,
@@ -478,7 +506,7 @@ impl Worker {
             }
 
             if Instant::now() >= deadline {
-                let _ = self.pointer.restore(&backup);
+                self.rollback(&backup, &record_prev);
                 self.fail(
                     &id,
                     started,
@@ -523,6 +551,9 @@ impl Worker {
         // 启动成功 → 把指针还原成默认 home，保证双击图标仍进日常环境。
         // 代价（已知）：DSH-NEXT 内部重启会重新读指针，从而落到默认实例；
         // 因此“重启”统一由启动器发起（instance_restart），不在 DSH 内部点。
+        //
+        // 「上次启动目录」跟着一起还原：否则下次双击图标（指针=默认、记录=实例）
+        // 反而会撞上数据目录确认框，默认按钮还会把启动改回实例。
         if cfg.restore_pointer_after_launch {
             let default_home = cfg.default_home.clone();
             if !default_home.is_empty()
@@ -533,6 +564,10 @@ impl Worker {
             {
                 if let Err(err) = self.pointer.restore_default(&default_home) {
                     self.logger.error(format!("[{id}] 还原默认指针失败：{err}"));
+                }
+                if let Err(err) = self.record.restore_default(&default_home) {
+                    self.logger
+                        .error(format!("[{id}] 还原上次启动目录失败：{err}"));
                 }
             }
         }

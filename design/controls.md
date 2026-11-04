@@ -2,7 +2,7 @@
 
 > 由 `tools/extract-tokens.mjs` 从 DSH-NEXT `app.asar` 自动生成，请勿手改。
 > 基线 asar：`E:\FXS\APP\DSH NEXT\resources\app.asar`
-> asar sha256：`16f2c62b1ccc98a968d9c7cf5edcd7af7a1e7690c2fba8cea361d1726d0db349`
+> asar sha256：`c7057e19e777ff6423815268901ecfe30382323e0dc2e5405b7a7e915328607e`
 
 ## 1. 圆角刻度
 
@@ -35,11 +35,11 @@
 
 | 文件 | 字节 | sha256 | 说明 |
 | --- | --- | --- | --- |
-| scrollbar.css | 838 | `7457fa7bcde76d19981125c94c0a8afd7d83b1dac3f72bd418597bda35297c5b` | 原生滚动条 |
+| scrollbar.css | 860 | `e2b2b6f894032119b17d131e1924056530188eab04960159739ee4faa641a1c5` | 原生滚动条 |
 | focus.css | 298 | `77bcbea3e42c33667afa8e835bf798cc9bbc4bdcd0d37e796423af9dbd9bbded` | 焦点环 |
 | corner-shape.css | 141 | `b3ef70d30ee48289413e753be96b56a1e3273115d8123cc22105504dbd38ebe7` | 超椭圆圆角 |
-| Menu.module.css | 6491 | `77265cc046078c060ca2f5b700b31c77f024a32e1834ebd3a0fc8b4562c7134a` | 菜单表面 |
-| HoverCard.module.css | 1963 | `03e81485eb927d73f3db0352e8910c9bd6ce76fb8a7e5773ca16b2a61f151dfa` | 悬浮卡表面 |
+| Menu.module.css | 8046 | `832c783823216c61adeebec7c120efc71467d3ca7f829137c03e84ae71446f45` | 菜单表面 |
+| HoverCard.module.css | 2084 | `e5dc1c4235065942925aecd48b36c29c8f4df79ec571345b95fdd7f2fef82c02` | 悬浮卡表面 |
 
 ## 5. 抽不到的项（显式记录，不静默丢弃）
 

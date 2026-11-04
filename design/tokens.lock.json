@@ -3,13 +3,13 @@
   "tool": "tools/extract-tokens.mjs@1",
   "sourceAsar": {
     "path": "<install>/resources/app.asar",
-    "sha256": "16f2c62b1ccc98a968d9c7cf5edcd7af7a1e7690c2fba8cea361d1726d0db349",
-    "entries": 20948
+    "sha256": "c7057e19e777ff6423815268901ecfe30382323e0dc2e5405b7a7e915328607e",
+    "entries": 24863
   },
   "counts": {
-    "cssSources": 59,
-    "jsSources": 180,
-    "tokens": 1158,
+    "cssSources": 163,
+    "jsSources": 192,
+    "tokens": 1191,
     "parts": 5
   },
   "tokens": [
@@ -894,6 +894,42 @@
           "pkg": "@deepseek-ai/dsh-experimental-inspector",
           "file": "lib/devtools/application_tokens.css",
           "symbol": "application_tokens.css"
+        }
+      ]
+    },
+    {
+      "name": "--bundle-progress-size",
+      "valueType": "length",
+      "scopes": [
+        "light"
+      ],
+      "value": {
+        "light": "14px",
+        "dark": null
+      },
+      "sources": [
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-plugin-manager",
+          "file": "lib/client.js",
+          "symbol": "PluginManagerPage.module.css"
+        }
+      ]
+    },
+    {
+      "name": "--bundle-toggle-gap",
+      "valueType": "length",
+      "scopes": [
+        "light"
+      ],
+      "value": {
+        "light": "8px",
+        "dark": null
+      },
+      "sources": [
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-plugin-manager",
+          "file": "lib/client.js",
+          "symbol": "PluginManagerPage.module.css"
         }
       ]
     },
@@ -2310,8 +2346,8 @@
       "sources": [
         {
           "pkg": "@deepseek-ai/dsh-web-frontend",
-          "file": "dist/assets/index-BNyAYEM7.css",
-          "symbol": "index-BNyAYEM7.css"
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
         }
       ]
     },
@@ -2328,8 +2364,8 @@
       "sources": [
         {
           "pkg": "@deepseek-ai/dsh-web-frontend",
-          "file": "dist/assets/index-BNyAYEM7.css",
-          "symbol": "index-BNyAYEM7.css"
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
         }
       ]
     },
@@ -2347,8 +2383,8 @@
       "sources": [
         {
           "pkg": "@deepseek-ai/dsh-web-frontend",
-          "file": "dist/assets/index-BNyAYEM7.css",
-          "symbol": "index-BNyAYEM7.css"
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
         }
       ]
     },
@@ -2366,8 +2402,8 @@
       "sources": [
         {
           "pkg": "@deepseek-ai/dsh-web-frontend",
-          "file": "dist/assets/index-BNyAYEM7.css",
-          "symbol": "index-BNyAYEM7.css"
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
         }
       ]
     },
@@ -2385,8 +2421,41 @@
       "sources": [
         {
           "pkg": "@deepseek-ai/dsh-web-frontend",
-          "file": "dist/assets/index-BNyAYEM7.css",
-          "symbol": "index-BNyAYEM7.css"
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
+        }
+      ]
+    },
+    {
+      "name": "--dsh-button-outline-color",
+      "valueType": "color",
+      "scopes": [
+        "light"
+      ],
+      "value": {
+        "light": "var(--dsw-alias-state-error-primary)",
+        "dark": null
+      },
+      "sources": [
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-plugin-manager",
+          "file": "lib/client.js",
+          "symbol": "PluginManagerPage.module.css"
+        },
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-settings-account",
+          "file": "lib/client.js",
+          "symbol": "PlatformOverlay.module.css"
+        },
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-settings-account",
+          "file": "lib/client.js",
+          "symbol": "SignInDialog.module.css"
+        },
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-settings-models",
+          "file": "lib/client.js",
+          "symbol": "ModelsSection.module.css"
         }
       ]
     },
@@ -2415,7 +2484,7 @@
         "light"
       ],
       "value": {
-        "light": "6px",
+        "light": "4px",
         "dark": null
       },
       "sources": [
@@ -2706,8 +2775,8 @@
       "sources": [
         {
           "pkg": "@deepseek-ai/dsh-web-frontend",
-          "file": "dist/assets/index-BNyAYEM7.css",
-          "symbol": "index-BNyAYEM7.css"
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
         }
       ]
     },
@@ -2744,6 +2813,24 @@
           "pkg": "@deepseek-ai/dsh-client-ui-theme",
           "file": "lib/client.js",
           "symbol": "base.css"
+        }
+      ]
+    },
+    {
+      "name": "--dsh-frame-leading-clearance",
+      "valueType": "length",
+      "scopes": [
+        "light"
+      ],
+      "value": {
+        "light": "84px",
+        "dark": null
+      },
+      "sources": [
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-layout",
+          "file": "lib/client.js",
+          "symbol": "AppFrame.module.css"
         }
       ]
     },
@@ -2815,9 +2902,19 @@
           "symbol": "AttachmentRail.module.css"
         },
         {
+          "pkg": "@deepseek-ai/dsh-client-ui-chat",
+          "file": "lib/client.js",
+          "symbol": "stat-dialog.module.css"
+        },
+        {
           "pkg": "@deepseek-ai/dsh-client-ui-commands",
           "file": "lib/client.js",
           "symbol": "PopupSelectView.module.css"
+        },
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-conversation",
+          "file": "lib/client.js",
+          "symbol": "ContextMeter.module.css"
         },
         {
           "pkg": "@deepseek-ai/dsh-client-ui-conversation",
@@ -2925,6 +3022,11 @@
           "symbol": "TextPreview.module.css"
         },
         {
+          "pkg": "@deepseek-ai/dsh-client-ui-sidebar-files",
+          "file": "lib/client.js",
+          "symbol": "FilesBody.module.css"
+        },
+        {
           "pkg": "@deepseek-ai/dsh-client-ui-sidebar",
           "file": "lib/client.js",
           "symbol": "SidebarRoot.module.css"
@@ -2951,13 +3053,13 @@
         },
         {
           "pkg": "@deepseek-ai/dsh-web-frontend",
-          "file": "dist/assets/index-BNyAYEM7.css",
-          "symbol": "index-BNyAYEM7.css"
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
         },
         {
           "pkg": "lib",
-          "file": "native-ui/assets/permissions-OpSeQb0B.css",
-          "symbol": "permissions-OpSeQb0B.css"
+          "file": "native-ui/assets/permissions-DkS_AmmZ.css",
+          "symbol": "permissions-DkS_AmmZ.css"
         }
       ]
     },
@@ -3021,9 +3123,19 @@
           "symbol": "AttachmentRail.module.css"
         },
         {
+          "pkg": "@deepseek-ai/dsh-client-ui-chat",
+          "file": "lib/client.js",
+          "symbol": "stat-dialog.module.css"
+        },
+        {
           "pkg": "@deepseek-ai/dsh-client-ui-commands",
           "file": "lib/client.js",
           "symbol": "PopupSelectView.module.css"
+        },
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-conversation",
+          "file": "lib/client.js",
+          "symbol": "ContextMeter.module.css"
         },
         {
           "pkg": "@deepseek-ai/dsh-client-ui-conversation",
@@ -3136,6 +3248,11 @@
           "symbol": "TextPreview.module.css"
         },
         {
+          "pkg": "@deepseek-ai/dsh-client-ui-sidebar-files",
+          "file": "lib/client.js",
+          "symbol": "FilesBody.module.css"
+        },
+        {
           "pkg": "@deepseek-ai/dsh-client-ui-sidebar",
           "file": "lib/client.js",
           "symbol": "SidebarRoot.module.css"
@@ -3162,13 +3279,13 @@
         },
         {
           "pkg": "@deepseek-ai/dsh-web-frontend",
-          "file": "dist/assets/index-BNyAYEM7.css",
-          "symbol": "index-BNyAYEM7.css"
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
         },
         {
           "pkg": "lib",
-          "file": "native-ui/assets/permissions-OpSeQb0B.css",
-          "symbol": "permissions-OpSeQb0B.css"
+          "file": "native-ui/assets/permissions-DkS_AmmZ.css",
+          "symbol": "permissions-DkS_AmmZ.css"
         }
       ]
     },
@@ -3284,6 +3401,60 @@
         "light"
       ],
       "value": {
+        "light": "8px",
+        "dark": null
+      },
+      "sources": [
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-sidebar",
+          "file": "lib/client.js",
+          "symbol": "SidebarRoot.module.css"
+        }
+      ]
+    },
+    {
+      "name": "--dsh-sidebar-label-gap",
+      "valueType": "length",
+      "scopes": [
+        "light"
+      ],
+      "value": {
+        "light": "6px",
+        "dark": null
+      },
+      "sources": [
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-sidebar",
+          "file": "lib/client.js",
+          "symbol": "SidebarRoot.module.css"
+        }
+      ]
+    },
+    {
+      "name": "--dsh-sidebar-paint-inset",
+      "valueType": "length",
+      "scopes": [
+        "light"
+      ],
+      "value": {
+        "light": "3px",
+        "dark": null
+      },
+      "sources": [
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-sidebar",
+          "file": "lib/client.js",
+          "symbol": "SidebarRoot.module.css"
+        }
+      ]
+    },
+    {
+      "name": "--dsh-sidebar-row-padding",
+      "valueType": "length",
+      "scopes": [
+        "light"
+      ],
+      "value": {
         "light": "12px",
         "dark": null
       },
@@ -3292,6 +3463,24 @@
           "pkg": "@deepseek-ai/dsh-client-ui-sidebar",
           "file": "lib/client.js",
           "symbol": "SidebarRoot.module.css"
+        }
+      ]
+    },
+    {
+      "name": "--dsh-tab-hit-inline",
+      "valueType": "length",
+      "scopes": [
+        "light"
+      ],
+      "value": {
+        "light": "10px",
+        "dark": null
+      },
+      "sources": [
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-conversation",
+          "file": "lib/client.js",
+          "symbol": "ConversationRoot.module.css"
         }
       ]
     },
@@ -3408,13 +3597,13 @@
         },
         {
           "pkg": "@deepseek-ai/dsh-web-frontend",
-          "file": "dist/assets/index-BNyAYEM7.css",
-          "symbol": "index-BNyAYEM7.css"
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
         },
         {
           "pkg": "lib",
-          "file": "native-ui/assets/permissions-OpSeQb0B.css",
-          "symbol": "permissions-OpSeQb0B.css"
+          "file": "native-ui/assets/permissions-DkS_AmmZ.css",
+          "symbol": "permissions-DkS_AmmZ.css"
         }
       ]
     },
@@ -3436,13 +3625,13 @@
         },
         {
           "pkg": "@deepseek-ai/dsh-web-frontend",
-          "file": "dist/assets/index-BNyAYEM7.css",
-          "symbol": "index-BNyAYEM7.css"
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
         },
         {
           "pkg": "lib",
-          "file": "native-ui/assets/permissions-OpSeQb0B.css",
-          "symbol": "permissions-OpSeQb0B.css"
+          "file": "native-ui/assets/permissions-DkS_AmmZ.css",
+          "symbol": "permissions-DkS_AmmZ.css"
         }
       ]
     },
@@ -3459,13 +3648,13 @@
       "sources": [
         {
           "pkg": "@deepseek-ai/dsh-web-frontend",
-          "file": "dist/assets/index-BNyAYEM7.css",
-          "symbol": "index-BNyAYEM7.css"
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
         },
         {
           "pkg": "lib",
-          "file": "native-ui/assets/permissions-OpSeQb0B.css",
-          "symbol": "permissions-OpSeQb0B.css"
+          "file": "native-ui/assets/permissions-DkS_AmmZ.css",
+          "symbol": "permissions-DkS_AmmZ.css"
         }
       ]
     },
@@ -3492,13 +3681,13 @@
         },
         {
           "pkg": "@deepseek-ai/dsh-web-frontend",
-          "file": "dist/assets/index-BNyAYEM7.css",
-          "symbol": "index-BNyAYEM7.css"
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
         },
         {
           "pkg": "lib",
-          "file": "native-ui/assets/permissions-OpSeQb0B.css",
-          "symbol": "permissions-OpSeQb0B.css"
+          "file": "native-ui/assets/permissions-DkS_AmmZ.css",
+          "symbol": "permissions-DkS_AmmZ.css"
         }
       ]
     },
@@ -3520,13 +3709,13 @@
         },
         {
           "pkg": "@deepseek-ai/dsh-web-frontend",
-          "file": "dist/assets/index-BNyAYEM7.css",
-          "symbol": "index-BNyAYEM7.css"
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
         },
         {
           "pkg": "lib",
-          "file": "native-ui/assets/permissions-OpSeQb0B.css",
-          "symbol": "permissions-OpSeQb0B.css"
+          "file": "native-ui/assets/permissions-DkS_AmmZ.css",
+          "symbol": "permissions-DkS_AmmZ.css"
         }
       ]
     },
@@ -3581,8 +3770,8 @@
         },
         {
           "pkg": "@deepseek-ai/dsh-web-frontend",
-          "file": "dist/assets/index-BNyAYEM7.css",
-          "symbol": "index-BNyAYEM7.css"
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
         }
       ]
     },
@@ -3622,8 +3811,8 @@
         },
         {
           "pkg": "@deepseek-ai/dsh-web-frontend",
-          "file": "dist/assets/index-BNyAYEM7.css",
-          "symbol": "index-BNyAYEM7.css"
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
         }
       ]
     },
@@ -3645,8 +3834,8 @@
         },
         {
           "pkg": "@deepseek-ai/dsh-web-frontend",
-          "file": "dist/assets/index-BNyAYEM7.css",
-          "symbol": "index-BNyAYEM7.css"
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
         }
       ]
     },
@@ -3706,8 +3895,8 @@
         },
         {
           "pkg": "@deepseek-ai/dsh-web-frontend",
-          "file": "dist/assets/index-BNyAYEM7.css",
-          "symbol": "index-BNyAYEM7.css"
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
         }
       ]
     },
@@ -3724,8 +3913,8 @@
       "sources": [
         {
           "pkg": "@deepseek-ai/dsh-web-frontend",
-          "file": "dist/assets/index-BNyAYEM7.css",
-          "symbol": "index-BNyAYEM7.css"
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
         }
       ]
     },
@@ -3762,8 +3951,8 @@
         },
         {
           "pkg": "@deepseek-ai/dsh-web-frontend",
-          "file": "dist/assets/index-BNyAYEM7.css",
-          "symbol": "index-BNyAYEM7.css"
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
         }
       ]
     },
@@ -3836,8 +4025,8 @@
         },
         {
           "pkg": "@deepseek-ai/dsh-web-frontend",
-          "file": "dist/assets/index-BNyAYEM7.css",
-          "symbol": "index-BNyAYEM7.css"
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
         }
       ]
     },
@@ -3859,8 +4048,8 @@
         },
         {
           "pkg": "@deepseek-ai/dsh-web-frontend",
-          "file": "dist/assets/index-BNyAYEM7.css",
-          "symbol": "index-BNyAYEM7.css"
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
         }
       ]
     },
@@ -4851,6 +5040,120 @@
       ]
     },
     {
+      "name": "--dsw-alias-illustration-background",
+      "valueType": "alias",
+      "scopes": [
+        "dark",
+        "light"
+      ],
+      "value": {
+        "light": "var(--dsw-static-neutral-bluish-55)",
+        "dark": "var(--dsw-static-neutral-bluish-850)"
+      },
+      "sources": [
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-theme",
+          "file": "lib/client.js",
+          "symbol": "design-platform.css"
+        }
+      ]
+    },
+    {
+      "name": "--dsw-alias-illustration-backing",
+      "valueType": "alias",
+      "scopes": [
+        "dark",
+        "light"
+      ],
+      "value": {
+        "light": "var(--dsw-static-neutral-bluish-310)",
+        "dark": "var(--dsw-static-neutral-bluish-750)"
+      },
+      "sources": [
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-theme",
+          "file": "lib/client.js",
+          "symbol": "design-platform.css"
+        }
+      ]
+    },
+    {
+      "name": "--dsw-alias-illustration-detail",
+      "valueType": "alias",
+      "scopes": [
+        "dark",
+        "light"
+      ],
+      "value": {
+        "light": "var(--dsw-static-neutral-bluish-310)",
+        "dark": "var(--dsw-static-neutral-bluish-600)"
+      },
+      "sources": [
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-theme",
+          "file": "lib/client.js",
+          "symbol": "design-platform.css"
+        }
+      ]
+    },
+    {
+      "name": "--dsw-alias-illustration-inset",
+      "valueType": "alias",
+      "scopes": [
+        "dark",
+        "light"
+      ],
+      "value": {
+        "light": "var(--dsw-alias-illustration-surface)",
+        "dark": "var(--dsw-alias-illustration-backing)"
+      },
+      "sources": [
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-theme",
+          "file": "lib/client.js",
+          "symbol": "design-platform.css"
+        }
+      ]
+    },
+    {
+      "name": "--dsw-alias-illustration-shadow",
+      "valueType": "alias",
+      "scopes": [
+        "dark",
+        "light"
+      ],
+      "value": {
+        "light": "var(--dsw-alias-illustration-surface)",
+        "dark": "var(--dsw-alias-illustration-backing)"
+      },
+      "sources": [
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-theme",
+          "file": "lib/client.js",
+          "symbol": "design-platform.css"
+        }
+      ]
+    },
+    {
+      "name": "--dsw-alias-illustration-surface",
+      "valueType": "alias",
+      "scopes": [
+        "dark",
+        "light"
+      ],
+      "value": {
+        "light": "var(--dsw-static-neutral-bluish-90)",
+        "dark": "var(--dsw-static-neutral-bluish-700)"
+      },
+      "sources": [
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-theme",
+          "file": "lib/client.js",
+          "symbol": "design-platform.css"
+        }
+      ]
+    },
+    {
       "name": "--dsw-alias-interactive-bg-active",
       "valueType": "alias",
       "scopes": [
@@ -5625,6 +5928,25 @@
       ]
     },
     {
+      "name": "--dsw-alias-state-done-primary",
+      "valueType": "alias",
+      "scopes": [
+        "dark",
+        "light"
+      ],
+      "value": {
+        "light": "var(--dsw-static-violet-600)",
+        "dark": "var(--dsw-static-violet-400)"
+      },
+      "sources": [
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-theme",
+          "file": "lib/client.js",
+          "symbol": "design-platform.css"
+        }
+      ]
+    },
+    {
       "name": "--dsw-alias-state-error-primary",
       "valueType": "alias",
       "scopes": [
@@ -6119,6 +6441,11 @@
           "symbol": "TaskMenu.module.css"
         },
         {
+          "pkg": "@deepseek-ai/dsh-client-ui-sidebar-files",
+          "file": "lib/client.js",
+          "symbol": "FilesBody.module.css"
+        },
+        {
           "pkg": "@deepseek-ai/dsh-client-ui-subagent",
           "file": "lib/client.js",
           "symbol": "SubagentHeaderLineage.module.css"
@@ -6140,8 +6467,13 @@
         },
         {
           "pkg": "@deepseek-ai/dsh-web-frontend",
-          "file": "dist/assets/index-BNyAYEM7.css",
-          "symbol": "index-BNyAYEM7.css"
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
+        },
+        {
+          "pkg": "lib",
+          "file": "native-ui/assets/permissions-DkS_AmmZ.css",
+          "symbol": "permissions-DkS_AmmZ.css"
         }
       ]
     },
@@ -9493,13 +9825,13 @@
         },
         {
           "pkg": "@deepseek-ai/dsh-web-frontend",
-          "file": "dist/assets/index-BNyAYEM7.css",
-          "symbol": "index-BNyAYEM7.css"
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
         },
         {
           "pkg": "lib",
-          "file": "native-ui/assets/permissions-OpSeQb0B.css",
-          "symbol": "permissions-OpSeQb0B.css"
+          "file": "native-ui/assets/permissions-DkS_AmmZ.css",
+          "symbol": "permissions-DkS_AmmZ.css"
         }
       ]
     },
@@ -9571,8 +9903,8 @@
         "light"
       ],
       "value": {
-        "light": "#f8f9fa94",
-        "dark": "#43454a73"
+        "light": "#fcfdfeb3",
+        "dark": "#303136a3"
       },
       "sources": [
         {
@@ -9949,25 +10281,6 @@
       "value": {
         "light": "var(--dsw-static-deepseek-100)",
         "dark": "var(--dsw-static-neutral-bluish-800)"
-      },
-      "sources": [
-        {
-          "pkg": "@deepseek-ai/dsh-client-ui-theme",
-          "file": "lib/client.js",
-          "symbol": "design-platform.css"
-        }
-      ]
-    },
-    {
-      "name": "--dsw-specific-sidebar-nav-item-hover",
-      "valueType": "alias",
-      "scopes": [
-        "dark",
-        "light"
-      ],
-      "value": {
-        "light": "var(--dsw-static-neutral-bluish-75)",
-        "dark": "var(--dsw-static-neutral-bluish-850)"
       },
       "sources": [
         {
@@ -11060,6 +11373,25 @@
       ]
     },
     {
+      "name": "--dsw-static-neutral-bluish-310",
+      "valueType": "color",
+      "scopes": [
+        "dark",
+        "light"
+      ],
+      "value": {
+        "light": "#cad2db",
+        "dark": "#cad2db"
+      },
+      "sources": [
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-theme",
+          "file": "lib/client.js",
+          "symbol": "design-platform.css"
+        }
+      ]
+    },
+    {
       "name": "--dsw-static-neutral-bluish-400",
       "valueType": "color",
       "scopes": [
@@ -11107,6 +11439,25 @@
       "value": {
         "light": "#979da6",
         "dark": "#979da6"
+      },
+      "sources": [
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-theme",
+          "file": "lib/client.js",
+          "symbol": "design-platform.css"
+        }
+      ]
+    },
+    {
+      "name": "--dsw-static-neutral-bluish-55",
+      "valueType": "color",
+      "scopes": [
+        "dark",
+        "light"
+      ],
+      "value": {
+        "light": "#f5f7fa",
+        "dark": "#f5f7fa"
       },
       "sources": [
         {
@@ -11259,6 +11610,25 @@
       "value": {
         "light": "#232324",
         "dark": "#232324"
+      },
+      "sources": [
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-theme",
+          "file": "lib/client.js",
+          "symbol": "design-platform.css"
+        }
+      ]
+    },
+    {
+      "name": "--dsw-static-neutral-bluish-90",
+      "valueType": "color",
+      "scopes": [
+        "dark",
+        "light"
+      ],
+      "value": {
+        "light": "#edf0f4",
+        "dark": "#edf0f4"
       },
       "sources": [
         {
@@ -11430,6 +11800,44 @@
       "value": {
         "light": "#ec131314",
         "dark": "#ec131314"
+      },
+      "sources": [
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-theme",
+          "file": "lib/client.js",
+          "symbol": "design-platform.css"
+        }
+      ]
+    },
+    {
+      "name": "--dsw-static-red-900",
+      "valueType": "color",
+      "scopes": [
+        "dark",
+        "light"
+      ],
+      "value": {
+        "light": "#570c0c",
+        "dark": "#570c0c"
+      },
+      "sources": [
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-theme",
+          "file": "lib/client.js",
+          "symbol": "design-platform.css"
+        }
+      ]
+    },
+    {
+      "name": "--dsw-static-violet-400",
+      "valueType": "color",
+      "scopes": [
+        "dark",
+        "light"
+      ],
+      "value": {
+        "light": "#a78bfa",
+        "dark": "#a78bfa"
       },
       "sources": [
         {
@@ -12216,8 +12624,8 @@
         },
         {
           "pkg": "@deepseek-ai/dsh-web-frontend",
-          "file": "dist/assets/index-BNyAYEM7.css",
-          "symbol": "index-BNyAYEM7.css"
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
         }
       ]
     },
@@ -12240,8 +12648,8 @@
         },
         {
           "pkg": "@deepseek-ai/dsh-web-frontend",
-          "file": "dist/assets/index-BNyAYEM7.css",
-          "symbol": "index-BNyAYEM7.css"
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
         }
       ]
     },
@@ -12269,8 +12677,8 @@
         },
         {
           "pkg": "@deepseek-ai/dsh-web-frontend",
-          "file": "dist/assets/index-BNyAYEM7.css",
-          "symbol": "index-BNyAYEM7.css"
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
         }
       ]
     },
@@ -12298,8 +12706,8 @@
         },
         {
           "pkg": "@deepseek-ai/dsh-web-frontend",
-          "file": "dist/assets/index-BNyAYEM7.css",
-          "symbol": "index-BNyAYEM7.css"
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
         }
       ]
     },
@@ -12327,8 +12735,8 @@
         },
         {
           "pkg": "@deepseek-ai/dsh-web-frontend",
-          "file": "dist/assets/index-BNyAYEM7.css",
-          "symbol": "index-BNyAYEM7.css"
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
         }
       ]
     },
@@ -12356,8 +12764,8 @@
         },
         {
           "pkg": "@deepseek-ai/dsh-web-frontend",
-          "file": "dist/assets/index-BNyAYEM7.css",
-          "symbol": "index-BNyAYEM7.css"
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
         }
       ]
     },
@@ -12403,8 +12811,8 @@
         },
         {
           "pkg": "@deepseek-ai/dsh-web-frontend",
-          "file": "dist/assets/index-BNyAYEM7.css",
-          "symbol": "index-BNyAYEM7.css"
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
         }
       ]
     },
@@ -12571,6 +12979,24 @@
       ]
     },
     {
+      "name": "--line-height",
+      "valueType": "length",
+      "scopes": [
+        "light"
+      ],
+      "value": {
+        "light": "18px",
+        "dark": null
+      },
+      "sources": [
+        {
+          "pkg": "@earendil-works/pi-coding-agent",
+          "file": "dist/core/export-html/template.css",
+          "symbol": "template.css"
+        }
+      ]
+    },
+    {
       "name": "--min-font-size-inv",
       "valueType": "other",
       "scopes": [
@@ -12732,6 +13158,42 @@
           "pkg": "@deepseek-ai/dsh-client-ui-plan",
           "file": "lib/client.js",
           "symbol": "PlanPreview.module.css"
+        }
+      ]
+    },
+    {
+      "name": "--plugin-page-inset",
+      "valueType": "other",
+      "scopes": [
+        "light"
+      ],
+      "value": {
+        "light": "clamp(24px, 4vw, 48px)",
+        "dark": null
+      },
+      "sources": [
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-plugin-manager",
+          "file": "lib/client.js",
+          "symbol": "PluginManagerPage.module.css"
+        }
+      ]
+    },
+    {
+      "name": "--plugin-page-top-inset",
+      "valueType": "length",
+      "scopes": [
+        "light"
+      ],
+      "value": {
+        "light": "28px",
+        "dark": null
+      },
+      "sources": [
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-plugin-manager",
+          "file": "lib/client.js",
+          "symbol": "PluginManagerPage.module.css"
         }
       ]
     },
@@ -16523,6 +16985,29 @@
       ]
     },
     {
+      "name": "--segmented-tabs-inset",
+      "valueType": "length",
+      "scopes": [
+        "light"
+      ],
+      "value": {
+        "light": "4px",
+        "dark": null
+      },
+      "sources": [
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-primitives",
+          "file": "lib/SegmentedTabs.module.css",
+          "symbol": "SegmentedTabs.module.css"
+        },
+        {
+          "pkg": "@deepseek-ai/dsh-web-frontend",
+          "file": "dist/assets/index-lh_YM6sT.css",
+          "symbol": "index-lh_YM6sT.css"
+        }
+      ]
+    },
+    {
       "name": "--shiki-background",
       "valueType": "alias",
       "scopes": [
@@ -16725,6 +17210,150 @@
           "pkg": "lib",
           "file": "native-ui/assets/index-BstoNZLX.css",
           "symbol": "index-BstoNZLX.css"
+        }
+      ]
+    },
+    {
+      "name": "--sidebar-max-width",
+      "valueType": "length",
+      "scopes": [
+        "light"
+      ],
+      "value": {
+        "light": "840px",
+        "dark": null
+      },
+      "sources": [
+        {
+          "pkg": "@earendil-works/pi-coding-agent",
+          "file": "dist/core/export-html/template.css",
+          "symbol": "template.css"
+        }
+      ]
+    },
+    {
+      "name": "--sidebar-min-width",
+      "valueType": "length",
+      "scopes": [
+        "light"
+      ],
+      "value": {
+        "light": "240px",
+        "dark": null
+      },
+      "sources": [
+        {
+          "pkg": "@earendil-works/pi-coding-agent",
+          "file": "dist/core/export-html/template.css",
+          "symbol": "template.css"
+        }
+      ]
+    },
+    {
+      "name": "--sidebar-resizer-width",
+      "valueType": "length",
+      "scopes": [
+        "light"
+      ],
+      "value": {
+        "light": "6px",
+        "dark": null
+      },
+      "sources": [
+        {
+          "pkg": "@earendil-works/pi-coding-agent",
+          "file": "dist/core/export-html/template.css",
+          "symbol": "template.css"
+        }
+      ]
+    },
+    {
+      "name": "--sidebar-right-flash-color",
+      "valueType": "alias",
+      "scopes": [
+        "light"
+      ],
+      "value": {
+        "light": "var(--dsw-alias-brand-primary-new-colorprimary-new-color)",
+        "dark": null
+      },
+      "sources": [
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-sidebar-right",
+          "file": "lib/client.js",
+          "symbol": "SidebarRight.module.css"
+        }
+      ]
+    },
+    {
+      "name": "--sidebar-right-flash-from",
+      "valueType": "other",
+      "scopes": [
+        "light"
+      ],
+      "value": {
+        "light": "inset 0 0 0 1px var(--sidebar-right-flash-ring), inset 0 2px 4px 0 var(--sidebar-right-flash-near), inset 0 0 10px 0 var(--sidebar-right-flash-far)",
+        "dark": null
+      },
+      "sources": [
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-sidebar-right",
+          "file": "lib/client.js",
+          "symbol": "SidebarRight.module.css"
+        }
+      ]
+    },
+    {
+      "name": "--sidebar-right-flash-near",
+      "valueType": "color",
+      "scopes": [
+        "light"
+      ],
+      "value": {
+        "light": "color-mix(in srgb, var(--sidebar-right-flash-color) 16%, transparent)",
+        "dark": null
+      },
+      "sources": [
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-sidebar-right",
+          "file": "lib/client.js",
+          "symbol": "SidebarRight.module.css"
+        }
+      ]
+    },
+    {
+      "name": "--sidebar-right-flash-ring",
+      "valueType": "color",
+      "scopes": [
+        "light"
+      ],
+      "value": {
+        "light": "color-mix(in srgb, var(--sidebar-right-flash-color) 48%, transparent)",
+        "dark": null
+      },
+      "sources": [
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-sidebar-right",
+          "file": "lib/client.js",
+          "symbol": "SidebarRight.module.css"
+        }
+      ]
+    },
+    {
+      "name": "--sidebar-right-flash-to",
+      "valueType": "other",
+      "scopes": [
+        "light"
+      ],
+      "value": {
+        "light": "inset 0 0 0 1px transparent, inset 0 2px 4px 0 transparent, inset 0 0 10px 0 transparent",
+        "dark": null
+      },
+      "sources": [
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-sidebar-right",
+          "file": "lib/client.js",
+          "symbol": "SidebarRight.module.css"
         }
       ]
     },
@@ -20424,6 +21053,24 @@
       ]
     },
     {
+      "name": "--task-search-height",
+      "valueType": "length",
+      "scopes": [
+        "light"
+      ],
+      "value": {
+        "light": "36px",
+        "dark": null
+      },
+      "sources": [
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-schedule",
+          "file": "lib/client.js",
+          "symbol": "TaskManagerPage.module.css"
+        }
+      ]
+    },
+    {
       "name": "--text-2xl",
       "valueType": "length",
       "scopes": [
@@ -20690,6 +21337,24 @@
           "pkg": "lib",
           "file": "native-ui/assets/index-BstoNZLX.css",
           "symbol": "index-BstoNZLX.css"
+        }
+      ]
+    },
+    {
+      "name": "--title-cluster-fade",
+      "valueType": "length",
+      "scopes": [
+        "light"
+      ],
+      "value": {
+        "light": "20px",
+        "dark": null
+      },
+      "sources": [
+        {
+          "pkg": "@deepseek-ai/dsh-client-ui-conversation",
+          "file": "lib/client.js",
+          "symbol": "ConversationRoot.module.css"
         }
       ]
     },
@@ -22106,8 +22771,8 @@
   "parts": [
     {
       "name": "scrollbar.css",
-      "sha256": "7457fa7bcde76d19981125c94c0a8afd7d83b1dac3f72bd418597bda35297c5b",
-      "bytes": 838,
+      "sha256": "e2b2b6f894032119b17d131e1924056530188eab04960159739ee4faa641a1c5",
+      "bytes": 860,
       "note": "原生滚动条",
       "source": "node_modules/@deepseek-ai/dsh-client-ui-theme/lib/client.js"
     },
@@ -22127,15 +22792,15 @@
     },
     {
       "name": "Menu.module.css",
-      "sha256": "77265cc046078c060ca2f5b700b31c77f024a32e1834ebd3a0fc8b4562c7134a",
-      "bytes": 6491,
+      "sha256": "832c783823216c61adeebec7c120efc71467d3ca7f829137c03e84ae71446f45",
+      "bytes": 8046,
       "note": "菜单表面",
       "source": "node_modules/@deepseek-ai/dsh-client-ui-primitives/lib/Menu.module.css"
     },
     {
       "name": "HoverCard.module.css",
-      "sha256": "03e81485eb927d73f3db0352e8910c9bd6ce76fb8a7e5773ca16b2a61f151dfa",
-      "bytes": 1963,
+      "sha256": "e5dc1c4235065942925aecd48b36c29c8f4df79ec571345b95fdd7f2fef82c02",
+      "bytes": 2084,
       "note": "悬浮卡表面",
       "source": "node_modules/@deepseek-ai/dsh-client-ui-primitives/lib/HoverCard.module.css"
     }
@@ -22143,8 +22808,8 @@
   "skipped": [],
   "generatedCss": {
     "path": "src/styles/tokens.css",
-    "sha256": "29856260ecdd02741b6a15dbe95d6ffdf651b4f7b378a073fd3c3d8ff54fb45b",
-    "bytes": 90794
+    "sha256": "0175db03413bc835b210525e167e4557f429ea5374793c7731e48a75f9fe6ce6",
+    "bytes": 93874
   },
   "undefinedRefs": [
     {
@@ -22404,11 +23069,19 @@
       "refs": 1
     },
     {
+      "name": "--dsw-static-violet-600",
+      "refs": 1
+    },
+    {
       "name": "--min-font-size",
       "refs": 2
     },
     {
       "name": "--ref-palette-neutral87",
+      "refs": 1
+    },
+    {
+      "name": "--sidebar-right-flash-far",
       "refs": 1
     },
     {

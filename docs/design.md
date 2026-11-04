@@ -185,7 +185,7 @@ spawn "DSH NEXT.exe"
 ### 4.5 原子写
 
 所有 JSON 写入：`写 <file>.tmp → flush → File.Move(tmp, file, overwrite)`。
-指针额外保留 `desktop-next-location.json.launcher-bak`（启动器自己那份备份，重名冲突时优先用 `.bak2`/时间戳后缀）。
+指针的旧值只留在内存里给回滚用，**不落备份文件**（以前每启动一次留一份 `.launcher-bak`，实测攒到 39 份）。
 
 ## 5. 核心模块
 

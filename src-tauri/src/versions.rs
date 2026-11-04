@@ -10,6 +10,7 @@ use std::path::{Component, Path, PathBuf};
 use crate::asar;
 use crate::errors::AppError;
 use crate::model::VersionInfo;
+use crate::store::Store;
 use crate::util::now_iso;
 
 pub const EXE_NAME: &str = "DSH NEXT.exe";
@@ -170,6 +171,57 @@ impl VersionScanner {
             }
         }
         None
+    }
+
+    /// 原地升级留下的过期登记：目录名（= 登记时的版本号）落后于 asar 里的真实版本。
+    ///
+    /// 典型场景：`versions\2.0.21-next` 是一条指向 `E:\...\DSH NEXT` 的链接，DSH-NEXT
+    /// 自己升级成 2.0.22 后链接目标跟着变了，但目录名还是旧版本号 —— 版本页显示旧号、
+    /// 在线列表认不出「已安装」、实例的版本下拉也停在旧号。
+    ///
+    /// 这里把链接改名成真实版本号，并把引用旧 tag 的实例一并改过来。
+    /// 只处理启动器自己建的链接：真实目录是用户的安装树，不擅自改名。
+    pub fn reconcile(&self, store: &Store) -> Vec<Migrated> {
+        let mut out = Vec::new();
+        for info in self.scan() {
+            if !info.valid || !info.is_link {
+                continue;
+            }
+            let to = info.shell_version.clone();
+            if to == "?" || to == info.tag || !is_safe_tag(&to) {
+                continue;
+            }
+            let from_path = self.root.join(&info.tag);
+            let to_path = self.root.join(&to);
+            if to_path.exists() || is_link(&to_path) {
+                // 新版本号已经有登记：不合并两个安装树，留给用户自己删多余的
+                continue;
+            }
+            if fs::rename(&from_path, &to_path).is_err() {
+                continue;
+            }
+            remap_instances(store, &info.tag, &to);
+            out.push(Migrated { from: info.tag, to });
+        }
+        out
+    }
+}
+
+/// 一次「登记目录名 → 真实版本号」的迁移记录（诊断 / 日志用）。
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Migrated {
+    pub from: String,
+    pub to: String,
+}
+
+/// 把引用旧 tag 的实例改到新 tag；写盘失败时保持原样（下次启动再试）。
+fn remap_instances(store: &Store, from: &str, to: &str) {
+    for mut inst in store.list_instances() {
+        if inst.version != from {
+            continue;
+        }
+        inst.version = to.to_string();
+        let _ = store.write_instance(&inst);
     }
 }
 
@@ -510,6 +562,68 @@ mod tests {
             scanner.remove("2.0.21-next", &[]).unwrap_err().code,
             "E1007"
         );
+        let _ = fs::remove_dir_all(root);
+    }
+
+    /// 原地升级：链接还叫 2.0.21-next，目标树里已经是 2.0.22-next。
+    #[test]
+    fn reconcile_renames_link_and_remaps_instances() {
+        let root = temp_root("reconcile");
+        let src = root.join("install");
+        fake_install(&src, "2.0.21-next", "0.2.1-rc.4");
+        let versions = root.join("versions");
+        let scanner = VersionScanner::new(versions.clone());
+        if !junction_supported(&root) {
+            return; // 沙箱内建不了链接，这条路径由真实运行覆盖
+        }
+        scanner.register(&src).unwrap();
+        assert!(is_link(&versions.join("2.0.21-next")));
+
+        // 安装树被原地升级
+        fake_install(&src, "2.0.22-next", "0.2.2-rc.1");
+
+        let store = Store::new(root.join("data"), versions.clone());
+        store.ensure_dirs().unwrap();
+        let inst = Instance::new("default", "默认", "2.0.21-next", "C:\\Users\\demo\\.dsh");
+        store.write_instance(&inst).unwrap();
+
+        let moved = scanner.reconcile(&store);
+        assert_eq!(
+            moved,
+            vec![Migrated {
+                from: "2.0.21-next".to_string(),
+                to: "2.0.22-next".to_string()
+            }]
+        );
+        assert!(!versions.join("2.0.21-next").exists());
+        assert!(is_link(&versions.join("2.0.22-next")));
+
+        // 实例引用跟着改；版本页因此能显示真实版本号
+        let after = store.read_instance("default").unwrap();
+        assert_eq!(after.version, "2.0.22-next");
+        let list = scanner.scan();
+        assert_eq!(list[0].tag, "2.0.22-next");
+        assert_eq!(list[0].shell_version, "2.0.22-next");
+        assert_eq!(list[0].kernel_version, "0.2.2-rc.1");
+
+        // 再跑一次是幂等的
+        assert!(scanner.reconcile(&store).is_empty());
+        let _ = fs::remove_dir_all(root);
+    }
+
+    /// 真实目录（用户自己放在 versions 下）不擅自改名。
+    #[test]
+    fn reconcile_leaves_real_directory_alone() {
+        let root = temp_root("reconcile-real");
+        let versions = root.join("versions");
+        let real = versions.join("2.0.21-next");
+        fake_install(&real, "2.0.22-next", "0.2.2-rc.1");
+        let scanner = VersionScanner::new(versions.clone());
+        let store = Store::new(root.join("data"), versions);
+        store.ensure_dirs().unwrap();
+
+        assert!(scanner.reconcile(&store).is_empty());
+        assert!(real.join(EXE_NAME).is_file());
         let _ = fs::remove_dir_all(root);
     }
 }
