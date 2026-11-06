@@ -4,7 +4,7 @@
   import { listen } from '@tauri-apps/api/event';
 
   import { api, errorText, type UiError } from './lib/api';
-  import { refreshAll } from './lib/refresh.svelte.js';
+  import { refreshAll, online } from './lib/refresh.svelte.js';
   import { translate, type Lang } from './lib/i18n';
   import type { ConfigPatch, InstanceView, PermissionReport, Snapshot, OnboardingView } from './lib/types';
   import { shortPath } from './lib/format';
@@ -256,6 +256,9 @@
     const has = snapshot.instances.some((v) => sameHome(v.instance.home, home));
     return has ? null : home;
   });
+
+  /** 启动器自身有新版本：顶部给一条绿色提示（更新动作在设置页；已在该页就不重复） */
+  const updateBanner = $derived(Boolean(online.update?.hasUpdate) && view !== 'settings');
 
   const queueText = $derived.by(() => {
     if (!snapshot || snapshot.queue.length === 0) return t('footer.queueEmpty');
@@ -542,6 +545,15 @@
       <span>{t('warn.unknownPointer', { home: shortPath(unknownPointerWarning, 52) })}</span>
       <span class="spacer"></span>
       <button class="btn tiny ghost" onclick={restorePointer}>{t('warn.unknownPointerAction')}</button>
+    </div>
+  {/if}
+
+  <!-- 启动器有新版本：绿色提示，更新动作收在设置页（本工具不自动下载替换） -->
+  {#if updateBanner}
+    <div class="banner banner-success" role="status">
+      <span>{t('update.banner')}</span>
+      <span class="spacer"></span>
+      <button class="btn tiny ghost" onclick={() => go('settings')}>{t('update.bannerAction')}</button>
     </div>
   {/if}
 

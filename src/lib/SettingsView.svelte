@@ -38,19 +38,10 @@
   let saving = $state(false);
   let error = $state<string | null>(null);
 
-  // 更新检查
+  // 更新检查：与版本目录共用 refresh 模块（启动一次 + 每 10 分钟一次），这里只做手动触发
   const update = $derived(online.update);
   let checking = $state(false);
   const checkedAt = $derived(online.updateCheckedAt);
-  let autoCheck = $state(
-    untrack(() => {
-      try {
-        return localStorage.getItem('dshla.autoUpdate') !== '0';
-      } catch {
-        return true;
-      }
-    })
-  );
 
   const rootPreview = $derived(
     `${(homeRoot.trim() || t('settings.rootFallback')).replace(/[\\/]+$/, '')}\\.dsh-<ID>`
@@ -106,16 +97,6 @@
     }
   }
 
-  function toggleAutoCheck(next: boolean) {
-    autoCheck = next;
-    try {
-      localStorage.setItem('dshla.autoUpdate', next ? '1' : '0');
-    } catch {
-      /* 忽略 */
-    }
-    if (next) void checkUpdate();
-  }
-
   function openRepo() {
     void api.openUrl(REPO_URL);
   }
@@ -123,10 +104,6 @@
   function openStar() {
     void api.openUrl(STAR_URL);
   }
-
-  $effect(() => {
-    if (autoCheck && !update && !checking) void checkUpdate();
-  });
 </script>
 
 <div class="page">
@@ -301,12 +278,6 @@
       </button>
       <span class="field-hint warn">{t('settings.browserDownloadHint')}</span>
     </div>
-
-    <div class="switch-row">
-      <span>{t('settings.autoCheck')}</span>
-      <Switch checked={autoCheck} label={t('settings.autoCheck')} onchange={toggleAutoCheck} />
-    </div>
-    <span class="field-hint">{t('settings.autoCheckHint')}</span>
   </section>
 
   <section class="card star-card">

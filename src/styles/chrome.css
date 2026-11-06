@@ -308,6 +308,21 @@
   color: var(--dsw-alias-state-warn-label);
 }
 
+/* 成功级提示（启动器有新版本）：几何与黄条同一套 approval 块，只换 success 色。
+   原生没有 success 版本的 approval 变体，但 `state-success-tertiary` 是原生已有的表层色
+   （浅 green-100 / 深 green-900），与 `warn-tertiary` 同一用法，所以这里直接用表层色而不是自混色。
+   正文用 label-primary：原生没有 `state-success-label`，混色背景上它比 success-primary 更稳。 */
+.banner-success {
+  border-color: color-mix(in srgb, var(--dsw-alias-state-success-primary) 40%, transparent);
+  background: var(--dsw-alias-state-success-tertiary);
+  color: var(--dsw-alias-label-primary);
+}
+
+.banner-success .btn {
+  color: var(--dsw-alias-state-success-primary);
+  border-color: var(--dsw-alias-state-success-secondary);
+}
+
 .banner-dot {
   width: 8px;
   height: 8px;
