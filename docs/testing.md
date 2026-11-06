@@ -3,7 +3,7 @@
 > 本文件记录**可复跑**的验证：每条要么是命令输出，要么是产出的文件。
 > 排障经过与缺陷记录已分别迁到 [experience/](experience/README.md) 与 [feedback/](feedback/README.md)。
 
-- 最后更新：2026-11-02
+- 最后更新：2026-11-06
 - 参考环境：Windows，DSH-NEXT `2.0.21-next` / 内核 `0.2.1-rc.4`，Rust 1.7x，WebView2 140+
 - 临时数据默认落在 `src-tauri\target\` 内
 
@@ -80,8 +80,8 @@ node tools/verify-tokens.mjs
 ```
 
 ```
-{ "ok": true, "tokens": 1158, "varRefs": 275, "parts": 5, "failures": [], "warnings": [] }
-[verify] PASS：275 个 var() 全部来自名册；5 份 parts 未改动
+{ "ok": true, "tokens": 1191, "varRefs": 282, "parts": 5, "failures": [], "warnings": [] }
+[verify] PASS：282 个 var() 全部来自名册；5 份 parts 未改动
 ```
 
 红/绿测试（确认门禁真的会拦）：
@@ -106,6 +106,10 @@ node tools/lint-css.mjs
 
 四条规则：禁裸颜色 / 圆角只用 token / **字号必须与行高成对** / 字重不出界（判据与出处见 `design.md` §7.3）。
 改造前的基线是 **14 处**（13 处字号落单 + 1 处 `font-weight: 700`），逐条修完转绿。
+
+顶部 chrome（提示条 + 指针条）另有一道静态门 `node tools/check-topbar.mjs`：
+两条必须 `flex: none` + 固定高度 + `padding: 0 20px`、两条等高、且不得再出现 `min-height` 兜底。
+它守的是 1.1.2 修掉的"同一构建在三个视图里高度不同（44 / 40 / 30）"那个缺陷。
 
 红/绿对照：把任一 `font: var(--dsw-font-xs-13)` 改回 `font-size: 13px`（不带 `line-height`）→
 必须报两条红（"该档有 token" + "没有配 line-height"）；还原 → 绿。
@@ -187,7 +191,7 @@ hint: 找到 2 个候选
 | 里程碑 | 验收项 | 验证方式 | 结果 |
 |---|---|---|---|
 | M0 环境 | 五项工具链、编译链 | 手工命令 | ✅ |
-| M1 取证 | token 抽取 1158 条、两次运行逐字节相同 | `extract-tokens` + 哈希比对 | ✅ |
+| M1 取证 | token 抽取 1191 条、两次运行逐字节相同 | `extract-tokens` + 哈希比对 | ✅ |
 | M2 骨架 | 指针对照、真实进程识别、实例名回读、配置自愈 | `--e2e-status` / `--scan-debug` / 单测 | ✅ |
 | M3 管道 | A1–A6 | `tools/e2e.mjs` | ✅ 15/15 |
 | M4 操作 | 停止 / 归档 / 删除 / 版本 | 单测 + 界面禁用状态 | ✅ |
