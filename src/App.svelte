@@ -260,6 +260,117 @@
   /** 启动器自身有新版本：顶部给一条绿色提示（更新动作在设置页；已在该页就不重复） */
   const updateBanner = $derived(Boolean(online.update?.hasUpdate) && view !== 'settings');
 
+  /** 顶部横幅：优先级 danger > warn > info > success；同级保持声明顺序 */
+  type BannerLevel = 'danger' | 'warn' | 'info' | 'success';
+  interface BannerAction {
+    label: string;
+    cls?: string;
+    run: () => void;
+  }
+  interface BannerItem {
+    id: string;
+    level: BannerLevel;
+    /** 颜色变体类名（空串 = 默认黄条） */
+    cls: string;
+    text: string;
+    /** 进度类横幅左侧的脉冲圆点 */
+    dot?: boolean;
+    action?: BannerAction;
+  }
+  const BANNER_RANK: Record<BannerLevel, number> = { danger: 0, warn: 1, info: 2, success: 3 };
+  /** 顶部最多同时显示几条；其余折成一行「+N 条提示」，用户可展开 */
+  const MAX_BANNERS = 2;
+  let showAllBanners = $state(false);
+
+  const restartingView = $derived(
+    snapshot?.instances.find((v) => v.instance.id === restartingId) ?? null
+  );
+
+  const bannerList = $derived.by<BannerItem[]>(() => {
+    const items: BannerItem[] = [];
+    // 提权与「指针不可写」互斥：前者正是后者的处理建议，同时出现只会重复
+    if (permission?.needsElevation && !permission.isAdmin) {
+      items.push({
+        id: 'permission',
+        level: 'danger',
+        cls: 'banner-danger',
+        text: t('perm.banner'),
+        action: { label: t('perm.relaunch'), cls: 'primary', run: relaunchAsAdmin }
+      });
+    } else if (snapshot && !snapshot.pointer.writable) {
+      items.push({
+        id: 'pointer-unwritable',
+        level: 'warn',
+        cls: '',
+        text: t('warn.pointerUnwritable', { path: shortPath(snapshot.pointer.path, 60) })
+      });
+    }
+    // 重启中与安全模式互斥：重启完成后才知道是否进了安全模式
+    if (restartingView) {
+      items.push({
+        id: 'restarting',
+        level: 'info',
+        cls: 'banner-info',
+        text: t('restart.banner.restarting', { name: restartingView.instance.name }),
+        dot: true
+      });
+    } else if (safeModeView) {
+      items.push({
+        id: 'safe-mode',
+        level: 'warn',
+        cls: 'banner-warn',
+        text: t('restart.banner.safe', { name: safeModeView.instance.name }),
+        action: {
+          label: t('restart.banner.exitSafe'),
+          run: () => restartInstance(safeModeView!.instance.id, 'exitSafe')
+        }
+      });
+    }
+    // 没有可用版本时，「默认 home 无实例」没有意义（用户还建不了实例）
+    if (noVersionWarning) {
+      items.push({
+        id: 'no-version',
+        level: 'warn',
+        cls: 'banner-warn',
+        text: t('warn.noVersion'),
+        action: { label: t('warn.noVersionAction'), run: () => go('versions') }
+      });
+    } else if (defaultHomeWarning) {
+      items.push({
+        id: 'default-home',
+        level: 'warn',
+        cls: '',
+        text: t('warn.defaultHomeNoInstance', { home: shortPath(defaultHomeWarning, 52) }),
+        action: {
+          label: t('warn.defaultHomeAction'),
+          run: () => createFromDefaultHome(defaultHomeWarning!)
+        }
+      });
+    }
+    if (unknownPointerWarning) {
+      items.push({
+        id: 'unknown-pointer',
+        level: 'warn',
+        cls: '',
+        text: t('warn.unknownPointer', { home: shortPath(unknownPointerWarning, 52) }),
+        action: { label: t('warn.unknownPointerAction'), run: restorePointer }
+      });
+    }
+    if (updateBanner) {
+      items.push({
+        id: 'update',
+        level: 'success',
+        cls: 'banner-success',
+        text: t('update.banner'),
+        action: { label: t('update.bannerAction'), run: () => go('settings') }
+      });
+    }
+    return items.sort((a, b) => BANNER_RANK[a.level] - BANNER_RANK[b.level]);
+  });
+
+  const visibleBanners = $derived(showAllBanners ? bannerList : bannerList.slice(0, MAX_BANNERS));
+  const hiddenBannerCount = $derived(bannerList.length - Math.min(bannerList.length, MAX_BANNERS));
+
   const queueText = $derived.by(() => {
     if (!snapshot || snapshot.queue.length === 0) return t('footer.queueEmpty');
     const names = snapshot.queue.map(
@@ -465,7 +576,9 @@
   <div class="notice notice-ticker" role="status">
     <span class="notice-mark" aria-hidden="true">i</span>
     {#key noticeIndex}
-      <span class="notice-text" in:fly={{ y: 6, duration: 220 }}>{t(NOTICES[noticeIndex])}</span>
+      <span class="notice-text" title={t(NOTICES[noticeIndex])} in:fly={{ y: 6, duration: 220 }}
+        >{t(NOTICES[noticeIndex])}</span
+      >
     {/key}
     <button class="notice-next" onclick={advanceNotice} title={t('notice.nextHint')}>
       {t('notice.next')}
@@ -487,74 +600,30 @@
     <button class="btn tiny ghost" onclick={restorePointer} disabled={!snapshot}>{t('pointer.restore')}</button>
   </div>
 
-  {#if permission && permission.needsElevation && !permission.isAdmin}
-    <div class="banner banner-danger">
-      <span>{t('perm.banner')}</span>
-      <button class="btn tiny primary" onclick={relaunchAsAdmin}>{t('perm.relaunch')}</button>
-    </div>
-  {:else if snapshot && !snapshot.pointer.writable}
-    <div class="banner">
-      <span>{t('warn.pointerUnwritable', { path: shortPath(snapshot.pointer.path, 60) })}</span>
-    </div>
-  {/if}
-
-  {#if restartingId}
-    {#each snapshot?.instances ?? [] as v (v.instance.id)}
-      {#if v.instance.id === restartingId}
-        <div class="banner banner-info">
-          <span class="banner-dot" aria-hidden="true"></span>
-          <span>{t('restart.banner.restarting', { name: v.instance.name })}</span>
-        </div>
+  <!-- 顶部横幅：按优先级排序，最多显示 2 条；其余折成一行「+N 条提示」，用户可展开。
+       条数上限是为内容区让出高度：最坏情况曾有 5 条同时成立（≈240px），把启动页列表压掉三分之一。 -->
+  {#each visibleBanners as banner (banner.id)}
+    <div class="banner {banner.cls}" role="status">
+      {#if banner.dot}<span class="banner-dot" aria-hidden="true"></span>{/if}
+      <span>{banner.text}</span>
+      {#if banner.action}
+        <span class="spacer"></span>
+        <button class="btn tiny {banner.action.cls ?? 'ghost'}" onclick={banner.action.run}>
+          {banner.action.label}
+        </button>
       {/if}
-    {/each}
-  {:else if safeModeView}
-    <div class="banner banner-warn">
-      <span>{t('restart.banner.safe', { name: safeModeView.instance.name })}</span>
-      <span class="spacer"></span>
-      <button
-        class="btn tiny ghost"
-        onclick={() => restartInstance(safeModeView!.instance.id, 'exitSafe')}
-      >
-        {t('restart.banner.exitSafe')}
-      </button>
     </div>
-  {/if}
+  {/each}
 
-  {#if noVersionWarning}
-    <div class="banner banner-warn">
-      <span>{t('warn.noVersion')}</span>
-      <span class="spacer"></span>
-      <button class="btn tiny ghost" onclick={() => go('versions')}>
-        {t('warn.noVersionAction')}
-      </button>
-    </div>
-  {/if}
-
-  {#if defaultHomeWarning && !noVersionWarning}
-    <div class="banner">
-      <span>{t('warn.defaultHomeNoInstance', { home: shortPath(defaultHomeWarning, 52) })}</span>
-      <span class="spacer"></span>
-      <button class="btn tiny ghost" onclick={() => createFromDefaultHome(defaultHomeWarning!)}>
-        {t('warn.defaultHomeAction')}
-      </button>
-    </div>
-  {/if}
-
-  {#if unknownPointerWarning}
-    <div class="banner">
-      <span>{t('warn.unknownPointer', { home: shortPath(unknownPointerWarning, 52) })}</span>
-      <span class="spacer"></span>
-      <button class="btn tiny ghost" onclick={restorePointer}>{t('warn.unknownPointerAction')}</button>
-    </div>
-  {/if}
-
-  <!-- 启动器有新版本：绿色提示，更新动作收在设置页（本工具不自动下载替换） -->
-  {#if updateBanner}
-    <div class="banner banner-success" role="status">
-      <span>{t('update.banner')}</span>
-      <span class="spacer"></span>
-      <button class="btn tiny ghost" onclick={() => go('settings')}>{t('update.bannerAction')}</button>
-    </div>
+  {#if hiddenBannerCount > 0 || showAllBanners}
+    <button
+      class="banner-fold"
+      aria-expanded={showAllBanners}
+      onclick={() => (showAllBanners = !showAllBanners)}
+    >
+      <span class="caret" aria-hidden="true"><Icon name="chevron-right" width={1.5} /></span>
+      {showAllBanners ? t('banner.less') : t('banner.more', { count: hiddenBannerCount })}
+    </button>
   {/if}
 
 

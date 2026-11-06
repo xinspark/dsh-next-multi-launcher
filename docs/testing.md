@@ -229,6 +229,7 @@ pnpm check
 pnpm build
 node tools/verify-tokens.mjs
 node tools/lint-css.mjs
+node tools/check-topbar.mjs
 node tools/check-links.mjs
 cargo test --manifest-path src-tauri/Cargo.toml
 node tools/e2e.mjs

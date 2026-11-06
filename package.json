@@ -13,6 +13,7 @@
     "tokens:css": "node tools/extract-tokens.mjs --out design/tokens.lock.json --css src/styles/tokens.css",
     "verify": "node tools/verify-tokens.mjs",
     "lint:css": "node tools/lint-css.mjs",
+    "check:topbar": "node tools/check-topbar.mjs",
     "sign": "pwsh -NoProfile -File tools/sign-exe.ps1",
     "format": "prettier --write \"src/**/*.{ts,svelte,css}\" \"*.{json,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,svelte,css}\" \"*.{json,md}\""

@@ -28,6 +28,8 @@ jobs:
         run: node tools/verify-tokens.mjs
       - name: Style gate (hex / radius / 字号成对 / 字重)
         run: node tools/lint-css.mjs
+      - name: Topbar gate (高度固定 / 横幅上限)
+        run: node tools/check-topbar.mjs
 
   rust:
     name: Rust (fmt / test / clippy)

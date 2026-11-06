@@ -394,7 +394,8 @@ DSH-NEXT 升级流程：重跑 `extract-tokens` → diff → 重跑 `verify-toke
 | 分段控件 | 轨道 `radius-md` + `interactive-bg-hover` + `padding 4` + `gap 2`；选中项 `radius-sm` + `bg-layer-1` + `shadow-lv1` | `SegmentedControl.module.css` |
 | 菜单（重启等） | `--dsw-menu-surface-fill` + `blur(40px) saturate(150%)` + `elevation-prominent`；行 32px / `radius-md` / 16px 图标位 | MenuSurface |
 | 选择器（版本等） | 闭合 `registryToggle`；展开 `registry` + `registryOption`（选中行加粗 + 对勾） | registry |
-| 说明块 / 告警块 | `guide`（`border-l4` + `radius-lg` + `bg-layer-1`）/ `approval`（`warn-tertiary` + 40% 混色描边）；成功级（「启动器有新版本」）复用同一几何，换 `state-success-tertiary` 底 + 40% `state-success-primary` 描边（`.banner-success`） | plugin-manager |
+| 顶部 chrome | 提示条与指针条同为**通栏 40px 行**（20px 内边距、`flex: none`、各一条 0.5px 底边）；高度写死，不随内容/视图漂移；横幅另计，最多 2 条 | — |
+| 告警块 | `approval`（`warn-tertiary` + 40% 混色描边）；成功级（「启动器有新版本」）复用同一几何，换 `state-success-tertiary` 底 + 40% `state-success-primary` 描边（`.banner-success`） | plugin-manager |
 | 焦点环 | 2px，颜色 `--dsw-focus-ring-color`；**鼠标模态不画环**（`html[data-input-modality=pointer]`） | `parts/focus.css` |
 | 动效 | 过渡用 `--ds-transition-duration-fast`；`prefers-reduced-motion` 关装饰过渡（进度指示不关） | — |
 

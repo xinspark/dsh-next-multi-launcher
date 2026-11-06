@@ -2,13 +2,19 @@
 
 /* ------------------------------------------------------------ 指针条 */
 
+/* 顶部两条 chrome（提示条 + 指针条）共用同一套度量：通栏、20px 内边距、40px 固定高、禁止 flex 压缩。
+   写死高度不是审美选择：两者都是 .app（flex 列）的子项，页面内容一长就会被按 basis 比例压缩，
+   实测同一构建在三个视图里出现过 44 / 40 / 30 三种高度，指针条甚至会被压到裁掉路径。
+   高度与内边距由 tools/check-topbar.mjs 守住，改这里先看那道门。 */
 .pointerbar {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex: none;
+  height: 40px;
+  padding: 0 20px;
   min-width: 0;
   overflow: hidden;
-  padding: 9px 20px;
   border-bottom: 0.5px solid var(--dsw-alias-border-l2);
   background: var(--dsw-alias-bg-base);
   font: var(--dsw-font-xs-13);
@@ -323,6 +329,35 @@
   border-color: var(--dsw-alias-state-success-secondary);
 }
 
+/* 折叠行：横向与横幅同基线，外观按小号文字按钮（不是第三条横幅，所以不占横幅高度预算） */
+.banner-fold {
+  display: flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 6px;
+  margin: 6px 20px 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--dsw-alias-label-secondary);
+  font: var(--dsw-font-xxs-12);
+  cursor: pointer;
+}
+
+.banner-fold:hover {
+  color: var(--dsw-alias-label-primary);
+}
+
+.banner-fold .caret {
+  display: inline-flex;
+  width: 16px;
+  transition: transform 160ms ease;
+}
+
+.banner-fold[aria-expanded='true'] .caret {
+  transform: rotate(90deg);
+}
+
 .banner-dot {
   width: 8px;
   height: 8px;
@@ -343,17 +378,19 @@
 }
 
 
-/* 使用提示条：说明已知限制与预期行为，比警告条更轻 */
-/* 提示条 = 原生 guide 块：border-l4 + radius-lg + bg-layer-1。
-   原来的 brand 8% 底色是自绘的，原生说明块用的是表层底 + 一级描边，靠左侧圆点做强调。 */
+/* 使用提示条：说明已知限制与预期行为。
+   原先是内缩的 guide 圆角块（margin 20 + padding 12，文字左边距 32），与下面通栏的指针条不是一套网格；
+   现在与指针条同为通栏 40px 行（20px 内边距），两条合起来是一整块 80px 的窗口 chrome。 */
 .notice {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin: 8px 20px 0;
-  padding: 10px 12px;
-  border-radius: var(--dsw-radius-lg);
-  border: 0.5px solid var(--dsw-alias-border-l4);
+  flex: none;
+  height: 40px;
+  margin: 0;
+  padding: 0 20px;
+  border: 0;
+  border-bottom: 0.5px solid var(--dsw-alias-border-l2);
   background: var(--dsw-alias-bg-layer-1);
   color: var(--dsw-alias-label-secondary);
   font: var(--dsw-font-xs-13);
@@ -378,9 +415,8 @@
 }
 
 
-.notice-ticker {
-  min-height: 30px;
-}
+/* 曾经的 `min-height: 30px` 兜底已删除：它允许提示条被压到 30px（实测设置页就是这样），
+   而高度现在由 .notice 的 height 决定，不再需要、也不允许有第二个高度来源。 */
 
 .notice-ticker .notice-text {
   flex: 1;
