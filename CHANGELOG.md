@@ -5,6 +5,22 @@
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.1.3] - 2026-11-14
+
+### 变更
+
+- **适配 DSH-NEXT `2.0.23-next` / 内核 `0.2.2-rc.3`**：设计 token 由 1191 增至 **1249**（+69 / −11），
+  `design/tokens.lock.json`、`design/controls.md` 与 `src/styles/tokens.css` 重新抽取；
+- **上游 parts 由 5 份减到 2 份**：`scrollbar.css` / `focus.css` / `corner-shape.css` 在 2.0.23 已不再提供。
+  本仓对应的两处样式（滚动条、焦点环）原本就是 `base.css` 里的手工移植，因此只删除参考副本与文档措辞，样式行为不变；
+- 依赖契约逐条复核：指针与 `desktop-next-last-home.json`、数据目录确认框、`--next-safe-mode` / `safe-mode`、
+  宿主进程 `--expose-internals … lib\host.js … <home>\profiles\<profile>` **均未变化**，启动器无需改代码。
+
+### 说明
+
+- 真机多开验收尚未完成：本次只在无窗口环境里核对了契约、版本扫描（`shell 2.0.23-next` / `kernel 0.2.2-rc.3`）
+  与门禁；升级后建议起一个实例确认状态、指针还原与「数据目录与上次不同」不再出现。
+
 ## [1.1.2] - 2026-11-06
 
 ### 新增
@@ -283,7 +299,8 @@
 - 多开时全局指针唯一，同时运行多个非默认实例时只有最后启动的那个能正确重启
 - SmartScreen 对未签名 exe 的红色拦截无法用自签名消除
 
-[Unreleased]: https://github.com/XinSpark/dsh-next-multi-launcher/compare/v1.1.2...HEAD
+[Unreleased]: https://github.com/XinSpark/dsh-next-multi-launcher/compare/v1.1.3...HEAD
+[1.1.3]: https://github.com/XinSpark/dsh-next-multi-launcher/releases/tag/v1.1.3
 [1.1.2]: https://github.com/XinSpark/dsh-next-multi-launcher/releases/tag/v1.1.2
 [1.1.1]: https://github.com/XinSpark/dsh-next-multi-launcher/releases/tag/v1.1.1
 [1.1.0]: https://github.com/XinSpark/dsh-next-multi-launcher/releases/tag/v1.1.0
