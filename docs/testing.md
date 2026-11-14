@@ -231,8 +231,13 @@ M2 的一处说明：在受限会话里 `sysinfo` 只能看到本作业内的进
 
    ```powershell
    pwsh -NoProfile -File tools/accept-real.ps1
-   pwsh -NoProfile -File tools/accept-real.ps1 -Exe .\DSH-NEXT-Multi.exe -WorkDir D:\tmp-nul -Keep
+   pwsh -NoProfile -File tools/accept-real.ps1 -Exe .\src-tauri\target\release\DSH-NEXT-Multi.exe -WorkDir D:\tmp-nul
    ```
+
+   A0 的闸门只看**真正影响启动**的项：`paths` / `config` / `versions` / `atomicWrite` / 指针可写。
+   `--selftest` 的 `instances` 项（它会把每个实例拿到当前版本树下校验）与
+   "登记名 ≠ 安装树真实版本"都只打 INFO —— 拿仓库二进制跑真实数据目录时这两类必然不一致，
+   但与"能不能多开"无关。
 
    它自动验 6 组、约 14 条断言：`--selftest` 指针可写 → A 启动成功且指针还原 →
    B 启动后两个 home 同时在线 → 重复启动 A 得 `E1003` 且指针未动 → 优雅停 A / 强制停 B →

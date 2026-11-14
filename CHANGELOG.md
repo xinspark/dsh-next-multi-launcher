@@ -28,13 +28,25 @@
 
 ### 修复
 
+- **真机验收脚本被无关的实例状态拦住**：`accept-real.ps1` 原来拿 `--selftest ok` 当闸门，而它还会
+  把**每一个实例**拿到当前版本树下校验。拿仓库这份二进制跑真实数据目录时，那些引用安装态 tag 的
+  实例必然 `E1004`（仓库 `versions\` 里的登记名与安装态不同），于是 A0 直接中止。现在闸门只由真正
+  影响启动的项决定（paths / config / versions / atomicWrite / 指针可写），
+  "实例无效"与"登记名≠真实版本"降级为 INFO，并说明与本次验收无关。
+- `--e2e-status` 新增 `staleVersions`：把"`versions\<tag>` 的安装树实际是别的版本"点出来
+  —— GUI 启动会改名对账，CLI 不会，这正是上面那次误判的来源。
+- `--selftest` 的 `instances` 项本身保持严格（它对"登记是否自洽"有诊断价值），只是不再被当成
+  验收前提。
 - **`design/controls.md` 头部的基线 asar 路径又写死了本机绝对路径**：`tools/extract-tokens.mjs`
   只有 lock / css 走了 `portablePath()`，controls.md 这条漏了，于是生成物里出现
   `E:\FXS\APP\DSH NEXT\resources\app.asar`（与 1.1.0「生成物不再记录本机路径」的承诺矛盾）。
   改为 `<install>/resources/app.asar`，并重抽一次确认 `tokens.lock.json` / `tokens.css` 逐字节未变。
-- **`pnpm` 构建脚本放行名单会静默失效**：`package.json` 的 `pnpm.onlyBuiltDependencies` 在
-  pnpm 11 已不再被读取（只在控制台打一行 warning，设置本身不生效）。迁到 `pnpm-workspace.yaml`，
-  同时补 `engines.pnpm >= 10`。
+- **`pnpm` 构建脚本放行名单静默失效，连带整条脚本链不可用**：pnpm 11 只认
+  `pnpm-workspace.yaml` 的 `allowBuilds`（映射），旧的 `package.json` 的
+  `pnpm.onlyBuiltDependencies`（数组）被忽略且不报错，install 结尾抛
+  `ERR_PNPM_IGNORED_BUILDS`；而 `pnpm check` / `pnpm build` / `pnpm tauri build` 前置的依赖
+  校验会先跑一次 install，于是全部失败。改为 `allowBuilds: { esbuild: true }`，并补
+  `engines.pnpm >= 10`。
 
 ### 文档
 

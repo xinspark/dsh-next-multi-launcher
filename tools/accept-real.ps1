@@ -118,22 +118,53 @@ if ($null -eq $self) {
 $pathsCheck = $self.checks | Where-Object { $_.name -eq 'paths' }
 $pointerCheck = $self.checks | Where-Object { $_.name -eq 'pointer' }
 $versionCheck = $self.checks | Where-Object { $_.name -eq 'versions' }
+$instanceCheck = $self.checks | Where-Object { $_.name -eq 'instances' }
+$writeCheck = $self.checks | Where-Object { $_.name -eq 'atomicWrite' }
 $dataDir = $pathsCheck.detail.dataDir
 Write-Host ("== data dir    {0}" -f $dataDir)
-Write-Check 'A0 --selftest ok' ([bool]$self.ok) ("ok={0}" -f $self.ok)
-Write-Check 'A0 global pointer writable' ([bool]$pointerCheck.detail.writable) ('writable=' + $pointerCheck.detail.writable)
+
+# Gate only on what a launch actually needs. `--selftest ok` is deliberately NOT used as the
+# gate: it also validates EVERY instance against the version tree in use, so running this
+# script with the repo binary against your real data dir fails on unrelated instances whose
+# version tag belongs to the installed launcher. That is environment state, not a launch
+# blocker, so it is reported as INFO below instead of aborting the run.
+$blocking = @(
+  @{ name = 'paths'; ok = [bool]$pathsCheck.ok },
+  @{ name = 'config'; ok = [bool]($self.checks | Where-Object { $_.name -eq 'config' }).ok },
+  @{ name = 'versions'; ok = [bool]$versionCheck.ok },
+  @{ name = 'atomicWrite'; ok = [bool]$writeCheck.ok },
+  @{ name = 'pointer writable'; ok = [bool]$pointerCheck.detail.writable }
+)
+foreach ($b in $blocking) { Write-Check ("A0 {0}" -f $b.name) $b.ok '' }
+
 $validVersions = @($versionCheck.detail | Where-Object { $_.valid })
 Write-Check 'A0 at least one valid version' ($validVersions.Count -gt 0) (($validVersions | ForEach-Object { "$($_.tag) shell=$($_.shell)" }) -join ', ')
+
+# Stale registrations (link name != version inside app.asar) are called out, not failed:
+# the GUI reconciles them on startup, this CLI does not.
+foreach ($v in $validVersions) {
+  if ($v.shell -ne '?' -and $v.tag -ne $v.shell) {
+    Write-Host ("INFO  A0 版本登记过期：versions\{0} 的安装树实际是 {1}（下次用 GUI 启动会改名对账）" -f $v.tag, $v.shell) -ForegroundColor Yellow
+  }
+}
+if ($instanceCheck -and -not $instanceCheck.ok) {
+  $invalid = @($instanceCheck.detail.invalid)
+  Write-Host ("INFO  A0 {0} 个实例在当前版本树下无效（例如 {1}）-- 与本次验收无关" -f $invalid.Count, $invalid[0].id) -ForegroundColor Yellow
+}
+
 if ($script:FAIL -gt 0) {
   Write-Host ''
-  Write-Host 'Selftest failed -- fix the environment before continuing (see docs/guide/troubleshooting.md).'
+  Write-Host 'Launch prerequisites failed -- fix the environment before continuing (docs/guide/troubleshooting.md).'
   if (-not $Keep) { Remove-Item $work -Recurse -Force -ErrorAction SilentlyContinue }
   exit 1
 }
 
 $instancesDir = Join-Path $dataDir 'instances'
 New-Item -ItemType Directory -Force -Path $instancesDir | Out-Null
-$tag = $validVersions[0].tag
+# Prefer a registration whose tag matches the version inside app.asar; a stale link still
+# launches fine, but the tag is what instances reference, so prefer the reconciled one.
+$current = @($validVersions | Where-Object { $_.shell -ne '?' -and $_.tag -eq $_.shell })
+$tag = if ($current.Count -gt 0) { $current[0].tag } else { $validVersions[0].tag }
 $defaultHome = $self.checks | Where-Object { $_.name -eq 'config' } | ForEach-Object { $_.detail.defaultHome }
 
 $instA = 'accept-a'
@@ -226,28 +257,34 @@ New-Item -ItemType Directory -Force -Path $homeIso | Out-Null
   archived = $false; createdAt = (Get-Date).ToString('o'); lastLaunchAt = $null
   lastExitClean = $true; notes = 'appdata isolation probe'; safeMode = $false
 } | ConvertTo-Json | Set-Content -Path (Join-Path $instancesDir "$idIso.json") -Encoding utf8
-$cfgObj = $cfgBeforeA8 | ConvertFrom-Json
-$cfgObj | Add-Member -NotePropertyName isolateAppData -NotePropertyValue $true -Force
-$cfgObj | ConvertTo-Json -Depth 8 | Set-Content -Path $cfgPath -Encoding utf8
 
-$null = Invoke-Cli @('--e2e-launch', $idIso) $cliOut
-$iso = Get-CliJson $cliOut
-Write-Check 'A8 隔离模式仍能启动' ([bool]$iso.ok -and $iso.phase -eq 'running') ("phase={0}" -f $iso.phase)
-$privateAppData = Join-Path $dataDir (Join-Path 'appdata' $idIso)
-$stamp = $null
-if (Test-Path $privateAppData) {
-  $stamp = Get-ChildItem -Path $privateAppData -Recurse -Filter 'desktop-next-last-home.json' -ErrorAction SilentlyContinue |
-    Select-Object -First 1
+# The config flip is wrapped in try/finally: a Ctrl-C or a failed launch in the middle of this
+# probe must not leave isolateAppData=true in the user's real app.json.
+try {
+  $cfgObj = $cfgBeforeA8 | ConvertFrom-Json
+  $cfgObj | Add-Member -NotePropertyName isolateAppData -NotePropertyValue $true -Force
+  $cfgObj | ConvertTo-Json -Depth 8 | Set-Content -Path $cfgPath -Encoding utf8
+
+  $null = Invoke-Cli @('--e2e-launch', $idIso) $cliOut
+  $iso = Get-CliJson $cliOut
+  Write-Check 'A8 隔离模式仍能启动' ([bool]$iso.ok -and $iso.phase -eq 'running') ("phase={0}" -f $iso.phase)
+  $privateAppData = Join-Path $dataDir (Join-Path 'appdata' $idIso)
+  $stamp = $null
+  if (Test-Path $privateAppData) {
+    $stamp = Get-ChildItem -Path $privateAppData -Recurse -Filter 'desktop-next-last-home.json' -ErrorAction SilentlyContinue |
+      Select-Object -First 1
+  }
+  if ($stamp) {
+    Write-Check 'A8 上游认私有 APPDATA（重启串台可在实例内自愈）' $true $stamp.FullName
+  } else {
+    Write-Host ('INFO  A8 上游没有在私有 APPDATA 下落定位文件 -- 该版本忽略 APPDATA 环境变量，' +
+      '重启仍走全局指针；isolateAppData 保持关闭。') -ForegroundColor Yellow
+  }
+  $null = Invoke-Cli @('--e2e-stop', $idIso, '--force') $cliOut
+} finally {
+  Set-Content -Path $cfgPath -Value $cfgBeforeA8 -NoNewline
+  Remove-Item (Join-Path $instancesDir "$idIso.json") -Force -ErrorAction SilentlyContinue
 }
-if ($stamp) {
-  Write-Check 'A8 上游认私有 APPDATA（重启串台可在实例内自愈）' $true $stamp.FullName
-} else {
-  Write-Host ('INFO  A8 上游没有在私有 APPDATA 下落定位文件 -- 该版本忽略 APPDATA 环境变量，' +
-    '重启仍走全局指针；isolateAppData 保持关闭。') -ForegroundColor Yellow
-}
-$null = Invoke-Cli @('--e2e-stop', $idIso, '--force') $cliOut
-Set-Content -Path $cfgPath -Value $cfgBeforeA8 -NoNewline
-Remove-Item (Join-Path $instancesDir "$idIso.json") -Force -ErrorAction SilentlyContinue
 
 # ------------------------------------------------------------------ A6 cleanup
 

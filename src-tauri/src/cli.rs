@@ -425,6 +425,14 @@ fn e2e_status() -> i32 {
     let scanner = VersionScanner::new(store.versions_dir.clone());
     let versions = scanner.scan();
     let instances = store.list_instances();
+    // 只读诊断里把"登记名 ≠ 安装树真实版本"点出来：GUI 启动时会自动对账改名，
+    // 但 `--selftest` / `--e2e-*` 不会，于是同一台机器上会看到
+    // "实例引用 2.0.23-next，versions 里只有 2.0.22-next" 这种自相矛盾的现场。
+    let stale: Vec<String> = versions
+        .iter()
+        .filter(|v| v.valid && v.shell_version != "?" && v.tag != v.shell_version)
+        .map(|v| format!("{}（安装树实际是 {}）", v.tag, v.shell_version))
+        .collect();
     emit!(
         "{}",
         serde_json::to_string_pretty(&json!({
@@ -437,7 +445,8 @@ fn e2e_status() -> i32 {
             "pointer": {"path": pointer.path().to_string_lossy(), "home": pointer.read_home()},
             "versions": versions.iter().map(|v| json!({"tag": v.tag, "valid": v.valid, "shell": v.shell_version, "kernel": v.kernel_version, "isLink": v.is_link, "linkTarget": v.link_target})).collect::<Vec<_>>(),
             "instances": instances.iter().map(|i| json!({"id": i.id, "name": i.name, "home": i.home, "version": i.version, "archived": i.archived})).collect::<Vec<_>>(),
-            "running": running.iter().map(|r| json!({"home": r.home, "shell": r.shell_pid, "host": r.host_pid, "startedAt": r.started_at})).collect::<Vec<_>>()
+            "running": running.iter().map(|r| json!({"home": r.home, "shell": r.shell_pid, "host": r.host_pid, "startedAt": r.started_at})).collect::<Vec<_>>(),
+            "staleVersions": stale
         }))
         .unwrap()
     );
