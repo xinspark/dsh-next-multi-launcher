@@ -80,8 +80,8 @@ node tools/verify-tokens.mjs
 ```
 
 ```
-{ "ok": true, "tokens": 1191, "varRefs": 282, "parts": 5, "failures": [], "warnings": [] }
-[verify] PASS：282 个 var() 全部来自名册；5 份 parts 未改动
+{ "ok": true, "tokens": 1249, "varRefs": 282, "parts": 2, "failures": [], "warnings": [] }
+[verify] PASS：282 个 var() 全部来自名册；2 份 parts 未改动
 ```
 
 红/绿测试（确认门禁真的会拦）：
@@ -89,7 +89,7 @@ node tools/verify-tokens.mjs
 | 动作 | 期望 | 实测 |
 |---|---|---|
 | 写 `var(--dsw-nonexistent-probe)` | 规则 A 失败，退出码 1 | ✅ |
-| 改 `design/parts/scrollbar.css` 一个字节 | 规则 C 失败，退出码 1 | ✅ |
+| 改 `design/parts/Menu.module.css` 一个字节 | 规则 C 失败，退出码 1 | ✅ |
 | 还原 | PASS，退出码 0 | ✅ |
 
 ### 1.3.1 样式门禁（1.1 起）
@@ -191,7 +191,7 @@ hint: 找到 2 个候选
 | 里程碑 | 验收项 | 验证方式 | 结果 |
 |---|---|---|---|
 | M0 环境 | 五项工具链、编译链 | 手工命令 | ✅ |
-| M1 取证 | token 抽取 1191 条、两次运行逐字节相同 | `extract-tokens` + 哈希比对 | ✅ |
+| M1 取证 | token 抽取 1249 条、两次运行逐字节相同 | `extract-tokens` + 哈希比对 | ✅ |
 | M2 骨架 | 指针对照、真实进程识别、实例名回读、配置自愈 | `--e2e-status` / `--scan-debug` / 单测 | ✅ |
 | M3 管道 | A1–A6 | `tools/e2e.mjs` | ✅ 15/15 |
 | M4 操作 | 停止 / 归档 / 删除 / 版本 | 单测 + 界面禁用状态 | ✅ |

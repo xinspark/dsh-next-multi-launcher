@@ -26,7 +26,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* 滚动条：与原生 DSH 对齐（design/parts/scrollbar.css 的移植，5px 细条） */
+/* 滚动条：与原生 DSH 对齐（手工移植，5px 细条；2.0.23 起上游不再提供该 parts 副本） */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -46,7 +46,7 @@ body {
   background: transparent;
 }
 
-/* 焦点环：官方 design/parts/focus.css 的移植。
+/* 焦点环：官方 focus 片段的手工移植（2.0.23 起上游不再提供该 parts 副本）。
    宽度写字面量：官方片段用的是 --dsw-focus-ring-width（2px），但那个名字由片段自己声明、不在本仓名册里，
    而 verify-tokens 禁止出现名册外的 --dsw-* 名字。宽度是常量、不随主题变，写字面量比自造 token 更诚实。 */
 :focus-visible {

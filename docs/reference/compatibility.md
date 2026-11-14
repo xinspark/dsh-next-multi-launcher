@@ -26,11 +26,21 @@
 
 | 壳版本 | 内核（`@deepseek-ai/dsh`） | 结果 | 验证方式 |
 |---|---|---|---|
+| `2.0.23-next` | `0.2.2-rc.3` | ✅ 通过 | 契约逐条核对 + token 重抽取（1249 个）+ 单测 78 项；真机多开待验收 |
 | `2.0.22-next` | `0.2.2-rc.1` | ✅ 通过 | 契约逐条核对 + token 重抽取（1191 个）+ 单测 78 项 |
 | `2.0.21-next` | `0.2.1-rc.4` | ✅ 完整通过 | [../testing.md](../testing.md) |
 | `2.0.20-next` | `0.2.0-rc.9` | ✅ 版本扫描 | 单测 `versions::tests::scans_and_marks_invalid` |
 
 其它版本**未经验证**。升级 DSH-NEXT 后请按下方"如何适配新版本"重新跑一遍。
+
+### 2.0.23 这一版动了什么（与启动器相关的部分）
+
+| 变化 | 对启动器的影响 |
+|---|---|
+| 内核 `0.2.2-rc.1` → `0.2.2-rc.3` | 无接口变化；插件侧自行适配 |
+| 指针、`desktop-next-last-home.json`、数据目录确认框、`--next-safe-mode`、host 启动参数 | 逐条复核后**均未变化**，启动器无需改代码 |
+| 设计 token 1191 → 1249（+69 / −11） | 重抽 `tokens.lock.json` / `tokens.css` / `controls.md` |
+| 上游 parts 5 → 2（`scrollbar` / `focus` / `corner-shape` 不再提供） | 本仓对应样式本就是手工移植，删除参考副本并更新文档措辞 |
 
 ### 2.0.22 这一版动了什么（与启动器相关的部分）
 
@@ -70,13 +80,13 @@ DSH-NEXT 自带的实例 / profile 切换**只隔离插件系统**（`plugins/`�
 > [../experience/08-原地升级与版本号.md](../experience/08-原地升级与版本号.md)、
 > [../experience/09-数据目录确认框.md](../experience/09-数据目录确认框.md)。
 
-## 参考指纹（`2.0.22-next`）
+## 参考指纹（`2.0.23-next`）
 
 | 项 | 值 |
 |---|---|
 | `DSH NEXT.exe` 大小 | 246,521,344 B |
-| `resources\app.asar` 大小 | 237,037,363 B |
-| 设计 token 数 | 1191 |
+| `resources\app.asar` 大小 | 273,810,296 B |
+| 设计 token 数 | 1249 |
 | `design/tokens.lock.json` | 可复跑：同参数两次运行逐字节相同 |
 
 ## 如何适配新版本
