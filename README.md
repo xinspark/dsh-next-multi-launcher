@@ -62,7 +62,7 @@
 | **停止** | 优雅退出 → 超时 → 强制结束整组（含 host 子进程） |
 | **权限** | 关键目录不可写时自动请求管理员，界面可手动触发 |
 | **原生对齐** | 1249 个设计 token 从 `app.asar` 抽取；控件几何、字阶、浮层表面按原生规格逐项对齐（两道门禁防漂移） |
-| **可验证** | 78 项 Rust 单测、15 项端到端断言、UI 自动化检查 |
+| **可验证** | 78 项 Rust 单测、19 项端到端断言、文案与样式静态门、UI 自动化检查 |
 
 ## 界面
 
@@ -131,7 +131,7 @@
 | Agents Anywhere 账号隔离 | 切 home 不隔离 AA 登录与设备绑定，跨实例共享 |
 | 内核独立 | 壳与 `@deepseek-ai/dsh` 恒同版本，只有"壳版本"一个旋钮 |
 | 同 home 多实例 | 两个 writer 会损坏会话；启动器直接拒绝（E1003） |
-| 非默认实例在 DSH 内部重启 | 会重读全局指针，落到默认实例；重启请用启动器「重启 ▾」 |
+| 非默认实例在 DSH 内部重启 | 会重读全局指针，落到默认实例；重启请用启动器「重启 ▾」。实验位 `isolateAppData`（默认关闭）试图让每个实例读自己的指针，成效需真机判定 |
 | 多个非默认实例同时运行时的重启 | 指针全局唯一，只有最后启动的那个能正确重启 |
 | 自动更新管理 | 只提示风险，不改 `app-update.yml`，不写注册表 / 快捷方式 |
 | SmartScreen 红色拦截 | 自签名无效，需 EV 证书或信誉积累 |
@@ -190,7 +190,7 @@ pnpm check                        # svelte-check（0 error 是门槛）
 pnpm verify                       # 设计 token 门禁
 pnpm lint:css                     # 样式门禁（禁 hex / 圆角只用 token / 字号成对 / 字重）
 cargo test --manifest-path src-tauri/Cargo.toml
-node tools/e2e.mjs                # 端到端（替身进程，15 项断言）
+node tools/e2e.mjs                # 端到端（替身进程，19 项断言）
 node tools/check-links.mjs        # 文档链接校验
 pnpm tauri build --no-bundle      # 出 exe
 ```

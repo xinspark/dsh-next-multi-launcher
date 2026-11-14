@@ -45,6 +45,16 @@ pub struct Config {
     pub onboarding: OnboardingState,
     #[serde(default)]
     pub last_pointer: Option<LastPointer>,
+    /// 每个实例给 DSH-NEXT 一份**私有 `%APPDATA%`** 并注入 `DSH_DESKTOP_NEXT_HOME`：
+    /// 上游把"定位文件 + 上次启动目录"放在 `app.getPath('appData')` 下，换掉它以后，
+    /// 实例自己重启时读的是自己那份指针，而不是全局那一份（"重启串台"的根因）。
+    ///
+    /// 全局指针**照写**做兜底：`%APPDATA%` 能否真的被子进程换掉取决于 Electron 的实现，
+    /// 这一条需要在真机上验证（判据见 tools/accept-real.ps1 的 A8 提示与 docs 说明）。
+    ///
+    /// 默认关闭：它是实验位，验证通过再谈默认值。
+    #[serde(default)]
+    pub isolate_app_data: bool,
 }
 
 impl Default for Config {
@@ -60,6 +70,7 @@ impl Default for Config {
             theme: "system".to_string(),
             onboarding: OnboardingState::default(),
             last_pointer: None,
+            isolate_app_data: false,
         }
     }
 }

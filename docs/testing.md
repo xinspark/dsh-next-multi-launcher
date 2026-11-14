@@ -34,7 +34,7 @@ running 78 tests
 test result: ok. 78 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 ```
 
-### 1.2 端到端（替身进程，15 项断言）
+### 1.2 端到端（替身进程，19 项断言）
 
 `tools/e2e-stub` 编译一个**行为与真身一致**的替身 `DSH NEXT.exe`：读指针 → 拉起
 `--user-data-dir=<home>\electron-user-data` 子进程与 `--expose-internals … <home>\profiles\desktop` 的 host → 存活。
@@ -55,10 +55,14 @@ PASS  A4 指针回滚
 PASS  A5 改指针后原实例仍指向自己的 home
 PASS  A6 启动即退出 E1006
 PASS  A6 指针回滚
+PASS  A7 隔离模式启动成功
+PASS  A7 全局指针已还原为默认
+PASS  A7 进程落到它自己的 home
+PASS  A7 私有 APPDATA 已建
 PASS  强制停止 lab1 / lab2
 PASS  停止后没有残留的 e2e 实例
 PASS  指针文件恢复为测试前内容
-[e2e] 15/15 通过
+[e2e] 19/19 通过
 ```
 
 | 用例 | 覆盖点 |
@@ -69,6 +73,7 @@ PASS  指针文件恢复为测试前内容
 | A4 | 超时未拉起子进程 → E1005 + 指针回滚 |
 | A5 | 运行中改指针，原实例仍用旧 home |
 | A6 | 主进程启动即退出 → E1006 + 指针回滚 |
+| A7 | `isolateAppData`：私有 `%APPDATA%` + `DSH_DESKTOP_NEXT_HOME`，进程仍落到自己的 home、指针照常还原；替身按上游顺序解析（定位文件 > 环境变量 > 默认） |
 
 > A6 的 20 秒宽限期是必需的：DSH-NEXT 启动后会**自我重启一次**（父进程退出、子进程接管），
 > 一见父进程退出就判失败会误杀正常启动。
@@ -138,6 +143,24 @@ $env:WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS='--remote-debugging-port=9333'
 `docs/images/ui-main.png` / `ui-versions.png` / `ui-settings.png` / `ui-onboarding.png`
 随每次样式改动重截（浅色、1400×1010@1.4），避免文档展示的是过期界面。
 
+### 1.3.3 文案门禁（1.1.4 起）
+
+字典是"手写两遍"的结构（`src/lib/i18n.ts` 的 `zh` / `en`），缺键不会报错，只会静默回落成
+另一种语言；这类漂移必须变成门：
+
+```powershell
+node tools/check-i18n.mjs
+```
+
+```
+[check-i18n] PASS：zh 302 键 / en 302 键一一对应，占位符一致，en 零中文，代码引用 270 键全部存在
+```
+
+五条规则：**键集对称**（两边都不得多/少）、**同字典内不重复**（重复会静默覆盖）、
+**占位符集合一致**（`{name}` 只替换一半最难发现）、**en 值零中日韩字符**（`header.lang`
+白名单：英文界面里语言按钮本来就写「中文」）、**代码里 `t('…')` 引用的键必须存在**。
+未被引用的键只提示不拦（`NOTICES` 之类是动态取的）。
+
 ### 1.4 初始化向导（1.0.3 实测）
 
 用独立数据目录起一个干净环境，逐项点过：
@@ -193,7 +216,7 @@ hint: 找到 2 个候选
 | M0 环境 | 五项工具链、编译链 | 手工命令 | ✅ |
 | M1 取证 | token 抽取 1249 条、两次运行逐字节相同 | `extract-tokens` + 哈希比对 | ✅ |
 | M2 骨架 | 指针对照、真实进程识别、实例名回读、配置自愈 | `--e2e-status` / `--scan-debug` / 单测 | ✅ |
-| M3 管道 | A1–A6 | `tools/e2e.mjs` | ✅ 15/15 |
+| M3 管道 | A1–A7 | `tools/e2e.mjs` | ✅ 19/19 |
 | M4 操作 | 停止 / 归档 / 删除 / 版本 | 单测 + 界面禁用状态 | ✅ |
 | M5 对齐 | token 门禁、`pnpm check`、`cargo test` | 命令 | ✅ |
 
@@ -204,14 +227,31 @@ M2 的一处说明：在受限会话里 `sysinfo` 只能看到本作业内的进
 
 1. **真实 DSH-NEXT 窗口多开**（替身已覆盖管道）：
 
+   先用脚本把机械部分跑一遍（普通终端，**不要**在受限会话里）：
+
+   ```powershell
+   pwsh -NoProfile -File tools/accept-real.ps1
+   pwsh -NoProfile -File tools/accept-real.ps1 -Exe .\DSH-NEXT-Multi.exe -WorkDir D:\tmp-nul -Keep
+   ```
+
+   它自动验 6 组、约 14 条断言：`--selftest` 指针可写 → A 启动成功且指针还原 →
+   B 启动后两个 home 同时在线 → 重复启动 A 得 `E1003` 且指针未动 → 优雅停 A / 强制停 B →
+   无残留进程 → 指针文件与运行前逐字节相同、测试实例与 home 已删。失败即退出码 1。
+
+   剩下三条只能人眼看：
+
    ```powershell
    # 1) 正常双击 DSH-NEXT-Multi.exe（不要在受限会话里）
    # 2) 新建两个实例（home 不同），依次点「启动」
    # 3) 观察：两个窗口、任务管理器里两条 --user-data-dir，各自 home 正确
-   # 4) 顶栏「全局指针」应恢复为默认 home
-   # 5) 关键：切换实例时**不应**出现 DSH-NEXT 的「数据目录与上次不同」确认框
+   # 4) 切换实例时**不应**出现 DSH-NEXT 的「数据目录与上次不同」确认框
    #    （出现过一次就说明 last-home 没同步；默认按钮会把这次启动改回上一个实例）
    ```
+
+   > 在受限会话（沙箱 / 应用容器 / 只允许写某几个根目录的环境）里跑，会看到
+   > `E1001` + `拒绝访问。 (os error 5)`，`--selftest` 的 `pointer.writable=false`。
+   > 这不是 ACL 问题：同目录用 `New-Item` 能写。判据与处理见
+   > [troubleshooting §2](guide/troubleshooting.md#2-指针不可写)。
 
 2. **原地升级后版本号跟随**：拿旧版本登记一份链接，再用安装包原地升级它，重开启动器——
    版本页应显示新版本号（`versions\<新版本>`），实例的版本字段也一并改过来。
@@ -234,6 +274,7 @@ pnpm build
 node tools/verify-tokens.mjs
 node tools/lint-css.mjs
 node tools/check-topbar.mjs
+node tools/check-i18n.mjs
 node tools/check-links.mjs
 cargo test --manifest-path src-tauri/Cargo.toml
 node tools/e2e.mjs

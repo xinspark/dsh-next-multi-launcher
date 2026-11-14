@@ -5,6 +5,46 @@
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [未发布]
+
+### 新增
+
+- **文案门禁** `tools/check-i18n.mjs`（`pnpm check:i18n`，已接入 CI）：字典是"手写两遍"的结构，
+  缺键不报错、只静默回落成另一种语言。五条规则——键集对称、同字典内不重复、占位符集合一致、
+  `en` 值零中日韩字符（`header.lang` 白名单）、代码里 `t('…')` 引用的键必须存在。
+  当前 302 键一一对应、代码引用 270 键全部命中。
+- **真机多开验收脚本** `tools/accept-real.ps1`：把"真实 DSH-NEXT 窗口多开"里能自动化的部分
+  （`--selftest` 指针可写 → A 启动且指针还原 → B 启动后两个 home 同时在线 → 重复启动得 `E1003`
+  且指针未动 → 优雅停 / 强制停 → 无残留 → 指针文件逐字节复原、测试实例与 home 已删）固化成
+  一条命令；剩下的"两个窗口、无「数据目录与上次不同」弹框、重启菜单"仍是人眼项，脚本结束时会列出来。
+  末尾的 A8 顺带判定"上游认不认私有 `%APPDATA%`"。
+- **`isolateAppData` 实验位（默认关闭）**：给每个实例一份私有 `%APPDATA%`
+  （`<数据目录>\appdata\<id>`）并注入 `DSH_DESKTOP_NEXT_HOME=<home>`。上游把定位文件与
+  last-home 放在 `app.getPath('appData')` 下（`lib/main.js:3030` / `5681`），**如果** Electron
+  认这个环境变量，实例内重启就会读到自己那份指针 —— 「DSH 内部重启非默认实例会落回默认环境」
+  的根因随之消失。全局指针**照写**做兜底，因此该开关不改变现有行为；是否真的生效需真机判定，
+  取证与后续（默认值、去掉指针还原、放开串行队列）见 `docs-private/decision-appdata.md`。
+  替身进程也按上游顺序解析 home（定位文件 > `DSH_DESKTOP_NEXT_HOME` > 默认），e2e 用例 A7 覆盖。
+
+### 修复
+
+- **`design/controls.md` 头部的基线 asar 路径又写死了本机绝对路径**：`tools/extract-tokens.mjs`
+  只有 lock / css 走了 `portablePath()`，controls.md 这条漏了，于是生成物里出现
+  `E:\FXS\APP\DSH NEXT\resources\app.asar`（与 1.1.0「生成物不再记录本机路径」的承诺矛盾）。
+  改为 `<install>/resources/app.asar`，并重抽一次确认 `tokens.lock.json` / `tokens.css` 逐字节未变。
+- **`pnpm` 构建脚本放行名单会静默失效**：`package.json` 的 `pnpm.onlyBuiltDependencies` 在
+  pnpm 11 已不再被读取（只在控制台打一行 warning，设置本身不生效）。迁到 `pnpm-workspace.yaml`，
+  同时补 `engines.pnpm >= 10`。
+
+### 文档
+
+- `docs/testing.md`：新增 §1.3.3 文案门禁；§3 的真机验收改为"脚本 + 三条人眼项"；
+  §4「复跑全部」补两道门禁。
+- `docs/guide/troubleshooting.md` §2：补"进程被会话限制，不是 ACL"的判据与处理
+  （同目录 `New-Item` 能写、启动器写不了 → 受限会话；现象是 `E1001` + `拒绝访问。 (os error 5)`）。
+- `CONTRIBUTING.md`：pnpm 版本要求、`onlyBuiltDependencies` 新位置、pnpm 11 要求 purge
+  `node_modules` 时的三种处理。
+
 ## [1.1.3] - 2026-11-14
 
 ### 变更

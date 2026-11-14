@@ -27,6 +27,9 @@ pub struct LaunchRequest {
     /// 追加给 DSH-NEXT 的参数（安全模式 = `--next-safe-mode`）。
     /// 重启时由启动器自己决定，不依赖 DSH 内部菜单。
     pub extra_args: Vec<String>,
+    /// 给这个实例一份私有 `%APPDATA%` + `DSH_DESKTOP_NEXT_HOME`（全局指针仍照写做兜底）。
+    /// 见 `Config::isolate_app_data`。
+    pub isolate_app_data: bool,
 }
 
 impl LaunchRequest {
@@ -36,7 +39,13 @@ impl LaunchRequest {
             home: home.into(),
             exe,
             extra_args: Vec::new(),
+            isolate_app_data: false,
         }
+    }
+
+    pub fn with_app_data_isolation(mut self, isolate: bool) -> Self {
+        self.isolate_app_data = isolate;
+        self
     }
 }
 
@@ -311,13 +320,32 @@ impl Worker {
     }
 
     /// 把指针与「上次启动目录」一起还原；还原失败只记日志（不覆盖原始的失败原因）。
-    fn rollback(&self, backup: &crate::pointer::PointerBackup, record: &Option<String>) {
-        if let Err(err) = self.pointer.restore(backup) {
-            self.logger.error(format!("回滚指针失败：{err}"));
+    ///
+    /// 两个参数都是 `Option`：写指针之前就失败的路径（版本无效、home 已被占用）
+    /// 没有现场可还原，传 `None` 即可，调用点不用再各自判一遍。
+    fn rollback(
+        &self,
+        backup: &Option<crate::pointer::PointerBackup>,
+        record: &Option<Option<String>>,
+    ) {
+        if let Some(backup) = backup {
+            if let Err(err) = self.pointer.restore(backup) {
+                self.logger.error(format!("回滚指针失败：{err}"));
+            }
         }
-        if let Err(err) = self.record.restore(record) {
-            self.logger.error(format!("回滚上次启动目录失败：{err}"));
+        if let Some(previous) = record {
+            if let Err(err) = self.record.restore(previous) {
+                self.logger.error(format!("回滚上次启动目录失败：{err}"));
+            }
         }
+    }
+
+    /// 这个实例的私有 `%APPDATA%`（隔离模式用）：`<数据目录>\\appdata\\<id>`。
+    ///
+    /// 放在启动器数据目录下，而不是实例 home 里：home 是 DSH 的数据目录，
+    /// 里面有它自己的目录约定；`appdata` 只承载 Electron 的应用级路径。
+    fn private_appdata(&self, instance_id: &str) -> PathBuf {
+        self.store.data_dir.join("appdata").join(instance_id)
     }
 
     fn handle(&mut self, req: LaunchRequest) {
@@ -357,9 +385,12 @@ impl Worker {
             return;
         }
 
-        // 2. 写指针（旧值留在内存里备用）
+        // 2. 写指针（旧值留在内存里备用）。隔离模式下这一份**照写**：
+        //    `%APPDATA%` 能不能真的被换掉取决于 Electron 对 `app.getPath('appData')` 的实现，
+        //    写指针是兜底 —— 上游若认环境变量，指针根本不会被读；不认也照旧能启动。
+        let isolate = req.isolate_app_data;
         let backup = match self.pointer.write(&req.home) {
-            Ok(b) => b,
+            Ok(b) => Some(b),
             Err(err) => {
                 self.fail(&id, started, err);
                 return;
@@ -369,15 +400,39 @@ impl Worker {
         // 2b. 同步「上次启动目录」：不同步的话，DSH-NEXT 2.0.22 会把这次切实例当成
         //     “数据目录与上次不同”，弹模态并要求确认，默认按钮还会改回上一个实例。
         let record_prev = match self.record.write(&req.home) {
-            Ok(prev) => prev,
+            Ok(prev) => Some(prev),
             Err(err) => {
                 // 记录写失败时它本身没被改动，只回滚指针，别把旧的 last-home 删掉
-                if let Err(restore) = self.pointer.restore(&backup) {
-                    self.logger.error(format!("回滚指针失败：{restore}"));
+                if let Some(backup) = &backup {
+                    if let Err(restore) = self.pointer.restore(backup) {
+                        self.logger.error(format!("回滚指针失败：{restore}"));
+                    }
                 }
                 self.fail(&id, started, err);
                 return;
             }
+        };
+
+        // 2c. 隔离模式：准备私有 %APPDATA%。它没有 location 文件，于是 DSH-NEXT 走
+        //     `DSH_DESKTOP_NEXT_HOME` 这条上游兜底（lib/main.js: `readDataDirectory`）。
+        let appdata = if isolate {
+            let dir = self.private_appdata(&id);
+            if let Err(err) = std::fs::create_dir_all(&dir) {
+                self.fail(
+                    &id,
+                    started,
+                    AppError::new(
+                        "E1001",
+                        format!("创建私有 APPDATA 失败 {}：{err}", dir.display()),
+                    ),
+                );
+                return;
+            }
+            self.logger
+                .info(format!("[{id}] 隔离模式：私有 APPDATA = {}", dir.display()));
+            Some(dir)
+        } else {
+            None
         };
 
         if self.is_cancelled(&id) {
@@ -394,6 +449,16 @@ impl Worker {
         cmd.current_dir(req.exe.parent().unwrap_or(&req.exe));
         for arg in &req.extra_args {
             cmd.arg(arg);
+        }
+        if let Some(appdata) = &appdata {
+            // `app.getPath('appData')` 在 Windows 上就是 %APPDATA%：换掉它，DSH-NEXT 的
+            // 指针目录与 last-home 记录都会落进这个实例自己的目录。
+            cmd.env("APPDATA", appdata);
+            // 上游的兜底变量：私有目录里没有定位文件时，它决定 home
+            // （`lib/main.js` 的 readDataDirectory：应用内选择 > 本变量 > ~/.dsh）。
+            cmd.env("DSH_DESKTOP_NEXT_HOME", &req.home);
+            // 夹具变量只属于本仓的测试替身；真身不认。带进隔离进程会让替身读错指针。
+            cmd.env_remove("DSH_MULTI_POINTER");
         }
         let mut child = match cmd
             .stdin(std::process::Stdio::null())
@@ -554,6 +619,13 @@ impl Worker {
         //
         // 「上次启动目录」跟着一起还原：否则下次双击图标（指针=默认、记录=实例）
         // 反而会撞上数据目录确认框，默认按钮还会把启动改回实例。
+        //
+        // 隔离模式额外记一笔：上游若把私有 `%APPDATA%` 认下来，指针在它自己家，
+        // 实例内重启就落到自己（这是这条支路唯一想要的效果）。
+        if req.isolate_app_data {
+            self.logger
+                .info(format!("[{id}] 隔离模式：私有 APPDATA 已交给子进程"));
+        }
         if cfg.restore_pointer_after_launch {
             let default_home = cfg.default_home.clone();
             if !default_home.is_empty()

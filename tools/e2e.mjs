@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// e2e.mjs —— 启动管道端到端验收（A1/A2/A3/A4/A5/A6）。
+// e2e.mjs —— 启动管道端到端验收（A1/A2/A3/A4/A5/A6/A7）。
 //
 // 做法：用 tools/e2e-stub 编一个替身 `DSH NEXT.exe`（行为与真身一致：读指针、起
 // `--user-data-dir=<home>\electron-user-data` 子进程、再起 host），放到隔离的
@@ -57,9 +57,14 @@ Write-Output ('killed=' + $victims.Count)
 function buildStub() {
   if (existsSync(stubExe)) return;
   log('[e2e] 编译替身进程…');
-  const out = spawnSync('cargo', ['build', '--release', '--quiet', '--manifest-path', stubCrate], {
-    stdio: 'inherit'
-  });
+  // --manifest-path 必须指到 Cargo.toml：指目录时 cargo 直接报
+  // "manifest path ... is a directory but expected a file"（这条只有在替身尚未编译时才暴露，
+  // 所以清掉缓存重跑时会一头撞上）。
+  const out = spawnSync(
+    'cargo',
+    ['build', '--release', '--quiet', '--manifest-path', join(stubCrate, 'Cargo.toml')],
+    { stdio: 'inherit' }
+  );
   if (out.status !== 0) throw new Error('替身进程编译失败');
 }
 
@@ -122,6 +127,7 @@ function prepare() {
   writeInstance('bad', '坏版本', join(e2e, 'homes', 'bad'), BAD_TAG);
   writeInstance('slow', '慢启动', join(e2e, 'homes', 'slow'), TAG);
   writeInstance('exit', '启动即退', join(e2e, 'homes', 'exit'), TAG);
+  writeInstance('iso', '隔离模式', join(e2e, 'homes', 'iso'), TAG);
 
   writeFileSync(
     join(dataDir, 'app.json'),
@@ -300,6 +306,40 @@ async function main() {
     `tail=${(r7.text || '').slice(-160).replace(/\n/g, ' ')}`
   );
   record('A6 指针回滚', pointerHome() === beforeA6, `pointer=${pointerHome()}`);
+
+  // ---- A7：appDataIsolation —— 私有 %APPDATA% + DSH_DESKTOP_NEXT_HOME
+  //      守的是"重启串台"的根：上游若认这个私有 appData，实例重启时读的是自己那份指针。
+  //      指针仍照写（兜底），所以这里验的是"能起来 + 落到自己的 home + 私有目录已建 + 指针已还原"。
+  killStubProcesses();
+  const cfgPath = join(dataDir, 'app.json');
+  const cfgBefore = readFileSync(cfgPath, 'utf8');
+  writeFileSync(
+    cfgPath,
+    JSON.stringify({ ...JSON.parse(cfgBefore), isolateAppData: true }, null, 2) + '\n',
+    'utf8'
+  );
+  const pointerBeforeA7 = readFileSync(pointerFile, 'utf8');
+  const r8 = await runCli(['--e2e-launch', 'iso']);
+  const isoHome = join(e2e, 'homes', 'iso').toLowerCase();
+  record(
+    'A7 隔离模式启动成功',
+    r8.json?.ok === true && r8.json?.phase === 'running',
+    `phase=${r8.json?.phase} shell=${r8.json?.shellPid}`
+  );
+  record(
+    'A7 全局指针已还原为默认',
+    readFileSync(pointerFile, 'utf8') === pointerBeforeA7,
+    ''
+  );
+  record(
+    'A7 进程落到它自己的 home',
+    (r8.json?.running ?? []).some((r) => String(r.home).toLowerCase() === isoHome),
+    `running=${JSON.stringify((r8.json?.running ?? []).map((r) => r.home))}`
+  );
+  const privateAppData = join(dataDir, 'appdata', 'iso');
+  record('A7 私有 APPDATA 已建', existsSync(privateAppData), privateAppData);
+  await runCli(['--e2e-stop', 'iso', '--force']);
+  writeFileSync(cfgPath, cfgBefore, 'utf8');
 
   // ---- 停止：替身没有窗口，只能用强制结束（真实 DSH 走 15 秒优雅关闭）
   killStubProcesses();

@@ -46,6 +46,20 @@ takeown /F "$env:APPDATA\DSH NEXT\home" /R /D Y
 icacls "$env:APPDATA\DSH NEXT\home" /grant "$env:USERNAME":(OI)(CI)F /T
 ```
 
+**第三种可能：进程被会话限制，不是 ACL。**
+
+现象：`--selftest` 里 `pointer.writable=false`，启动实例报 `E1001`，`detail` 是
+`…\desktop-next-location.json：拒绝访问。 (os error 5)`；但**同一个目录**在该终端里
+`New-Item` / `touch` 都成功。
+
+判据：用同一个 exe 把指针指到**另一处可写目录**（`DSH_MULTI_POINTER`）能成功、指到
+`%APPDATA%` / `%TEMP%` 就失败 —— 说明写权限本身没问题，是**运行这个进程的会话**只允许写
+某几个根目录（受限会话 / 沙箱 / 应用容器常见）。启动器不绕过它：
+
+- 真机验收多开：用**普通桌面终端**或直接双击 exe 运行（`tools/accept-real.ps1` 会先做这项判定）；
+- 自动化跑管道：`node tools/e2e.mjs`（替身进程 + workspace 内的 `DSH_MULTI_DATA_DIR` /
+  `DSH_MULTI_VERSIONS` / `DSH_MULTI_POINTER` 覆盖）。
+
 ## 3. E1003 / E1005 / E1006
 
 **E1003 数据目录已被占用**：同一 home 已经有一个实例在跑。停止它，或给新实例换 home。

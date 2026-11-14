@@ -314,7 +314,10 @@ fn e2e_launch(instance_id: &str) -> i32 {
         logger.clone(),
     );
     let started = Instant::now();
-    if let Err(err) = launcher.launch(LaunchRequest::new(inst.id.clone(), inst.home.clone(), exe)) {
+    if let Err(err) = launcher.launch(
+        LaunchRequest::new(inst.id.clone(), inst.home.clone(), exe)
+            .with_app_data_isolation(cfg.isolate_app_data),
+    ) {
         emit!("{}", json!({"ok": false, "error": err.to_string()}));
         return 1;
     }

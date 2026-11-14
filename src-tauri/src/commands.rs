@@ -245,12 +245,13 @@ pub fn instance_launch(state: State<'_, AppState>, id: String) -> Result<(), App
     let exe = version.exe.clone().map(PathBuf::from).ok_or_else(|| {
         AppError::new("E1004", format!("版本 {} 缺少 DSH NEXT.exe", inst.version))
     })?;
+    let isolate = state.config.lock().unwrap().isolate_app_data;
 
     state
         .launcher
         .lock()
         .unwrap()
-        .launch(LaunchRequest::new(inst.id, inst.home, exe))
+        .launch(LaunchRequest::new(inst.id, inst.home, exe).with_app_data_isolation(isolate))
 }
 
 #[tauri::command]
@@ -316,7 +317,9 @@ pub fn instance_restart(
     }
 
     // 3) 按模式拼参数（与 DSH-NEXT 自身一致：安全模式 = --next-safe-mode）
-    let mut req = LaunchRequest::new(inst.id.clone(), inst.home.clone(), exe);
+    let isolate = state.config.lock().unwrap().isolate_app_data;
+    let mut req = LaunchRequest::new(inst.id.clone(), inst.home.clone(), exe)
+        .with_app_data_isolation(isolate);
     if mode == "safe" {
         req.extra_args.push("--next-safe-mode".to_string());
     }
