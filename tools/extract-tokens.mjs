@@ -476,7 +476,7 @@ const controlsMd = [
   '# 控件规格（阶段 1 产物）',
   '',
   '> 由 `tools/extract-tokens.mjs` 从 DSH-NEXT `app.asar` 自动生成，请勿手改。',
-  `> 基线 asar：\`${asarPath}\``,
+  `> 基线 asar：\`${portablePath(asarPath)}\``,
   `> asar sha256：\`${asarSha}\``,
   '',
   '## 1. 圆角刻度',

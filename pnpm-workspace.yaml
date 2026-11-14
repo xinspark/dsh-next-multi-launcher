@@ -1,0 +1,11 @@
+# pnpm 设置（pnpm 11 只认这里；package.json 里的 `pnpm` 字段已被忽略）
+#
+# `allowBuilds`：放行/拒绝依赖的构建脚本（键是包名，值是 true/false）。
+# 只放行 esbuild，其余依赖的 postinstall 一律不执行。
+#
+# 键名的坑：pnpm 10 叫 `onlyBuiltDependencies`（数组），pnpm 11 改成了 `allowBuilds`（映射）。
+# 写成旧键名**不报错**，只是被忽略，然后在 install 结尾抛
+# `ERR_PNPM_IGNORED_BUILDS: Ignored build scripts: esbuild@0.25.12` —— 而这个错误又会让
+# `pnpm check` / `pnpm build` 前置的依赖校验直接失败（两者会先跑一次 install）。
+allowBuilds:
+  esbuild: true

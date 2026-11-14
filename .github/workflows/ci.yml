@@ -30,6 +30,8 @@ jobs:
         run: node tools/lint-css.mjs
       - name: Topbar gate (高度固定 / 横幅上限)
         run: node tools/check-topbar.mjs
+      - name: i18n gate (中英键集对称 / 占位符 / en 零中文)
+        run: node tools/check-i18n.mjs
 
   rust:
     name: Rust (fmt / test / clippy)

@@ -14,6 +14,7 @@
     "verify": "node tools/verify-tokens.mjs",
     "lint:css": "node tools/lint-css.mjs",
     "check:topbar": "node tools/check-topbar.mjs",
+    "check:i18n": "node tools/check-i18n.mjs",
     "sign": "pwsh -NoProfile -File tools/sign-exe.ps1",
     "format": "prettier --write \"src/**/*.{ts,svelte,css}\" \"*.{json,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,svelte,css}\" \"*.{json,md}\""
@@ -31,10 +32,9 @@
     "prettier": "^3.4.2",
     "prettier-plugin-svelte": "^3.3.3"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ]
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=10"
   },
   "license": "MIT",
   "author": "XinSpark",

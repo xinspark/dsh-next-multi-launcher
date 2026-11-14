@@ -8,9 +8,24 @@
 | 依赖 | 版本 | 说明 |
 |---|---|---|
 | Node.js | ≥ 20 | 本仓库用 pnpm 管理 |
-| pnpm | ≥ 9 | `corepack enable` 或独立安装 |
+| pnpm | ≥ 10 | 见下方「pnpm 版本」 |
 | Rust | ≥ 1.77 | MSVC 工具链 |
 | WebView2 | 任意较新版本 | Win10/11 通常自带 |
+
+### pnpm 版本
+
+`package.json` 声明 `engines.pnpm >= 10`，构建脚本放行名单写在 `pnpm-workspace.yaml`
+（pnpm 11 起不再读 `package.json` 里的 `pnpm.onlyBuiltDependencies`，写在那边会静默失效）。
+
+如果你的 pnpm 是 11+，`pnpm check` / `pnpm build` 在跑脚本前会先做依赖校验，可能要求
+**重建 `node_modules`**：
+
+```
+[ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY] Aborted removal of modules directory due to no TTY
+```
+
+处理（任选）：在交互式终端里直接 `pnpm install`；或 `CI=true pnpm install`；
+或临时用 `./node_modules/.bin/svelte-check --tsconfig ./tsconfig.json` 代替 `pnpm check`。
 
 ## 本地开发
 
@@ -25,6 +40,8 @@ pnpm tauri dev          # 开发模式（Vite + WebView 热更新）
 pnpm check              # svelte-check（0 error / 0 warning 是门槛）
 pnpm build              # 只构建前端到 dist/
 pnpm verify             # 设计 token 门禁（四规则）
+pnpm lint:css           # 样式门禁（裸色 / 圆角 / 字号成对 / 字重）
+pnpm check:i18n         # 文案门禁（中英键集对称 / 占位符 / en 零中文）
 cargo test --manifest-path src-tauri/Cargo.toml
 pnpm tauri build --no-bundle
 node tools/ui-check.mjs # 端到端 UI 检查（需先 pnpm dev）
