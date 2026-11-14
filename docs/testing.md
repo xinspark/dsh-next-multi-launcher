@@ -234,7 +234,10 @@ M2 的一处说明：在受限会话里 `sysinfo` 只能看到本作业内的进
    **未覆盖**：`accept-real.ps1` 的 A0–A8 一轮（本次在受限会话里跑不了）、
    `isolateAppData` 实验位（安装态仍是旧二进制，`app.json` 里没有该字段）。
 
-   先用脚本把机械部分跑一遍（普通终端，**不要**在受限会话里）：
+   先用脚本把机械部分跑一遍（普通终端，**不要**在受限会话里）。
+   **最省事的方式是双击** `tools\accept-real.cmd`：它自己找 `target\release\DSH-NEXT-Multi.exe`、
+   跑下面这套断言、把全过程写进 `%TEMP%\dsh-nul-accept-report.txt`，结束时窗口不关。
+   （`.cmd` 里刻意只写 ASCII——cmd.exe 按 OEM 代码页解析批处理，中文字面量会被当成命令执行。）
 
    ```powershell
    pwsh -NoProfile -File tools/accept-real.ps1
