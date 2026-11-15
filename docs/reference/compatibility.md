@@ -74,7 +74,7 @@ DSH-NEXT 自带的实例 / profile 切换**只隔离插件系统**（`plugins/`�
 | 进程命令行含 `--user-data-dir=<home>\electron-user-data`（gpu/renderer）或 `<home>\profiles\desktop`（host） | `scan.rs` | 同上 |
 | 安全模式：命令行含 `--next-safe-mode`，或 userData 落在 `electron-user-data\safe-mode` | `scan.rs` | 安全模式徽标与提示条失效 |
 | `versions\<tag>` 链接指向的安装树被原地升级后，`app.asar!/package.json.version` 才是真实版本 | `versions.rs`（`reconcile`） | 不跟随 → 版本页显示旧版本号、在线列表认不出「已安装」、实例版本字段停在旧号 |
-| 定位文件与 last-home 的根 = `app.getPath('appData')` 下的 `DSH NEXT\home`（`lib/main.js:3030`/`5681`） | `launcher.rs`（`isolateAppData` 实验位） | 若上游改走别的根，私有 `%APPDATA%` 就不被采用：实例内重启仍串台（不致命，指针兜底照旧生效） |
+| 定位文件与 last-home 的根 = `app.getPath('appData')` 下的 `DSH NEXT\home`（`lib/main.js:3030`/`5681`） | `launcher.rs`（`isolateAppData` 实验位） | **2.0.23-next 实测：`app.getPath('appData')` 不跟随 `APPDATA` 环境变量**（私有目录为空），该实验位无效、保持关闭；实例内重启仍串台 |
 
 > 这些契约都是从 `app.asar` 的 `lib/main.js` 与实跑命令行取证得到的，不是猜测。
 > 取证过程见 [../experience/02-进程扫描.md](../experience/02-进程扫描.md)、

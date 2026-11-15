@@ -83,12 +83,11 @@ src-tauri/src/
 
 **已知限制**：指针是全局唯一的。DSH-NEXT 的"重启"会重新读它，所以在 DSH 内部重启非默认实例会落到默认环境；重启请用启动器的「重启 ▾」。
 
-**实验位（默认关闭）**：`Config.isolateAppData = true` 时，启动器还额外给子进程一份私有
+**实验位（默认关闭，已实测无效）**：`Config.isolateAppData = true` 时，启动器会给子进程一份私有
 `%APPDATA%`（`<数据目录>\appdata\<id>`）并注入 `DSH_DESKTOP_NEXT_HOME=<home>`。上游把定位文件与
-last-home 放在 `app.getPath('appData')` 下（`lib/main.js:3030` / `5681`），所以只要 Electron 认这个
-环境变量，实例内重启就会读到自己那份指针，串台消失。指针仍照写做兜底。是否生效要在真机上判定：
-`tools/accept-real.ps1` 的 A8 会检查私有目录里是否出现 `desktop-next-last-home.json`。
-取证与后续动作见 `docs-private/decision-appdata.md`。
+last-home 放在 `app.getPath('appData')` 下（`lib/main.js:3030` / `5681`），本来希望借此让实例内有
+自己的指针。**2026-11-15 实机判定：上游不跟随 `APPDATA`**（私有目录为空，实例仍读全局定位文件），
+因此这条路线在当前版本不可用，开关保持关闭；取证见 `docs-private/decision-appdata.md`。
 
 ## 并发模型
 
