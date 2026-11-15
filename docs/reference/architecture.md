@@ -16,6 +16,7 @@ src-tauri/src/
 ├── update.rs       # 启动器自身更新检查（只提示，不下载；与目录共用加速前缀）
 ├── asar.rs         # 最小 asar 读取（package.json）
 ├── guard.rs        # 删除安全网（盘根/系统目录/默认环境）
+├── ipc.rs          # 实例注册表（ipc\instances.json，给 1.2 的插件只读）
 ├── perm.rs         # 权限探测与提权重启
 ├── errors.rs       # 错误码与中文文案
 ├── model.rs        # 序列化结构（Config/Instance/RunningInfo/LaunchStatus…）

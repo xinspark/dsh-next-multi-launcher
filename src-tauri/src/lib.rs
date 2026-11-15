@@ -7,6 +7,7 @@ pub mod commands;
 pub mod discover;
 pub mod errors;
 pub mod guard;
+pub mod ipc;
 pub mod launcher;
 pub mod model;
 pub mod perm;

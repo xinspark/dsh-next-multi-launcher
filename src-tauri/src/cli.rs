@@ -75,7 +75,38 @@ pub fn run_if_requested() -> Option<i32> {
         "--discover" => Some(discover()),
         "--check-update" => Some(check_update()),
         "--catalog" => Some(catalog(args.get(1).map(String::as_str).unwrap_or("next"))),
+        "--ipc-write" => Some(ipc_write()),
         _ => None,
+    }
+}
+
+/// 按当前实例与运行态写一次实例注册表（插件读的就是这个文件）。
+///
+/// GUI 会周期性写（W1b）；这条给联调与排障用：不用开窗口，也能拿到一份真实注册表。
+fn ipc_write() -> i32 {
+    let (store, _cfg, _pointer) = load_shared();
+    let path = crate::ipc::registry_path(&store.data_dir);
+    let registry = crate::ipc::build(
+        &store.list_instances(),
+        &crate::scan::scan_running(),
+        std::process::id(),
+        env!("CARGO_PKG_VERSION"),
+    );
+    match crate::ipc::write(&path, &registry) {
+        Ok(()) => {
+            emit!(
+                "{}",
+                serde_json::to_string_pretty(&registry).unwrap_or_default()
+            );
+            0
+        }
+        Err(err) => {
+            emit!(
+                "{}",
+                json!({"ok": false, "code": err.code, "error": err.to_string()})
+            );
+            1
+        }
     }
 }
 

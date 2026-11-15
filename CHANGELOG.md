@@ -18,6 +18,12 @@
   且指针未动 → 优雅停 / 强制停 → 无残留 → 指针文件逐字节复原、测试实例与 home 已删）固化成
   一条命令；剩下的"两个窗口、无「数据目录与上次不同」弹框、重启菜单"仍是人眼项，脚本结束时会列出来。
   末尾的 A8 顺带判定"上游认不认私有 `%APPDATA%`"。
+- **实例注册表 `ipc\\instances.json`（1.2 地基，W1a）**：启动器是唯一知道全部实例的进程，
+  插件是唯一知道会话归属的一方，两者之间只走这个文件（不开端口、不开服务）。
+  结构见 `docs/reference/data-format.md` §6；组装是纯函数（`ipc::build`），落盘原子写、
+  按 id 排序、大小写与尾斜杠不敏感的 home 比较，6 项单测覆盖。
+  `--ipc-write` 可不开窗口写一份真实注册表（联调/排障用）。周期写（W1b）与插件（W2）见
+  `docs-private/plan-1.2-work-protocol.md`。
 - **`isolateAppData` 实验位（默认关闭）**：给每个实例一份私有 `%APPDATA%`
   （`<数据目录>\appdata\<id>`）并注入 `DSH_DESKTOP_NEXT_HOME=<home>`。上游把定位文件与
   last-home 放在 `app.getPath('appData')` 下（`lib/main.js:3030` / `5681`），**如果** Electron

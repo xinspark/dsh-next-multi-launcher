@@ -111,3 +111,45 @@ versions\
 
 按天滚动，追加写。包含：启动参数、版本扫描、指针写入/还原、实例操作、错误详情。
 报告问题请附最后 30 行（并脱敏用户名）。
+
+## 6. 实例注册表 `ipc\instances.json`
+
+**谁写**：启动器（唯一知道全部实例的进程）。**谁读**：1.2 的 `DSH-NUL` 插件（只读）。
+这是两个进程之间唯一的通道——不开端口、不开服务，只走文件。
+
+```jsonc
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-15T09:18:12+08:00",
+  "launcher": { "pid": 35936, "version": "1.1.3" },
+  "instances": [
+    {
+      "id": "nul-a",
+      "name": "自用",
+      "home": "C:\\Users\\FXS\\.dsh-nul-a",
+      "version": "2.0.23-next",
+      "archived": false,
+      "shellPid": 23792,
+      "hostPid": 28844,
+      "startedAt": 1794700061,
+      "safeMode": false,
+      "lastLaunchAt": "2026-11-15T07:47:42+08:00"
+    }
+  ]
+}
+```
+
+规则：
+
+- **camelCase**；`schemaVersion` 变化才算破坏性变化，新增字段一律可选，读方容忍未知字段；
+- **按 `id` 升序**，同一时刻同样的输入产出逐字节相同的内容；
+- **归档实例照样列出**（`archived: true`），插件才知道那个 home 属于谁；
+- 没在运行的实例不带 `shellPid` / `hostPid` / `startedAt`；
+- **原子写**（同目录 tmp → rename），读方永远看不到半截 JSON；
+- `launcher.pid` 是心跳的替代品：进程不在了，插件据此显示"协调未启用"。
+
+生成方式（排障/联调用，不开窗口）：
+
+```powershell
+.\DSH-NEXT-Multi.exe --ipc-write      # 写一次并把内容打到 stdout
+```

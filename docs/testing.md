@@ -9,7 +9,7 @@
 
 ## 1. 自动化测试
 
-### 1.1 单元测试（78 项）
+### 1.1 单元测试（84 项）
 
 ```powershell
 cargo test --manifest-path src-tauri/Cargo.toml
@@ -26,12 +26,13 @@ cargo test --manifest-path src-tauri/Cargo.toml
 | `guard` | 盘根 / 默认 home / `%USERPROFILE%` / 上级目录 / `..` / 数据目录 / 大小写不敏感 |
 | `discover` | `\\?\` 前缀剥离、UNC 还原、路径大小写不敏感比较、同目录只保留首次来源 |
 | `util` | 路径规范化、原子写无残留 tmp、大小写不敏感比较 |
+| `ipc`（1.2 地基） | 注册表组装（运行态 / 归档 / 安全模式回落）、home 大小写与尾斜杠不敏感、按 id 排序、JSON 往返 camelCase、原子写后目录无残留 |
 
 实测：
 
 ```
-running 78 tests
-test result: ok. 78 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+running 84 tests
+test result: ok. 84 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 ```
 
 ### 1.2 端到端（替身进程，19 项断言）
