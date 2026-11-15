@@ -94,7 +94,7 @@ DSH-NEXT 自带的实例 / profile 切换**只隔离插件系统**（`plugins/`�
 
 ```powershell
 # 1) 在对新版本的 app.asar 上重新抽取 token（安装目录不在默认位置时要显式给 --asar）
-node tools/extract-tokens.mjs --asar "E:\FXS\APP\DSH NEXT\resources\app.asar" `
+node tools/extract-tokens.mjs --asar "<安装目录>\resources\app.asar" `
   --out design/tokens.lock.json --css src/styles/tokens.css
 # 2) 看差异：新增/删除的变量在 design/controls.md（带 pkg/file:符号 来源）；
 #    删除的变量若被 src/styles/*.css 直接引用，门禁会当场报出来
