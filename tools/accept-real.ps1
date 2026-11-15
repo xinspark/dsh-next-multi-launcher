@@ -73,6 +73,25 @@ function Get-RunningHomes($status) {
   return @($status.running | ForEach-Object { $_.home })
 }
 
+# Error code out of either shape the CLI emits: `{"ok":false,"error":"E1003 ..."}` (a string,
+# used when the launch is rejected up front) or `{"error":{"code":"E1003",...}}` (the status
+# envelope). Reading `.error.code` straight off the string shape yields $null and makes a
+# perfectly good E1003 look like a failure.
+function Get-ErrorCode($res) {
+  if ($null -eq $res -or $null -eq $res.error) { return '' }
+  $e = $res.error
+  if ($e -is [string]) {
+    if ($e -match '(E10\d\d)') { return $Matches[1] }
+    return ''
+  }
+  if ($e.code) { return [string]$e.code }
+  return ''
+}
+
+# NOTE for future edits: do not assign to $home, $host, $input, $args, $pid, $profile, $matches,
+# $this, $sender, $event -- those are PowerShell automatic variables and assigning them either
+# fails at runtime ("read-only variable") or silently shadows the real one. `$home` bit us once.
+
 function Normalize([string]$p) {
   if (-not $p) { return '' }
   return ($p -replace '/', '\').TrimEnd('\').ToLowerInvariant()
@@ -173,14 +192,14 @@ $homeA = Join-Path $homesDir 'a'
 $homeB = Join-Path $homesDir 'b'
 
 foreach ($pair in @(@($instA, 'A', $homeA), @($instB, 'B', $homeB))) {
-  $id = $pair[0]; $label = $pair[1]; $home = $pair[2]
-  New-Item -ItemType Directory -Force -Path $home | Out-Null
+  $id = $pair[0]; $label = $pair[1]; $homePath = $pair[2]
+  New-Item -ItemType Directory -Force -Path $homePath | Out-Null
   $body = [ordered]@{
     schemaVersion = 1
     id = $id
     name = "accept-$label"
     version = $tag
-    home = $home
+    home = $homePath
     archived = $false
     createdAt = (Get-Date).ToString('o')
     lastLaunchAt = $null
@@ -220,7 +239,7 @@ $pointerBeforeDup = if (Test-Path $pointerPath) { Get-Content $pointerPath -Raw 
 $exit = Invoke-Cli @('--e2e-launch', $instA) $cliOut
 $dup = Get-CliJson $cliOut
 $pointerAfterDup = if (Test-Path $pointerPath) { Get-Content $pointerPath -Raw } else { $null }
-$code = if ($dup -and $dup.error) { $dup.error.code } else { '' }
+$code = Get-ErrorCode $dup
 Write-Check 'A3 duplicate launch rejected E1003' ($code -eq 'E1003') ("code=$code")
 Write-Check 'A3 pointer untouched by the rejected launch' ($pointerBeforeDup -eq $pointerAfterDup) ''
 
@@ -263,22 +282,32 @@ New-Item -ItemType Directory -Force -Path $homeIso | Out-Null
 try {
   $cfgObj = $cfgBeforeA8 | ConvertFrom-Json
   $cfgObj | Add-Member -NotePropertyName isolateAppData -NotePropertyValue $true -Force
+  # Bound the wait: if upstream IGNORES the private APPDATA it resolves the global pointer,
+  # sees "a different data directory than last time" and raises a modal -- the launch then only
+  # ends by the timeout. 30s keeps that from turning into a two-minute stall.
+  $cfgObj | Add-Member -NotePropertyName launchTimeoutSec -NotePropertyValue 30 -Force
   $cfgObj | ConvertTo-Json -Depth 8 | Set-Content -Path $cfgPath -Encoding utf8
 
   $null = Invoke-Cli @('--e2e-launch', $idIso) $cliOut
   $iso = Get-CliJson $cliOut
   Write-Check 'A8 隔离模式仍能启动' ([bool]$iso.ok -and $iso.phase -eq 'running') ("phase={0}" -f $iso.phase)
   $privateAppData = Join-Path $dataDir (Join-Path 'appdata' $idIso)
-  $stamp = $null
+  # Discriminator: a normal launch writes "desktop-next-last-home.json" next to the location file
+  # (upstream confirmDataDirectory -> rememberLaunchDirectory). If Electron honoured our private
+  # APPDATA, that file lands INSIDE this dir; if it ignored the variable, the global location file
+  # was used instead and this dir stays empty. Note the launch itself succeeds either way -- the
+  # launcher also writes the global pointer as a fallback, so "started ok" proves nothing here.
+  $found = @()
   if (Test-Path $privateAppData) {
-    $stamp = Get-ChildItem -Path $privateAppData -Recurse -Filter 'desktop-next-last-home.json' -ErrorAction SilentlyContinue |
-      Select-Object -First 1
+    $found = @(Get-ChildItem -Path $privateAppData -Recurse -File -ErrorAction SilentlyContinue)
   }
+  $stamp = $found | Where-Object { $_.Name -eq 'desktop-next-last-home.json' } | Select-Object -First 1
   if ($stamp) {
     Write-Check 'A8 上游认私有 APPDATA（重启串台可在实例内自愈）' $true $stamp.FullName
   } else {
-    Write-Host ('INFO  A8 上游没有在私有 APPDATA 下落定位文件 -- 该版本忽略 APPDATA 环境变量，' +
-      '重启仍走全局指针；isolateAppData 保持关闭。') -ForegroundColor Yellow
+    $detail = if ($found.Count -gt 0) { '只写了 ' + ($found.Count) + ' 个文件：' + (($found | Select-Object -First 3 -ExpandProperty Name) -join ', ') } else { '目录为空' }
+    Write-Host ('INFO  A8 上游没有在私有 APPDATA 下落定位文件（{0}）-- 它读的仍是全局定位文件，' -f $detail) -ForegroundColor Yellow
+    Write-Host '      实例内重启仍会落到全局指针；isolateAppData 保持关闭。' -ForegroundColor Yellow
   }
   $null = Invoke-Cli @('--e2e-stop', $idIso, '--force') $cliOut
 } finally {
@@ -301,7 +330,9 @@ if (-not $Keep) {
 }
 $pointerAfter = if (Test-Path $pointerPath) { Get-Content $pointerPath -Raw } else { $null }
 Write-Check 'A6 pointer file identical to its original text' ($pointerAfter -eq $pointerBefore) ''
-Write-Check 'A6 test instances removed' (-not (Test-Path (Join-Path $instancesDir "$instA.json"))) ''
+if (-not $Keep) {
+  Write-Check 'A6 test instances removed' (-not (Test-Path (Join-Path $instancesDir "$instA.json"))) ''
+}
 
 # ------------------------------------------------------------------ summary
 
