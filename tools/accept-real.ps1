@@ -62,10 +62,26 @@ function Get-CliJson([string]$outFile) {
 function Invoke-Cli([string[]]$cliArgs, [string]$outFile) {
   if (Test-Path $outFile) { Remove-Item $outFile -Force }
   $env:DSH_MULTI_CLI_OUT = $outFile
-  # The release exe is a GUI-subsystem binary: `& exe` does not wait and $LASTEXITCODE stays
-  # stale, which made this script read a report file the launcher had not written yet.
-  $p = Start-Process -FilePath $Exe -ArgumentList $cliArgs -NoNewWindow -Wait -PassThru
+  # Do NOT use `Start-Process -Wait` here: on Windows it waits for the whole process TREE, and
+  # this CLI deliberately leaves the launched DSH-NEXT running, so the wait never returns
+  # (real hang, 2026-11-15: A1 fine, then silence while the test window stayed open).
+  # A raw Process with WaitForExit(ms) waits for that one process only, with a timeout.
+  $psi = New-Object System.Diagnostics.ProcessStartInfo
+  $psi.FileName = $Exe
+  $psi.Arguments = (($cliArgs | ForEach-Object { if ($_ -match '\s') { '"' + $_ + '"' } else { $_ } }) -join ' ')
+  $psi.UseShellExecute = $false
+  $psi.WorkingDirectory = Split-Path -Parent $Exe
+  $p = [System.Diagnostics.Process]::Start($psi)
+  if (-not $p.WaitForExit(300000)) {
+    try { $p.Kill($true) } catch { }
+    Write-Host '  (CLI did not exit within 300s -- killed)' -ForegroundColor Red
+    return -1
+  }
   return $p.ExitCode
+}
+
+function Write-Step([string]$message) {
+  Write-Host ("-- {0}" -f $message) -ForegroundColor Cyan
 }
 
 function Get-RunningHomes($status) {
@@ -180,6 +196,19 @@ if ($script:FAIL -gt 0) {
 
 $instancesDir = Join-Path $dataDir 'instances'
 New-Item -ItemType Directory -Force -Path $instancesDir | Out-Null
+
+# 上一轮如果被 Ctrl-C / 卡住，测试实例的窗口可能还开着、json 也还在（同 home 再启动会
+# E1003）。这里先清一遍，保证这套验收可以反复跑而不用手工收拾。
+foreach ($leftover in 'accept-a', 'accept-b', 'accept-iso') {
+  if (Test-Path (Join-Path $instancesDir "$leftover.json")) {
+    $null = Invoke-Cli @('--e2e-stop', $leftover, '--force') $cliOut
+    Remove-Item (Join-Path $instancesDir "$leftover.json") -Force -ErrorAction SilentlyContinue
+    Write-Host ("INFO  A0 清理上一轮残留：{0}" -f $leftover) -ForegroundColor Yellow
+  }
+}
+Remove-Item (Join-Path $dataDir 'appdata\accept-iso') -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item $homesDir -Recurse -Force -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Force -Path $homesDir | Out-Null
 # Prefer a registration whose tag matches the version inside app.asar; a stale link still
 # launches fine, but the tag is what instances reference, so prefer the reconciled one.
 $current = @($validVersions | Where-Object { $_.shell -ne '?' -and $_.tag -eq $_.shell })
@@ -212,6 +241,7 @@ foreach ($pair in @(@($instA, 'A', $homeA), @($instB, 'B', $homeB))) {
 
 # ------------------------------------------------------------------ A1 launch A
 
+Write-Step "A1 launching $instA (a DSH-NEXT window will appear)"
 $exit = Invoke-Cli @('--e2e-launch', $instA) $cliOut
 $res = Get-CliJson $cliOut
 $running = Get-RunningHomes $res
@@ -225,6 +255,7 @@ Write-Check 'A4 last-home synced with pointer' ((Normalize $lastHomeA) -eq (Norm
 
 # ------------------------------------------------------------------ A2 launch B concurrently
 
+Write-Step "A2 launching $instB"
 $exit = Invoke-Cli @('--e2e-launch', $instB) $cliOut
 $res = Get-CliJson $cliOut
 $running = Get-RunningHomes $res
@@ -235,6 +266,7 @@ Write-Check 'A2 both homes running at once' ($hasA -and $hasB) ("A={0} B={1}" -f
 
 # ------------------------------------------------------------------ A3 duplicate home rejected
 
+Write-Step "A3 launching $instA again (expect E1003)"
 $pointerBeforeDup = if (Test-Path $pointerPath) { Get-Content $pointerPath -Raw } else { $null }
 $exit = Invoke-Cli @('--e2e-launch', $instA) $cliOut
 $dup = Get-CliJson $cliOut
@@ -245,10 +277,12 @@ Write-Check 'A3 pointer untouched by the rejected launch' ($pointerBeforeDup -eq
 
 # ------------------------------------------------------------------ A5 stop
 
+Write-Step "A5 stopping $instA gracefully (up to 15s)"
 $exit = Invoke-Cli @('--e2e-stop', $instA) $cliOut
 $stopA = Get-CliJson $cliOut
 Write-Check 'A5 graceful stop A' ([bool]$stopA.stopped) ("needsForce={0} pid={1}" -f $stopA.needsForce, $stopA.pid)
 
+Write-Step "A5 force-stopping $instB"
 $exit = Invoke-Cli @('--e2e-stop', $instB, '--force') $cliOut
 $stopB = Get-CliJson $cliOut
 Write-Check 'A5 forced stop B' ([bool]$stopB.stopped) ("pid={0}" -f $stopB.pid)
@@ -288,6 +322,7 @@ try {
   $cfgObj | Add-Member -NotePropertyName launchTimeoutSec -NotePropertyValue 30 -Force
   $cfgObj | ConvertTo-Json -Depth 8 | Set-Content -Path $cfgPath -Encoding utf8
 
+  Write-Step "A8 launching $idIso with a private APPDATA (one more window)"
   $null = Invoke-Cli @('--e2e-launch', $idIso) $cliOut
   $iso = Get-CliJson $cliOut
   Write-Check 'A8 隔离模式仍能启动' ([bool]$iso.ok -and $iso.phase -eq 'running') ("phase={0}" -f $iso.phase)
