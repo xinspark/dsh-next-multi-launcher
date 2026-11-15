@@ -49,8 +49,21 @@ $script:PASS = 0
 $script:FAIL = 0
 $failures = New-Object System.Collections.Generic.List[string]
 
-function Write-Check([string]$name, [bool]$ok, [string]$detail) {
-  if ($ok) { $script:PASS++; Write-Host ("PASS  {0}{1}" -f $name, $(if ($detail) { " -- $detail" } else { '' })) }
+# `$ok` is intentionally untyped: callers pass booleans, but also the result of
+# `$list | Where-Object { ... }` (a string, or an array, or $null). Parameter binding refuses
+# to convert String -> [bool] at the call site ("布尔参数只接受布尔值和数字"), which killed a run
+# right after A1 succeeded. Coerce here, once: empty/null = fail, anything non-empty = pass.
+function Write-Check([string]$name, $ok, [string]$detail) {
+  $pass = if ($null -eq $ok) {
+    $false
+  } elseif ($ok -is [bool]) {
+    $ok
+  } elseif ($ok -is [string]) {
+    -not [string]::IsNullOrWhiteSpace($ok)
+  } else {
+    @($ok).Count -gt 0
+  }
+  if ($pass) { $script:PASS++; Write-Host ("PASS  {0}{1}" -f $name, $(if ($detail) { " -- $detail" } else { '' })) }
   else { $script:FAIL++; $failures.Add($name); Write-Host ("FAIL  {0}{1}" -f $name, $(if ($detail) { " -- $detail" } else { '' })) -ForegroundColor Red }
 }
 
@@ -66,17 +79,28 @@ function Invoke-Cli([string[]]$cliArgs, [string]$outFile) {
   # this CLI deliberately leaves the launched DSH-NEXT running, so the wait never returns
   # (real hang, 2026-11-15: A1 fine, then silence while the test window stayed open).
   # A raw Process with WaitForExit(ms) waits for that one process only, with a timeout.
+  #
+  # stdout/stderr are piped and drained asynchronously: the CLI prints its full JSON report to
+  # stdout, which is unreadable noise next to the PASS/FAIL lines (the same report is written to
+  # $outFile, which is what this script reads). Draining, rather than leaving the pipe unread,
+  # avoids the classic pipe-buffer deadlock.
   $psi = New-Object System.Diagnostics.ProcessStartInfo
   $psi.FileName = $Exe
   $psi.Arguments = (($cliArgs | ForEach-Object { if ($_ -match '\s') { '"' + $_ + '"' } else { $_ } }) -join ' ')
   $psi.UseShellExecute = $false
   $psi.WorkingDirectory = Split-Path -Parent $Exe
+  $psi.RedirectStandardOutput = $true
+  $psi.RedirectStandardError = $true
   $p = [System.Diagnostics.Process]::Start($psi)
+  $outTask = $p.StandardOutput.ReadToEndAsync()
+  $errTask = $p.StandardError.ReadToEndAsync()
+  $script:lastCliOutput = ''
   if (-not $p.WaitForExit(300000)) {
     try { $p.Kill($true) } catch { }
     Write-Host '  (CLI did not exit within 300s -- killed)' -ForegroundColor Red
     return -1
   }
+  try { $script:lastCliOutput = ($outTask.Result + $errTask.Result).Trim() } catch { }
   return $p.ExitCode
 }
 
