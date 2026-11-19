@@ -1,6 +1,6 @@
 {
   "name": "dsh-next-multi-launcher",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "DSH-NEXT 应用多开启动器 / DSH-NEXT Multi-Launcher",
   "type": "module",
   "scripts": {
@@ -9,8 +9,7 @@
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "tauri": "tauri",
-    "tokens": "node tools/extract-tokens.mjs --out design/tokens.lock.json",
-    "tokens:css": "node tools/extract-tokens.mjs --out design/tokens.lock.json --css src/styles/tokens.css",
+    "tokens": "node tools/extract-tokens.mjs --out design/tokens.lock.json --css src/styles/tokens.css",
     "verify": "node tools/verify-tokens.mjs",
     "lint:css": "node tools/lint-css.mjs",
     "check:topbar": "node tools/check-topbar.mjs",

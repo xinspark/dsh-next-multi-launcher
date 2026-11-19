@@ -233,6 +233,17 @@ M2 的一处说明：在受限会话里 `sysinfo` 只能看到本作业内的进
    （01:48 / 02:53 / 06:12 / 07:43，日志 `launcher-20261115.log`，每次 1.3 s 左右起窗口）；
    维护者确认使用正常。**覆盖范围**：多开、启动/停止/重启、指针按 home 归属。
 
+   **实机记录（2026-11-19，跟随 DSH-NEXT 升级）**：安装态 v1.1.4 + DSH-NEXT `2.0.24-next` /
+   内核 `0.2.2-rc.5`（安装树原地升级，`versions\2.0.23-next` 链接名未改）。2 个实例并行运行
+   （08:43 前后启动）；命令行仍是 `--user-data-dir=<home>\electron-user-data` 与
+   `--expose-internals … <home>\profiles\desktop`，`--e2e-status` 反推出两个 home 且
+   `versions` 读到 `shell 2.0.24-next` / `kernel 0.2.2-rc.5`；启动后指针与 last-home 均为
+   `{"home": "C:\\Users\\FXS\\.dsh"}`。**覆盖范围**：升级后启动与进程归属判定仍成立。
+   随后重启启动器，`reconcile` 当场把链接改名为 `versions\2.0.24-next`，并把 7 个实例的
+   版本字段一并从 `2.0.23-next` 回填为 `2.0.24-next`（现场核实，见 `--e2e-status` 的
+   `staleVersions` 为空）。限制：这段是在受限会话里读进程（见 §2 对 `sysinfo` 的说明），
+   窗口、弹框仍是人眼项。
+
    **实机记录（2026-11-15 晚，`accept-real.ps1` 首轮，18/20）**：
 
    | 断言 | 结果 |

@@ -6,9 +6,11 @@
 // 同时把可复用的原生片段原样复制到 design/parts/（逐份算 sha256），并生成 controls.md。
 //
 // 用法：
-//   node tools/extract-tokens.mjs --out design/tokens.lock.json [--parts design/parts]
-//                                 [--controls design/controls.md] [--css src/styles/tokens.css]
+//   pnpm tokens                                                   # = 下面这条（--css 不能省，否则 lock 缺 generatedCss，门禁会 FAIL）
+//   node tools/extract-tokens.mjs --out design/tokens.lock.json [--parts design/parts] [--css src/styles/tokens.css]
+//                                 [--controls design/controls.md]
 //                                 [--asar "<DSH-NEXT 安装目录>\\resources\\app.asar"]
+//   未知参数直接报错退出：本工具每跑一次就重写基线，静默忽略等于用错参数覆盖。
 //
 // 约等于（验收）：两次运行输出逐字节相同 —— 所以本文件不写时间戳、全量排序、只写下确定性内容。
 
@@ -61,7 +63,19 @@ function parseArgs(argv) {
   return out;
 }
 
+const KNOWN_FLAGS = new Set(['asar', 'out', 'parts', 'controls', 'css']);
+
 const args = parseArgs(process.argv.slice(2));
+// 未知参数直接报错：这里每跑一次就重写 lock / controls / css，
+// 静默忽略（例如误写成 --check）等于用错参数覆盖基线。
+const unknown = Object.keys(args).filter((k) => k !== '_' && !KNOWN_FLAGS.has(k));
+if (unknown.length > 0) {
+  console.error(
+    `[tokens] 未知参数：${unknown.map((k) => `--${k}`).join(' ')}；` +
+      `可用：${[...KNOWN_FLAGS].map((k) => `--${k}`).join(' ')}`,
+  );
+  process.exit(2);
+}
 const asarPath = args.asar ?? DEFAULT_ASAR;
 if (!asarPath) {
   console.error('[tokens] 找不到 DSH-NEXT 的 app.asar：请用 --asar <路径> 或设置 DSH_ASAR');

@@ -26,12 +26,31 @@
 
 | 壳版本 | 内核（`@deepseek-ai/dsh`） | 结果 | 验证方式 |
 |---|---|---|---|
+| `2.0.24-next` | `0.2.2-rc.5` | ✅ 通过 | 契约逐条核对 + asar 版本读取 + token 重抽 1249 个（值与 2.0.23 逐项相同）+ 真实 2.0.24 实例的进程归属反推；单测 84 项 |
 | `2.0.23-next` | `0.2.2-rc.3` | ✅ 通过 | 契约逐条核对 + token 重抽取（1249 个）+ 单测 78 项；真机多开待验收 |
 | `2.0.22-next` | `0.2.2-rc.1` | ✅ 通过 | 契约逐条核对 + token 重抽取（1191 个）+ 单测 78 项 |
 | `2.0.21-next` | `0.2.1-rc.4` | ✅ 完整通过 | [../testing.md](../testing.md) |
 | `2.0.20-next` | `0.2.0-rc.9` | ✅ 版本扫描 | 单测 `versions::tests::scans_and_marks_invalid` |
 
 其它版本**未经验证**。升级 DSH-NEXT 后请按下方"如何适配新版本"重新跑一遍。
+
+### 2.0.24 这一版动了什么（与启动器相关的部分）
+
+| 变化 | 对启动器的影响 |
+|---|---|
+| 内核 `0.2.2-rc.3` → `0.2.2-rc.5` | 无接口变化；插件侧自行适配 |
+| 指针、`desktop-next-last-home.json`、`DSH_DESKTOP_NEXT_HOME` 的优先级、数据目录确认框 | 逐条复核后**均未变化**（`lib/main.js:3583` 定义、`:6281`/`:7710` 调用点），启动器无需改代码；`rememberDataDirectory` 是原 `rememberLaunchDirectory` 的位置，语义相同（同一 home 早退、内容 `{"home": …}`） |
+| host 启动参数仍是 `--expose-internals … <home>\profiles\desktop`（多了 `--max-http-header-size=65536`） | `scan.rs` 只认 `--expose-internals` + `\profiles\`，不受新增参数影响 |
+| 单实例锁仍按 `userData = <home>\electron-user-data` 分配 | 独立 home 的实例互不抢锁，多开前提不变 |
+| `app.asar` 索引 28904 → 28922 条（`lib/native-ui/assets/index-*.css` 改名） | `asar.rs` 头解析照常读出壳/内核版本（实测 `2.0.24-next` / `0.2.2-rc.5`） |
+| 设计 token 仍 1249 个、值**逐项相同** | 只需把 asar 指纹（sha256、条目数、源文件名）推回 `design/tokens.lock.json`、`src/styles/tokens.css`、`design/controls.md` |
+
+另外两处本次复核看到、但**不改变适配结论**的行为：
+
+- 从高完整性上下文启动时，主进程会自行降权重启（命令行出现 `--next-de-elevated`）。启动成功的判据是
+  「该 home 出现进程」而不是 pid 或父子关系，所以降权重启不影响判定——2.0.24 的两个在线实例即是实证。
+- 上游有低完整性启动拦截（`lowIntegrityAtStartup`，低 IL 下弹框并 `app.exit(1)`）：启动器本身不降低完整性，
+  常规使用碰不到；在低完整性宿主里拉起 DSH-NEXT 会被上游直接拒绝。
 
 ### 2.0.23 这一版动了什么（与启动器相关的部分）
 
@@ -74,26 +93,28 @@ DSH-NEXT 自带的实例 / profile 切换**只隔离插件系统**（`plugins/`�
 | 进程命令行含 `--user-data-dir=<home>\electron-user-data`（gpu/renderer）或 `<home>\profiles\desktop`（host） | `scan.rs` | 同上 |
 | 安全模式：命令行含 `--next-safe-mode`，或 userData 落在 `electron-user-data\safe-mode` | `scan.rs` | 安全模式徽标与提示条失效 |
 | `versions\<tag>` 链接指向的安装树被原地升级后，`app.asar!/package.json.version` 才是真实版本 | `versions.rs`（`reconcile`） | 不跟随 → 版本页显示旧版本号、在线列表认不出「已安装」、实例版本字段停在旧号 |
-| 定位文件与 last-home 的根 = `app.getPath('appData')` 下的 `DSH NEXT\home`（`lib/main.js:3030`/`5681`） | `launcher.rs`（`isolateAppData` 实验位） | **2.0.23-next 实测：`app.getPath('appData')` 不跟随 `APPDATA` 环境变量**（私有目录为空），该实验位无效、保持关闭；实例内重启仍串台 |
+| 定位文件与 last-home 的根 = `app.getPath('appData')` 下的 `DSH NEXT\home`（`lib/main.js:3583` 定义、`:6281` 调用） | `launcher.rs`（`isolateAppData` 实验位） | **2.0.23-next 实测：`app.getPath('appData')` 不跟随 `APPDATA` 环境变量**（私有目录为空），该实验位无效、保持关闭；实例内重启仍串台 |
 
 > 这些契约都是从 `app.asar` 的 `lib/main.js` 与实跑命令行取证得到的，不是猜测。
 > 取证过程见 [../experience/02-进程扫描.md](../experience/02-进程扫描.md)、
 > [../experience/08-原地升级与版本号.md](../experience/08-原地升级与版本号.md)、
 > [../experience/09-数据目录确认框.md](../experience/09-数据目录确认框.md)。
 
-## 参考指纹（`2.0.23-next`）
+## 参考指纹（`2.0.24-next`）
 
 | 项 | 值 |
 |---|---|
-| `DSH NEXT.exe` 大小 | 246,521,344 B |
-| `resources\app.asar` 大小 | 273,810,296 B |
-| 设计 token 数 | 1249 |
+| `DSH NEXT.exe` 大小 | 246,522,368 B |
+| `resources\app.asar` 大小 | 273,991,626 B |
+| `app.asar` sha256 | `3bccf05a97aeb6bed3c3cc7ebe958533c0e6e4afa6c902d274776b572411aefa` |
+| 设计 token 数 | 1249（与 2.0.23 逐项相同） |
 | `design/tokens.lock.json` | 可复跑：同参数两次运行逐字节相同 |
 
 ## 如何适配新版本
 
 ```powershell
 # 1) 在对新版本的 app.asar 上重新抽取 token（安装目录不在默认位置时要显式给 --asar）
+#    pnpm tokens 已带 --out/--css；自己拼命令时 --css 不能省，否则 lock 缺 generatedCss、门禁直接 FAIL
 node tools/extract-tokens.mjs --asar "<安装目录>\resources\app.asar" `
   --out design/tokens.lock.json --css src/styles/tokens.css
 # 2) 看差异：新增/删除的变量在 design/controls.md（带 pkg/file:符号 来源）；

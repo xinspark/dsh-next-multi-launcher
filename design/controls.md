@@ -2,7 +2,7 @@
 
 > 由 `tools/extract-tokens.mjs` 从 DSH-NEXT `app.asar` 自动生成，请勿手改。
 > 基线 asar：`<install>/resources/app.asar`
-> asar sha256：`003b66e87e2e7f78b4e05d3ac9a5ffce4c54a62efca87495b9a0fec075ae18eb`
+> asar sha256：`3bccf05a97aeb6bed3c3cc7ebe958533c0e6e4afa6c902d274776b572411aefa`
 
 ## 1. 圆角刻度
 

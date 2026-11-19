@@ -5,6 +5,26 @@
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.1.5] - 2026-11-19
+
+### 变更
+
+- **适配 DSH-NEXT `2.0.24-next` / 内核 `0.2.2-rc.5`**：指针、`desktop-next-last-home.json`、
+  `DSH_DESKTOP_NEXT_HOME` 优先级、数据目录确认框、`--next-safe-mode`、host 启动参数、单实例锁
+  逐条复核后**均未变化，无需改代码**。设计 token 仍 1249 个且值逐项相同，只把 asar 指纹
+  （sha256 `3bccf05a…`、索引 28904 → 28922 条）推回 `design/tokens.lock.json`、
+  `src/styles/tokens.css`、`design/controls.md`。实测：真实 2.0.24 实例的命令行仍能被 `scan.rs`
+  反推出 home，`--e2e-status` 读到 `shell 2.0.24-next` / `kernel 0.2.2-rc.5`。
+  版本树是原地升级的，`versions\2.0.24-next` 由启动时的 `reconcile` 自动改名并回填实例版本字段。
+
+### 修复
+
+- `tools/extract-tokens.mjs` 现在拒绝未知参数并给出可用参数表。此前写错参数（例如把核对写成
+  `--check`）会被静默忽略，然后按默认路径**覆盖** `design/tokens.lock.json` / `design/controls.md`
+  / `src/styles/tokens.css`——本轮实际踩到一次，靠 `pnpm verify` 抓到 lock 缺 `generatedCss`。
+- `pnpm tokens` 补上 `--css src/styles/tokens.css`（与 `tokens:css` 合并为一条）；少了它 lock 一定缺
+  `generatedCss`，`pnpm verify` 必 FAIL。
+
 ## [1.1.4] - 2026-11-15
 
 ### 新增

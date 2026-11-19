@@ -127,7 +127,7 @@ versions\
       "id": "nul-a",
       "name": "自用",
       "home": "C:\\Users\\FXS\\.dsh-nul-a",
-      "version": "2.0.23-next",
+      "version": "2.0.24-next",
       "archived": false,
       "shellPid": 23792,
       "hostPid": 28844,
